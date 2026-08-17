@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct SPAJAM2026TrialAppApp: App {
+    @State private var receiver = WatchHeartRateReceiver()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(receiver)
         }
     }
 }
