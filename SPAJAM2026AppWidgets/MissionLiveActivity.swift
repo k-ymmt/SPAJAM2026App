@@ -110,29 +110,32 @@ private struct MissionCard: View {
             }
             .padding(.bottom, 12)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("NEXT")
-                    .font(.caption2.weight(.bold))
+                    .font(.system(size: 10, weight: .bold))
                     .tracking(1.5)
                     .foregroundStyle(MissionPalette.accent)
 
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    NumberBadge(number: state.missionNumber, size: 24)
+                    NumberBadge(number: state.missionNumber, size: 22)
                     Text(state.missionText)
                         .font(.headline.weight(.bold))
                         .foregroundStyle(MissionPalette.ink)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                 }
                 .padding(.trailing, 80) // ミザルと重ならないように
 
                 if let map = mapImage {
+                    // できる限り縦幅を取った横長マップ(右はミザルの分だけ空ける)
                     Image(uiImage: map)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 62, height: 62)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 78)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .padding(.vertical, 2)
+                        .padding(.trailing, 80)
+                        .padding(.vertical, 1)
                 }
 
                 HStack(spacing: 10) {
@@ -141,11 +144,12 @@ private struct MissionCard: View {
                         PhotoPromptBadge()
                     }
                 }
+                .padding(.trailing, 80)
 
                 IndicatorBar(indicator: state.indicator)
             }
         }
-        .padding(14)
+        .padding(12)
     }
 
     private var mapImage: UIImage? {

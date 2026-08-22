@@ -151,7 +151,8 @@ final class TripActivityController {
         }
     }
 
-    private static let mapSize = CGSize(width: 200, height: 200)
+    /// カード内の横長マップ(幅いっぱい × 高さ 78pt 相当)に合わせたアスペクト比
+    private static let mapSize = CGSize(width: 280, height: 80)
 
     /// 目的地中心のスナップショットに、目的地ピン(ティール)と現在地ドットを描く
     private static func renderMap(target: GeoTarget, current: CLLocation?) async throws -> UIImage {
