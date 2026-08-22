@@ -47,3 +47,6 @@ iOSInjectionProject/
 
 # macOS
 .DS_Store
+
+# Secrets (API keys) — committed禁止。Secrets.sample.plist をコピーして作成する
+SPAJAM2026App/Secrets.plist
