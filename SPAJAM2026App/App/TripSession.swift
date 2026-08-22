@@ -213,6 +213,39 @@ final class TripSession {
         activityRefreshTask = nil
         locationProvider.stop()
         persist()
+        Task { await submitResultToRoomIfNeeded() }
+    }
+
+    // MARK: - 結果の共有(複数人の旅)
+
+    /// ルームに自分の結果を送信済みか(セッション内のみ。リザルト表示時に未送信なら再送する)
+    private(set) var isResultSubmitted = false
+
+    /// 自分の結果(ルーム共有用)。uid は送信時に埋める
+    var memberResult: TripMemberResult {
+        TripMemberResult(
+            id: "",
+            name: membership?.name ?? "ホスト",
+            isHost: membership?.role == .host,
+            questScore: questScore,
+            heartScore: heartScore,
+            offlineScore: offlineScore,
+            total: totalScore,
+            achievedMissionIds: records.map(\.missionId),
+            bpmBars: myBars,
+            finishedAt: tripEndedAt ?? Date()
+        )
+    }
+
+    /// 複数人の旅なら自分の結果をルームに書き込む。ひとり旅・送信済みなら何もしない
+    func submitResultToRoomIfNeeded() async {
+        guard let membership, !isResultSubmitted else { return }
+        do {
+            try await TripRoomService.shared.submitResult(code: membership.code, result: memberResult)
+            isResultSubmitted = true
+        } catch {
+            print("result submit failed: \(error)")
+        }
     }
 
     // MARK: - 位置更新(接近振動・LA 距離)
