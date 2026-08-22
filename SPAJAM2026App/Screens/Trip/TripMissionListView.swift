@@ -22,16 +22,23 @@ struct TripMissionListView: View {
                 header
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(session.plan.missions) { mission in
-                        MissionTile(mission: mission, achieved: session.isAchieved(mission))
-                            .overlay {
-                                if mission.id == session.currentMission?.id {
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .stroke(Color.orange, lineWidth: 3)
+                        Button {
+                            session.selectMission(mission)
+                            dismiss()
+                        } label: {
+                            MissionTile(mission: mission, achieved: session.isAchieved(mission))
+                                .overlay {
+                                    if mission.id == session.currentMission?.id {
+                                        RoundedRectangle(cornerRadius: 24)
+                                            .stroke(Color.orange, lineWidth: 3)
+                                    }
                                 }
-                            }
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(session.isAchieved(mission))
                     }
                 }
-                Text("オレンジ枠がいまのミッション。達成すると次に進みます")
+                Text("ミッションは好きな順番で OK。タップして挑戦するミッションを選ぼう")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)

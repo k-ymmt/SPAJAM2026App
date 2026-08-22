@@ -65,6 +65,11 @@ struct MissionCameraView: View {
             locationProvider.start()
             facing = session.currentMission?.camera ?? .back
         }
+        .onChange(of: session.currentMission?.id) { _, _ in
+            // ミッション切り替え時は撮影状態をリセット
+            capturedImage = nil
+            facing = session.currentMission?.camera ?? .back
+        }
     }
 
     private func missionHeader(_ mission: Mission) -> some View {

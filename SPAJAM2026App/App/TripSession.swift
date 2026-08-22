@@ -21,7 +21,8 @@ final class TripSession {
 
     let plan: TravelPlan
     private(set) var phase: Phase = .planning
-    private(set) var currentIndex = 0
+    /// いま挑戦中のミッション(順不同で選択可能)
+    private(set) var currentMissionId: String?
     private(set) var records: [MissionRecord] = []
     private(set) var heartRateSamples: [HeartRateSample] = []
     private(set) var isJudging = false
@@ -47,8 +48,16 @@ final class TripSession {
     }
 
     var currentMission: Mission? {
-        guard phase == .traveling, plan.missions.indices.contains(currentIndex) else { return nil }
-        return plan.missions[currentIndex]
+        guard phase == .traveling else { return nil }
+        return plan.missions.first { $0.id == currentMissionId }
+    }
+
+    /// ミッションを選んで挑戦対象を切り替える(順不同・達成済みは選べない)
+    func selectMission(_ mission: Mission) {
+        guard phase == .traveling, !records.contains(where: { $0.missionId == mission.id }) else { return }
+        currentMissionId = mission.id
+        lastFailReason = nil
+        updateActivity()
     }
 
     var totalPoints: Int { records.reduce(0) { $0 + $1.points } }
@@ -66,7 +75,7 @@ final class TripSession {
 
     func startTrip() {
         phase = .traveling
-        currentIndex = 0
+        currentMissionId = plan.missions.first?.id
         tripStartedAt = Date()
         becameActiveAt = Date()
         shield.start()
@@ -187,19 +196,25 @@ final class TripSession {
     }
 
     private func advance() {
-        if currentIndex + 1 < plan.missions.count {
-            currentIndex += 1
-            if let mission = currentMission {
-                activityController.update(
-                    mission: mission,
-                    total: plan.missions.count,
-                    distanceText: nil,
-                    bpm: heartRateReceiver.latest?.beatsPerMinute.map(Int.init)
-                )
-            }
+        let achieved = Set(records.map(\.missionId))
+        // 順序どおりの「次の未達成」を優先しつつ、無ければ先頭から探す(順不同対応)
+        let remaining = plan.missions.filter { !achieved.contains($0.id) }
+        if let next = remaining.first {
+            currentMissionId = next.id
+            updateActivity()
         } else {
             endTrip()
         }
+    }
+
+    private func updateActivity() {
+        guard let mission = currentMission else { return }
+        activityController.update(
+            mission: mission,
+            total: plan.missions.count,
+            distanceText: nil,
+            bpm: heartRateReceiver.latest?.beatsPerMinute.map(Int.init)
+        )
     }
 
     // MARK: - 心拍
