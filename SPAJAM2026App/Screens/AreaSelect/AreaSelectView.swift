@@ -28,7 +28,7 @@ struct AreaSelectView: View {
     )
     @State private var step = 1
     @State private var pin: CLLocationCoordinate2D?
-    @State private var partySize = 2
+    @State private var partySize = 1
     @State private var mood: TripMood = .relaxed
     @State private var isGenerating = false
     @State private var errorMessage: String?
@@ -180,41 +180,39 @@ struct AreaSelectView: View {
 
     /// 招待コードと参加状況
     private var inviteCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
                 Text("招待コード")
-                    .font(.handCaption)
+                    .font(.handCaption2)
                     .foregroundStyle(Color.inkSub)
-                Spacer()
                 if let roomCode {
+                    Text(roomCode)
+                        .font(.system(size: 20, weight: .bold, design: .rounded).monospacedDigit())
+                        .kerning(3)
+                        .foregroundStyle(Color.inkMain)
+                    Spacer()
                     Button {
                         UIPasteboard.general.string = roomCode
                     } label: {
-                        Label("コピー", systemImage: "doc.on.doc")
-                            .font(.handCaption)
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 14))
                     }
                     .tint(.orange)
+                } else if isCreatingRoom {
+                    Spacer()
+                    ProgressView()
+                } else if let roomError {
+                    Text(roomError)
+                        .font(.handCaption2)
+                        .foregroundStyle(.red)
                 }
-            }
-            if let roomCode {
-                Text(roomCode)
-                    .font(.system(size: 34, weight: .bold, design: .rounded).monospacedDigit())
-                    .kerning(6)
-                    .foregroundStyle(Color.inkMain)
-                    .frame(maxWidth: .infinity)
-            } else if isCreatingRoom {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-            } else if let roomError {
-                Text(roomError)
-                    .font(.handCaption)
-                    .foregroundStyle(.red)
             }
 
             let guestCapacity = partySize - 1
             let names = observer.members.map(\.name)
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Image(systemName: "person.2.fill")
+                    .font(.system(size: 11))
                     .foregroundStyle(.orange)
                 if names.isEmpty {
                     Text("参加を待っています(あと \(guestCapacity) 人)")
@@ -222,12 +220,13 @@ struct AreaSelectView: View {
                     Text(names.joined(separator: "、") + (observer.isPartyComplete ? " が参加(そろいました)" : " が参加(あと \(max(0, guestCapacity - names.count)) 人)"))
                 }
             }
-            .font(.handCaption)
+            .font(.handCaption2)
             .foregroundStyle(Color.inkSub)
         }
-        .padding(14)
-        .frame(maxWidth: .infinity)
-        .background(.white, in: RoundedRectangle(cornerRadius: 20))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white, in: RoundedRectangle(cornerRadius: 14))
     }
 
     /// 人数に応じてルームを作成/更新する。1 人なら何もしない(作成済みルームは残す)
