@@ -2,9 +2,11 @@
 //  BodyPoseCaptureView.swift
 //  SPAJAM2026App
 //
-//  POSE ミッション用: ARKit Body Tracking で骨格をリアルタイム可視化し、
-//  指定ポーズ(万歳 = 両手を頭より上)を 0.8 秒キープしたら自動撮影する。
-//  撮影後は通常の判定パイプラインに合流する。対応実機(A12 以降・背面カメラ)専用。
+//  POSE ミッション用: 2D ボディ検出(frameSemantics = .bodyDetection)で骨格を
+//  リアルタイム可視化し、指定ポーズ(万歳 = 両手を頭より上)を 0.8 秒キープしたら自動撮影する。
+//  参考: https://qiita.com/1901drama/items/58bce4a1dcea30740678 (Motion Capture 2D)
+//  frame.detectedBody の jointLandmarks(正規化画像座標)を displayTransform で
+//  ビュー座標へ変換するため、カメラ映像と骨格がズレない。
 //
 
 import ARKit
@@ -18,7 +20,9 @@ struct BodyPoseCaptureView: View {
     @State private var isPosing = false
     @State private var bodyDetected = false
 
-    static var isSupported: Bool { ARBodyTrackingConfiguration.isSupported }
+    static var isSupported: Bool {
+        ARWorldTrackingConfiguration.supportsFrameSemantics(.bodyDetection)
+    }
 
     var body: some View {
         ZStack {
@@ -84,7 +88,8 @@ private struct BodyARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARSCNView {
         let view = ARSCNView()
         view.session.delegate = context.coordinator
-        let config = ARBodyTrackingConfiguration()
+        let config = ARWorldTrackingConfiguration()
+        config.frameSemantics = .bodyDetection
         view.session.run(config)
         context.coordinator.view = view
         return view
@@ -104,7 +109,7 @@ private struct BodyARViewContainer: UIViewRepresentable {
         private var poseStartedAt: Date?
         private var captured = false
 
-        // 可視化する主要ジョイントと骨のつながり
+        // 可視化するジョイントと骨のつながり(2D スケルトン)
         private let jointNames: [ARSkeleton.JointName] = [
             .head, .leftShoulder, .rightShoulder, .leftHand, .rightHand,
             .root, .leftFoot, .rightFoot,
@@ -118,51 +123,48 @@ private struct BodyARViewContainer: UIViewRepresentable {
 
         init(parent: BodyARViewContainer) { self.parent = parent }
 
-        nonisolated func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
-            guard let body = anchors.compactMap({ $0 as? ARBodyAnchor }).first else { return }
-            Task { @MainActor in self.handle(body: body) }
+        nonisolated func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            // 正規化画像座標のままメインへ渡し、変換はメインスレッドで行う
+            guard let body = frame.detectedBody else {
+                Task { @MainActor in self.parent.bodyDetected = false }
+                return
+            }
+            var landmarks: [ARSkeleton.JointName: CGPoint] = [:]
+            for name in jointNames {
+                if let l = body.skeleton.landmark(for: name) {
+                    landmarks[name] = CGPoint(x: CGFloat(l.x), y: CGFloat(l.y))
+                }
+            }
+            // displayTransform は ARFrame から取る必要があるためここで計算
+            let viewSize = MainActor.assumeIsolated { self.view?.bounds.size } ?? .zero
+            guard viewSize != .zero else { return }
+            let transform = frame.displayTransform(for: .portrait, viewportSize: viewSize)
+            let screenPoints: [ARSkeleton.JointName: CGPoint] = landmarks.mapValues { p in
+                let normalized = p.applying(transform)
+                return CGPoint(x: normalized.x * viewSize.width, y: normalized.y * viewSize.height)
+            }
+            Task { @MainActor in self.handle(screenPoints: screenPoints) }
         }
 
-        private func handle(body: ARBodyAnchor) {
-            guard !captured, let view else { return }
-            parent.bodyDetected = true
+        private func handle(screenPoints: [ARSkeleton.JointName: CGPoint]) {
+            guard !captured else { return }
+            parent.bodyDetected = !screenPoints.isEmpty
 
-            // ジョイントのワールド座標
-            func worldPosition(_ name: ARSkeleton.JointName) -> simd_float4x4? {
-                guard let t = body.skeleton.modelTransform(for: name) else { return nil }
-                return body.transform * t
-            }
-            func screenPoint(_ name: ARSkeleton.JointName) -> CGPoint? {
-                guard let m = worldPosition(name) else { return nil }
-                let pos = SCNVector3(m.columns.3.x, m.columns.3.y, m.columns.3.z)
-                let projected = view.projectPoint(pos)
-                guard projected.z > 0 else { return nil }
-                return CGPoint(x: CGFloat(projected.x), y: CGFloat(projected.y))
+            parent.joints = Array(screenPoints.values)
+            parent.bones = bonePairs.compactMap { a, b in
+                guard let pa = screenPoints[a], let pb = screenPoints[b] else { return nil }
+                return (pa, pb)
             }
 
-            // 骨格の可視化データを更新
-            var points: [CGPoint] = []
-            var lines: [(CGPoint, CGPoint)] = []
-            var screenCache: [ARSkeleton.JointName: CGPoint] = [:]
-            for name in jointNames {
-                if let p = screenPoint(name) {
-                    screenCache[name] = p
-                    points.append(p)
-                }
+            // 万歳判定: 画面座標で両手が頭より上(y が小さい)
+            guard let head = screenPoints[.head],
+                  let lh = screenPoints[.leftHand],
+                  let rh = screenPoints[.rightHand] else {
+                parent.isPosing = false
+                poseStartedAt = nil
+                return
             }
-            for (a, b) in bonePairs {
-                if let pa = screenCache[a], let pb = screenCache[b] {
-                    lines.append((pa, pb))
-                }
-            }
-            parent.joints = points
-            parent.bones = lines
-
-            // 万歳判定: 両手のワールド Y が頭より上
-            guard let head = worldPosition(.head),
-                  let lh = worldPosition(.leftHand),
-                  let rh = worldPosition(.rightHand) else { return }
-            let posing = lh.columns.3.y > head.columns.3.y && rh.columns.3.y > head.columns.3.y
+            let posing = lh.y < head.y && rh.y < head.y
             parent.isPosing = posing
 
             if posing {
