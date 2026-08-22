@@ -12,9 +12,9 @@ struct GeminiPhotoAIJudge: PhotoAIJudging {
     let apiKey: String
     var model = "gemini-2.5-flash"
 
-    /// Secrets.plist にキーが無ければ nil
+    /// Secrets.plist にキーが無ければ nil(AI Studio キー優先、無ければ Google Cloud キー)
     static func fromSecrets() -> GeminiPhotoAIJudge? {
-        guard let key = Secrets.googleAIStudioAPIKey else { return nil }
+        guard let key = Secrets.googleAIStudioAPIKey ?? Secrets.googleCloudAPIKey else { return nil }
         return GeminiPhotoAIJudge(apiKey: key)
     }
 

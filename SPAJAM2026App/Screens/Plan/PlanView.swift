@@ -55,8 +55,22 @@ struct PlanView: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
+
+            judgeToggle
         }
         .padding(.top, 8)
+    }
+
+    /// デモ用: AI 判定の Mock/Live 切り替え(電波なし対策)
+    private var judgeToggle: some View {
+        @Bindable var session = session
+        return Toggle(isOn: $session.useMockJudge) {
+            Text("Mock 判定(電波なしデモ用)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .tint(.orange)
+        .padding(.horizontal, 4)
     }
 }
 
