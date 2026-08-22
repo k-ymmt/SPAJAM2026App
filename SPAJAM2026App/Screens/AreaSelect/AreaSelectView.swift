@@ -198,7 +198,7 @@ struct AreaSelectView: View {
             }
             if let roomCode {
                 Text(roomCode)
-                    .font(.handNumber(34))
+                    .font(.system(size: 34, weight: .bold, design: .rounded).monospacedDigit())
                     .kerning(6)
                     .foregroundStyle(Color.inkMain)
                     .frame(maxWidth: .infinity)

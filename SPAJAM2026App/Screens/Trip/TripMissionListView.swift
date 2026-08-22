@@ -46,7 +46,7 @@ struct TripMissionListView: View {
             MissionListRow(
                 mission: mission,
                 achieved: achieved,
-                note: achieved ? "達成! タップで写真をみる" : nil,
+                note: achieved ? "達成! タップで写真をみる" : (mission.isShared == true ? "共通ミッション" : nil),
                 photo: record.flatMap { session.photo(for: $0) }
             )
         }

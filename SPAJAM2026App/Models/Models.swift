@@ -72,6 +72,8 @@ nonisolated struct Mission: Codable, Sendable, Identifiable, Hashable {
     var points: Int
     var hapticOnNear: Bool?
     var camera: CameraFacing?
+    /// 共通ミッション(複数人の旅で全員いっしょに撮る撮影系ミッション)
+    var isShared: Bool?
 }
 
 nonisolated struct TravelPlan: Codable, Sendable, Identifiable, Hashable {
@@ -79,6 +81,8 @@ nonisolated struct TravelPlan: Codable, Sendable, Identifiable, Hashable {
     var title: String
     var area: String
     var missions: [Mission]
+    /// 生成時の旅の人数(nil = 1人扱い)。FACE の顔判定は 3 人までのため判定方式の切替に使う
+    var partySize: Int?
 
     var id: String { planId }
 

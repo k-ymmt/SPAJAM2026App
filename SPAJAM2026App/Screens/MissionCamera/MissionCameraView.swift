@@ -54,7 +54,8 @@ struct MissionCameraView: View {
         }
         .sheet(isPresented: $showCamera) {
             switch session.currentMission?.category {
-            case .face where FaceSmileCaptureView.isSupported:
+            // 顔判定(TrueDepth)は 3 人まで。4 人以上は通常カメラ+AI 判定(笑顔条件なし)にフォールバック
+            case .face where FaceSmileCaptureView.isSupported && (session.plan.partySize ?? 1) <= 3:
                 FaceSmileCaptureView { image in
                     // AR 判定で OK が出ているのでそのまま達成(確認ダイアログなし)
                     clearMission(with: image)
@@ -168,8 +169,12 @@ struct MissionCameraView: View {
         case .go: "\(place ?? "目的地")へ向かおう。着いたら写真を撮って判定!"
         case .do: place.map { "\($0)でお題を見つけて撮影しよう" } ?? "現地でお題を見つけて撮影しよう"
         case .eat: "食べる前にパシャリ。おいしさが伝わる一枚を"
-        case .face: "インカメラで表情をつくって撮影しよう"
-        case .pose: "ポーズ全体が写るように撮ろう"
+        case .face: (session.plan.partySize ?? 1) >= 4
+            ? "全員で写真におさまろう(笑顔チェックなし)"
+            : "インカメラで表情をつくって撮影しよう"
+        case .pose: (session.plan.partySize ?? 1) >= 2
+            ? "全員がおさまるように撮ろう(だれか1人が万歳すれば自動撮影)"
+            : "ポーズ全体が写るように撮ろう"
         case .buy: "買ったものがわかるように撮影しよう"
         case .find: "見つけたら逃さず撮影しよう"
         }

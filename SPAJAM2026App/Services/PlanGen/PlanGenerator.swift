@@ -168,6 +168,7 @@ struct PlanGenerator {
             - 判定基準: aiPrompt に「\(partySize)人程度(またはそれ以上)の人が写っていること」を含める
             - face / pose は「写っている全員が条件を満たしているか」を aiPrompt に書く
             - 通行人の写り込みで落とさないよう「〜人以上」の表現にする
+            \(partySize >= 4 ? "- face は顔判定が 3 人までのため笑顔条件を入れない。「全員で写真におさまる」お題にし、aiPrompt は人数条件のみにする" : "")
             """
         }
 
@@ -238,7 +239,9 @@ struct PlanGenerator {
                 ),
                 points: slot == .fixed ? 10 : 15,
                 hapticOnNear: location != nil ? true : nil,
-                camera: category == .face ? .front : nil
+                camera: category == .face ? .front : nil,
+                // 複数人の旅では人が写る撮影系(face/pose)を全員いっしょの共通ミッションにする
+                isShared: (partySize >= 2 && (category == .face || category == .pose)) ? true : nil
             )
         }
         guard missions.count == 5 else { throw GenError.badLLMOutput }
@@ -247,7 +250,8 @@ struct PlanGenerator {
             planId: "gen-\(UUID().uuidString.prefix(8))",
             title: llm.title,
             area: llm.areaName,
-            missions: missions
+            missions: missions,
+            partySize: partySize
         )
     }
 }

@@ -41,7 +41,7 @@ struct InviteCodeJoinView: View {
                     .focused($focus, equals: .code)
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
-                    .font(.handNumber(22))
+                    .font(.system(size: 22, weight: .bold, design: .rounded).monospacedDigit())
                     .submitLabel(.go)
                     .onSubmit { if canJoin { join() } }
             }

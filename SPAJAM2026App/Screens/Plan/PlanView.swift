@@ -25,7 +25,10 @@ struct PlanView: View {
                     .foregroundStyle(Color.appAccent)
                     .frame(maxWidth: .infinity)
                 ForEach(session.plan.missions) { mission in
-                    MissionListRow(mission: mission)
+                    MissionListRow(
+                        mission: mission,
+                        note: mission.isShared == true ? "共通ミッション" : nil
+                    )
                 }
                 startButton
             }
