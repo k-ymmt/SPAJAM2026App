@@ -2,14 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIAppFonts</key>
+	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>Hetakawa-Free.ttf</string>
-		<string>koyomiyuru.otf</string>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
+		<string>group.app.kymmt.SPAJAM2026App</string>
 	</array>
 </dict>
 </plist>

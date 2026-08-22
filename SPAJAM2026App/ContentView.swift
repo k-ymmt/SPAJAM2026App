@@ -3,12 +3,14 @@
 //  SPAJAM2026App
 //
 //  ルートフロー: エリア選択 → プラン確認 → 旅行中(ミッション実施) → リザルト(→ 旅くらべ)
+//  端末を振るとデバッグメニュー(フレームワークお試し)がシートで開く。
 //
 
 import SwiftUI
 
 struct ContentView: View {
     @State private var session: TripSession?
+    @State private var isDebugMenuPresented = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -38,6 +40,12 @@ struct ContentView: View {
         .preferredColorScheme(.light)
         .onChange(of: scenePhase) { _, newPhase in
             session?.noteScenePhase(active: newPhase == .active)
+        }
+        .onShake {
+            isDebugMenuPresented = true
+        }
+        .sheet(isPresented: $isDebugMenuPresented) {
+            DebugMenuView()
         }
     }
 }
