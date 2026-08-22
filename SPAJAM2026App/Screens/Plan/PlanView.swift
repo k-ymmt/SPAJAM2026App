@@ -154,20 +154,12 @@ struct MissionListRow: View {
     var achieved = false
     var photo: UIImage?
 
-    /// カテゴリ別の行内ミザルイラスト(pose/buy は近いポーズで代用)
-    private var categoryIllustration: String {
-        switch mission.category {
-        case .go: "MizaruMissionGo"
-        case .do, .pose: "MizaruMissionDo"
-        case .eat: "MizaruMissionEat"
-        case .face: "MizaruMissionFace"
-        case .find, .buy: "MizaruMissionFind"
-        }
-    }
-
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            HandFrameRow(minHeight: 96) {
+        // デザイン素材(枠+MISSION タブ+ミザル入り)を行の背景として使う
+        Image("MissionFrame\(min(max(mission.order, 1), 5))")
+            .resizable()
+            .scaledToFit()
+            .overlay(alignment: .leading) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(mission.title)
                         .font(.handBody.bold())
@@ -179,35 +171,17 @@ struct MissionListRow: View {
                             .foregroundStyle(Color.appAccent)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                // 行内イラスト/写真と重ならないように右を空ける
-                .padding(.trailing, achieved ? 140 : 110)
-                .overlay(alignment: .trailing) {
-                    Image(categoryIllustration)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 92)
-                        .padding(.trailing, 2)
+                .padding(.leading, 26)
+                .padding(.trailing, 116)
+                // タブの分だけ下の枠内で縦中央に
+                .offset(y: 7)
+            }
+            .overlay(alignment: .trailing) {
+                if achieved {
+                    PolaroidThumb(image: photo)
+                        .offset(x: 4)
                 }
             }
-            .padding(.top, 11)
-
-            // 枠の上辺にまたがる MISSION タブ
-            Text("MISSION \(mission.order)")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.inkMain)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 3)
-                .background(Color.appBackground)
-                .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.appAccent, lineWidth: 1.8))
-                .padding(.leading, 14)
-        }
-        .overlay(alignment: .trailing) {
-            if achieved {
-                PolaroidThumb(image: photo)
-                    .offset(x: 4)
-            }
-        }
     }
 }
 
