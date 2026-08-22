@@ -94,21 +94,14 @@ private struct MissionCard: View {
     let state: MissionActivityAttributes.ContentState
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            // 右下のミザル + プラン名(コンテンツの後ろに敷く)
-            VStack(alignment: .trailing, spacing: 0) {
-                Image("Mizaru")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 76, height: 76)
-                    .opacity(0.9)
-                if let planTitle = attributes.planTitle {
-                    Text(planTitle)
-                        .font(.caption2)
-                        .foregroundStyle(MissionPalette.inkSub)
-                }
-            }
-            .padding(.bottom, 12)
+        ZStack(alignment: .trailing) {
+            // ミザルは右側全体に敷き、テキストやバーはその上に重ねて描く(デザイン準拠)
+            Image("Mizaru")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 108)
+                .opacity(0.9)
+                .offset(y: -4)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text("NEXT")
@@ -124,17 +117,15 @@ private struct MissionCard: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                 }
-                .padding(.trailing, 80) // ミザルと重ならないように
 
                 if let map = mapImage {
-                    // できる限り縦幅を取った横長マップ(右はミザルの分だけ空ける)
+                    // できる限り縦幅を取った横長マップ
                     Image(uiImage: map)
                         .resizable()
                         .scaledToFill()
                         .frame(maxWidth: .infinity)
-                        .frame(height: 78)
+                        .frame(height: 72)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .padding(.trailing, 80)
                         .padding(.vertical, 1)
                 }
 
@@ -144,9 +135,16 @@ private struct MissionCard: View {
                         PhotoPromptBadge()
                     }
                 }
-                .padding(.trailing, 80)
 
                 IndicatorBar(indicator: state.indicator)
+
+                // マップ表示時は高さ上限(160pt)を優先してプラン名を省略する
+                if mapImage == nil, let planTitle = attributes.planTitle {
+                    Text(planTitle)
+                        .font(.caption2)
+                        .foregroundStyle(MissionPalette.inkSub)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
             }
         }
         .padding(12)
