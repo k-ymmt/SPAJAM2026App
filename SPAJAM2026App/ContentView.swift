@@ -22,6 +22,15 @@ struct ContentView: View {
                             systemImage: "sparkles"
                         )
                     }
+                    NavigationLink {
+                        LiveActivityTrialView()
+                    } label: {
+                        TrialRow(
+                            title: "Live Activities",
+                            subtitle: "属性・状態・アラート・終了方法を変えて Live Activity を実行します。",
+                            systemImage: "platter.filled.top.iphone"
+                        )
+                    }
                 }
             }
             .navigationTitle("SPAJAM2026")

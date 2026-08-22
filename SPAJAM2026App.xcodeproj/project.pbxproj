@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		LA0000000000000000000E /* SPAJAM2026AppWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C46926383038830A0067188C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +25,45 @@
 			remoteGlobalIDString = C4692629303883090067188C;
 			remoteInfo = SPAJAM2026App;
 		};
+		LA0000000000000000000B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4692622303883090067188C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = LA00000000000000000004;
+			remoteInfo = SPAJAM2026AppWidgets;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		LA0000000000000000000D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				LA0000000000000000000E /* SPAJAM2026AppWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		C469262A303883090067188C /* SPAJAM2026App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SPAJAM2026App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C46926373038830A0067188C /* SPAJAM2026AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SPAJAM2026AppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C46926413038830A0067188C /* SPAJAM2026AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SPAJAM2026AppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SPAJAM2026AppWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		LA0000000000000000000F /* Exceptions for "SPAJAM2026AppWidgets" folder in "SPAJAM2026AppWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = LA00000000000000000004 /* SPAJAM2026AppWidgets */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C469262C303883090067188C /* SPAJAM2026App */ = {
@@ -43,6 +79,19 @@
 		C46926443038830A0067188C /* SPAJAM2026AppUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = SPAJAM2026AppUITests;
+			sourceTree = "<group>";
+		};
+		LA00000000000000000002 /* SPAJAM2026AppWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				LA0000000000000000000F /* Exceptions for "SPAJAM2026AppWidgets" folder in "SPAJAM2026AppWidgets" target */,
+			);
+			path = SPAJAM2026AppWidgets;
+			sourceTree = "<group>";
+		};
+		LA00000000000000000003 /* SPAJAM2026AppShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SPAJAM2026AppShared;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +118,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		LA00000000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +134,9 @@
 				C469262C303883090067188C /* SPAJAM2026App */,
 				C469263A3038830A0067188C /* SPAJAM2026AppTests */,
 				C46926443038830A0067188C /* SPAJAM2026AppUITests */,
+				C469262B303883090067188C /* Products */,				C46926443038830A0067188C /* SPAJAM2026AppUITests */,
+				LA00000000000000000003 /* SPAJAM2026AppShared */,
+				LA00000000000000000002 /* SPAJAM2026AppWidgets */,
 				C469262B303883090067188C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +147,7 @@
 				C469262A303883090067188C /* SPAJAM2026App.app */,
 				C46926373038830A0067188C /* SPAJAM2026AppTests.xctest */,
 				C46926413038830A0067188C /* SPAJAM2026AppUITests.xctest */,
+				LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,13 +162,16 @@
 				C4692626303883090067188C /* Sources */,
 				C4692627303883090067188C /* Frameworks */,
 				C4692628303883090067188C /* Resources */,
+				LA0000000000000000000D /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				LA0000000000000000000C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C469262C303883090067188C /* SPAJAM2026App */,
+				LA00000000000000000003 /* SPAJAM2026AppShared */,
 			);
 			name = SPAJAM2026App;
 			packageProductDependencies = (
@@ -163,6 +226,29 @@
 			productReference = C46926413038830A0067188C /* SPAJAM2026AppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		LA00000000000000000004 /* SPAJAM2026AppWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = LA00000000000000000008 /* Build configuration list for PBXNativeTarget "SPAJAM2026AppWidgets" */;
+			buildPhases = (
+				LA00000000000000000005 /* Sources */,
+				LA00000000000000000006 /* Frameworks */,
+				LA00000000000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				LA00000000000000000002 /* SPAJAM2026AppWidgets */,
+				LA00000000000000000003 /* SPAJAM2026AppShared */,
+			);
+			name = SPAJAM2026AppWidgets;
+			packageProductDependencies = (
+			);
+			productName = SPAJAM2026AppWidgets;
+			productReference = LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +270,9 @@
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = C4692629303883090067188C;
 					};
+					LA00000000000000000004 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = C4692625303883090067188C /* Build configuration list for PBXProject "SPAJAM2026App" */;
@@ -203,6 +292,7 @@
 				C4692629303883090067188C /* SPAJAM2026App */,
 				C46926363038830A0067188C /* SPAJAM2026AppTests */,
 				C46926403038830A0067188C /* SPAJAM2026AppUITests */,
+				LA00000000000000000004 /* SPAJAM2026AppWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +313,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C469263F3038830A0067188C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		LA00000000000000000007 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +350,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		LA00000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +369,11 @@
 			isa = PBXTargetDependency;
 			target = C4692629303883090067188C /* SPAJAM2026App */;
 			targetProxy = C46926423038830A0067188C /* PBXContainerItemProxy */;
+		};
+		LA0000000000000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = LA00000000000000000004 /* SPAJAM2026AppWidgets */;
+			targetProxy = LA0000000000000000000B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -403,6 +512,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -437,6 +548,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -544,6 +657,66 @@
 			};
 			name = Release;
 		};
+		LA00000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SPAJAM2026AppWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SPAJAM2026AppWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App.SPAJAM2026AppWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		LA0000000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SPAJAM2026AppWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SPAJAM2026AppWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App.SPAJAM2026AppWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -579,6 +752,15 @@
 			buildConfigurations = (
 				C46926523038830A0067188C /* Debug */,
 				C46926533038830A0067188C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		LA00000000000000000008 /* Build configuration list for PBXNativeTarget "SPAJAM2026AppWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				LA00000000000000000009 /* Debug */,
+				LA0000000000000000000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
