@@ -231,7 +231,6 @@
 			isa = PBXGroup;
 			children = (
 				C469262C303883090067188C /* SPAJAM2026App */,
-				D0DA00000000000000000020 /* Shared */,
 				D0DA00000000000000000003 /* SPAJAM2026Watch */,
 				D0DA00000000000000000013 /* TripActivityWidget */,
 				C469263A3038830A0067188C /* SPAJAM2026AppTests */,
@@ -425,13 +424,13 @@
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = C4692629303883090067188C;
 					};
-					LA00000000000000000004 = {
-						CreatedOnToolsVersion = 26.6;
-					};
 					D0DA00000000000000000001 = {
 						CreatedOnToolsVersion = 26.6;
 					};
 					D0DA00000000000000000011 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					LA00000000000000000004 = {
 						CreatedOnToolsVersion = 26.6;
 					};
 				};
@@ -706,16 +705,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SPAJAM2026App/SPAJAM2026App.entitlements;
-				CODE_SIGN_ENTITLEMENTS = SPAJAM2026App/SPAJAM2026App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "ミッションの達成判定のために写真を撮影します";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "目的地への到着判定のために現在地を使用します";
-				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_FILE = SPAJAM2026App/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "ミッションの達成判定のために写真を撮影します";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "心拍数をリアルタイムに表示するために使用します。";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "現在地の地図を Live Activity にバックグラウンドで更新し続けるために使用します。";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "現在地の地図を Live Activity に表示するために使用します。";
@@ -750,16 +746,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SPAJAM2026App/SPAJAM2026App.entitlements;
-				CODE_SIGN_ENTITLEMENTS = SPAJAM2026App/SPAJAM2026App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "ミッションの達成判定のために写真を撮影します";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "目的地への到着判定のために現在地を使用します";
-				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_FILE = SPAJAM2026App/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "ミッションの達成判定のために写真を撮影します";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "心拍数をリアルタイムに表示するために使用します。";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "現在地の地図を Live Activity にバックグラウンドで更新し続けるために使用します。";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "現在地の地図を Live Activity に表示するために使用します。";
