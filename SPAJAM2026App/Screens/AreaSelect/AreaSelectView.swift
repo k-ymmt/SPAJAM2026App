@@ -175,7 +175,7 @@ struct AreaSelectView: View {
             illustration(
                 image: partySize == 1 ? "MizaruCharacter" : "Mizarus\(min(partySize, 5))",
                 symbol: partySymbol,
-                caption: partySize == 1 ? "ひとり旅" : "\(partySize)人旅"
+                caption: partyCaption
             )
             Spacer()
 
@@ -295,6 +295,16 @@ struct AreaSelectView: View {
                 .background(disabled ? Color(.systemGray4) : Color.appAccent, in: Circle())
         }
         .disabled(disabled)
+    }
+
+    private var partyCaption: String {
+        switch partySize {
+        case 1: "孤高の挑戦"
+        case 2: "最強タッグ"
+        case 3: "われら3銃士"
+        case 4: "伝説の4天王"
+        default: "5人衆ここにあり"
+        }
     }
 
     private var partySymbol: String {
