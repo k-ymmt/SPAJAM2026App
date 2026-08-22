@@ -35,6 +35,26 @@ final class ShieldService {
         #endif
     }
 
+    /// 保存済みの選択を戻し、既に認可済みなら isAuthorized も復元する
+    func restore(selectionData: Data?) {
+        #if canImport(FamilyControls)
+        isAuthorized = AuthorizationCenter.shared.authorizationStatus == .approved
+        if let selectionData,
+           let restored = try? JSONDecoder().decode(FamilyActivitySelection.self, from: selectionData) {
+            selection = restored
+        }
+        #endif
+    }
+
+    /// 永続化用に選択を JSON にする
+    var selectionData: Data? {
+        #if canImport(FamilyControls)
+        return try? JSONEncoder().encode(selection)
+        #else
+        return nil
+        #endif
+    }
+
     func requestAuthorization() async {
         #if canImport(FamilyControls)
         do {
@@ -56,6 +76,23 @@ final class ShieldService {
             ? nil
             : .specific(selection.categoryTokens)
         isShielding = true
+        #endif
+    }
+
+    /// OS 側にシールドが残っているか(アプリ or カテゴリのどちらかが設定されていれば true)
+    static var isShieldApplied: Bool {
+        #if canImport(FamilyControls)
+        let store = ManagedSettingsStore()
+        return store.shield.applications != nil || store.shield.applicationCategories != nil
+        #else
+        return false
+        #endif
+    }
+
+    /// デバッグ用: セッションの状態に関係なく、OS に残っているシールドと全制限を強制解除する
+    static func forceClearAll() {
+        #if canImport(FamilyControls)
+        ManagedSettingsStore().clearAllSettings()
         #endif
     }
 

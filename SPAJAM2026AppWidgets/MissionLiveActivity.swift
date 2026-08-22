@@ -43,7 +43,13 @@ struct MissionLiveActivity: Widget {
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(spacing: 8) {
-                        MissionMetrics(state: context.state)
+                        HStack(alignment: .bottom) {
+                            MissionMetrics(state: context.state)
+                            Spacer(minLength: 8)
+                            if context.state.showsPhotoPrompt {
+                                PhotoPromptBadge()
+                            }
+                        }
                         IndicatorBar(indicator: context.state.indicator)
                     }
                 }
@@ -51,10 +57,15 @@ struct MissionLiveActivity: Widget {
                 Image(systemName: context.attributes.iconSymbol)
                     .foregroundStyle(MissionPalette.accent)
             } compactTrailing: {
-                Text(MissionDistanceFormat.distance(context.state.distanceMeters))
-                    .font(.caption.monospacedDigit())
+                if context.state.showsPhotoPrompt {
+                    Image(systemName: "camera.fill")
+                        .foregroundStyle(MissionPalette.accent)
+                } else {
+                    Text(MissionDistanceFormat.distance(context.state.distanceMeters))
+                        .font(.caption.monospacedDigit())
+                }
             } minimal: {
-                Image(systemName: context.attributes.iconSymbol)
+                Image(systemName: context.state.showsPhotoPrompt ? "camera.fill" : context.attributes.iconSymbol)
                     .foregroundStyle(MissionPalette.accent)
             }
             .keylineTint(MissionPalette.accent)
@@ -90,11 +101,32 @@ private struct MissionCard: View {
                     .minimumScaleFactor(0.8)
             }
 
-            MissionMetrics(state: state)
+            HStack(alignment: .bottom) {
+                MissionMetrics(state: state)
+                Spacer(minLength: 8)
+                if state.showsPhotoPrompt {
+                    PhotoPromptBadge()
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
             IndicatorBar(indicator: state.indicator)
         }
         .foregroundStyle(.white)
         .padding(16)
+    }
+}
+
+/// "写真を撮りませんか？" badge shown at the bottom-right when the heart rate is high.
+private struct PhotoPromptBadge: View {
+    var body: some View {
+        Label(MissionActivityAttributes.ContentState.photoPromptText, systemImage: "camera.fill")
+            .font(.caption.weight(.bold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(MissionPalette.accent, in: Capsule())
     }
 }
 
@@ -156,5 +188,12 @@ private struct IndicatorBar: View {
         landmarkName: "雷門", distanceMeters: 120, heartRate: 82,
         indicator: MissionIndicator(segmentCount: 5, completedCount: 1, highlightsActive: true),
         updatedAt: .now
+    )
+    MissionActivityAttributes.ContentState(
+        missionNumber: 2, missionTotal: 5,
+        missionText: "仲見世で いちばん赤いものを撮る",
+        landmarkName: "雷門", distanceMeters: 120, heartRate: 131,
+        indicator: MissionIndicator(segmentCount: 5, completedCount: 1, highlightsActive: true),
+        updatedAt: .now, showsPhotoPrompt: true
     )
 }

@@ -52,6 +52,85 @@ final class TripSession {
         self.useMockJudge = GeminiPhotoAIJudge.fromSecrets() == nil
     }
 
+    // MARK: - 永続化(キル後の復元)
+
+    /// 保存済みスナップショットから復元する。phase が traveling ならシールド・Live Activity も再接続する
+    init(snapshot: TripSessionSnapshot) {
+        self.plan = snapshot.plan
+        self.useMockJudge = snapshot.useMockJudge
+        self.phase = switch snapshot.phase {
+        case .planning: .planning
+        case .restrictionSetup: .restrictionSetup
+        case .traveling: .traveling
+        case .finished: .finished
+        }
+        self.currentMissionId = snapshot.currentMissionId
+        self.records = snapshot.records
+        self.heartRateSamples = snapshot.heartRateSamples
+        self.tripStartedAt = snapshot.tripStartedAt
+        self.tripEndedAt = snapshot.tripEndedAt
+        self.restrictionAdjustments = snapshot.restrictionAdjustments
+        // キル前に前面だった時間は、最後に保存した時刻までを前面扱いで確定する
+        var foreground = snapshot.foregroundSeconds
+        if let since = snapshot.becameActiveAt {
+            foreground += max(0, snapshot.savedAt.timeIntervalSince(since))
+        }
+        self.foregroundSeconds = foreground
+        self.becameActiveAt = nil
+
+        shield.restore(selectionData: snapshot.shieldSelectionData)
+        if phase == .traveling {
+            shield.start()
+            if let mission = currentMission {
+                activityController.resume(plan: plan, mission: mission)
+            }
+            beginTravelingSideEffects()
+        }
+    }
+
+    /// 保存されていれば復元、なければ nil
+    static func restore() -> TripSession? {
+        guard let snapshot = TripSessionStore.load() else { return nil }
+        return TripSession(snapshot: snapshot)
+    }
+
+    private var snapshotPhase: TripSessionSnapshot.Phase {
+        switch phase {
+        case .planning: .planning
+        case .restrictionSetup: .restrictionSetup
+        case .traveling: .traveling
+        case .finished: .finished
+        }
+    }
+
+    var snapshot: TripSessionSnapshot {
+        TripSessionSnapshot(
+            plan: plan,
+            phase: snapshotPhase,
+            currentMissionId: currentMissionId,
+            records: records,
+            heartRateSamples: heartRateSamples,
+            useMockJudge: useMockJudge,
+            tripStartedAt: tripStartedAt,
+            tripEndedAt: tripEndedAt,
+            foregroundSeconds: foregroundSeconds,
+            becameActiveAt: becameActiveAt,
+            restrictionAdjustments: restrictionAdjustments,
+            shieldSelectionData: shield.selectionData,
+            savedAt: Date()
+        )
+    }
+
+    /// 現在の状態を保存する。状態が変わるたびに呼ぶ
+    func persist() {
+        TripSessionStore.save(snapshot)
+    }
+
+    /// セッションを破棄する(リザルトから最初に戻るとき)。保存データも消す
+    func discard() {
+        TripSessionStore.clear()
+    }
+
     var currentMission: Mission? {
         guard phase == .traveling else { return nil }
         return plan.missions.first { $0.id == currentMissionId }
@@ -64,6 +143,7 @@ final class TripSession {
         lastFailReason = nil
         updateActivity()
         sendMissionStateToWatch()
+        persist()
     }
 
     var totalPoints: Int { records.reduce(0) { $0 + $1.points } }
@@ -77,6 +157,7 @@ final class TripSession {
     /// プラン確認 → おやすみ設定へ
     func proceedToRestrictionSetup() {
         phase = .restrictionSetup
+        persist()
     }
 
     func startTrip() {
@@ -88,6 +169,12 @@ final class TripSession {
         if let mission = currentMission {
             activityController.start(plan: plan, mission: mission)
         }
+        beginTravelingSideEffects()
+        persist()
+    }
+
+    /// 旅行中に必要なバックグラウンド処理(位置監視・Watch 送信・LA 定期更新)。開始時と復元時に呼ぶ
+    private func beginTravelingSideEffects() {
         // 位置監視(接近振動 + LA の距離表示)
         locationProvider.onUpdate = { [weak self] location in
             self?.handleLocation(location)
@@ -95,6 +182,7 @@ final class TripSession {
         locationProvider.start()
         // Watch へ現在ミッションを送信 + LA を 15 秒ごとに更新(bpm・距離)
         sendMissionStateToWatch()
+        activityRefreshTask?.cancel()
         activityRefreshTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(15))
@@ -112,6 +200,7 @@ final class TripSession {
         activityRefreshTask?.cancel()
         activityRefreshTask = nil
         locationProvider.stop()
+        persist()
     }
 
     // MARK: - 位置更新(接近振動・LA 距離)
@@ -160,6 +249,7 @@ final class TripSession {
             foregroundSeconds += Date().timeIntervalSince(since)
             becameActiveAt = nil
         }
+        persist()
     }
 
     // MARK: - スコア 3 要素(正式名称)
@@ -206,6 +296,7 @@ final class TripSession {
         restrictionAdjustments += 1
         shield.stop()
         shield.start()
+        persist()
     }
 
     // MARK: - 判定
@@ -248,6 +339,7 @@ final class TripSession {
             records.append(record)
             heartRateReceiver.sendEvent(.achieved)
             advance()
+            persist()
             return true
         case .failed(let reason):
             lastFailReason = reason

@@ -26,6 +26,15 @@ final class TripActivityController {
         )
     }
 
+    /// キル後の復元: OS 側に残っている Live Activity があれば再接続し、なければ新規に開始する
+    func resume(plan: TravelPlan, mission: Mission) {
+        if let existing = Activity<MissionActivityAttributes>.activities.first {
+            activity = existing
+        } else {
+            start(plan: plan, mission: mission)
+        }
+    }
+
     func update(mission: Mission, total: Int, achievedCount: Int, distanceMeters: Double?, bpm: Double?) {
         guard let activity else { return }
         let state = contentState(

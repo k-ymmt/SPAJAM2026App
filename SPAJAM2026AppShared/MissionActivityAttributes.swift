@@ -27,6 +27,44 @@ struct MissionActivityAttributes: ActivityAttributes {
         /// Segmented bar at the bottom of the card.
         var indicator: MissionIndicator
         var updatedAt: Date
+        /// Whether the "写真を撮りませんか？" badge is shown (heart rate crossed the threshold).
+        var showsPhotoPrompt: Bool
+
+        init(missionNumber: Int, missionTotal: Int, missionText: String, landmarkName: String,
+             distanceMeters: Double?, heartRate: Double?, indicator: MissionIndicator,
+             updatedAt: Date, showsPhotoPrompt: Bool = false) {
+            self.missionNumber = missionNumber
+            self.missionTotal = missionTotal
+            self.missionText = missionText
+            self.landmarkName = landmarkName
+            self.distanceMeters = distanceMeters
+            self.heartRate = heartRate
+            self.indicator = indicator
+            self.updatedAt = updatedAt
+            self.showsPhotoPrompt = showsPhotoPrompt
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case missionNumber, missionTotal, missionText, landmarkName, distanceMeters, heartRate,
+                 indicator, updatedAt, showsPhotoPrompt
+        }
+
+        /// `showsPhotoPrompt` is optional when decoding so activities started by an older
+        /// build can still be re-attached.
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            missionNumber = try c.decode(Int.self, forKey: .missionNumber)
+            missionTotal = try c.decode(Int.self, forKey: .missionTotal)
+            missionText = try c.decode(String.self, forKey: .missionText)
+            landmarkName = try c.decode(String.self, forKey: .landmarkName)
+            distanceMeters = try c.decodeIfPresent(Double.self, forKey: .distanceMeters)
+            heartRate = try c.decodeIfPresent(Double.self, forKey: .heartRate)
+            indicator = try c.decode(MissionIndicator.self, forKey: .indicator)
+            updatedAt = try c.decode(Date.self, forKey: .updatedAt)
+            showsPhotoPrompt = try c.decodeIfPresent(Bool.self, forKey: .showsPhotoPrompt) ?? false
+        }
+
+        static let photoPromptText = "写真を撮りませんか？"
 
         var missionCounterText: String { "ミッション \(missionNumber)/\(missionTotal)" }
         var distanceText: String { MissionDistanceFormat.label(landmark: landmarkName, meters: distanceMeters) }

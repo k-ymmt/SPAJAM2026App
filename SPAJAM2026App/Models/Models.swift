@@ -99,7 +99,7 @@ nonisolated struct TravelPlan: Codable, Sendable, Identifiable, Hashable {
 }
 
 /// ミッション達成のログ 1 件(= setlog 的タイル 1 枚)
-nonisolated struct MissionRecord: Codable, Sendable, Identifiable {
+nonisolated struct MissionRecord: Codable, Sendable, Identifiable, Equatable {
     var missionId: String
     var achievedAt: Date
     /// 判定に使った写真(Documents 配下のファイル名)
@@ -111,7 +111,7 @@ nonisolated struct MissionRecord: Codable, Sendable, Identifiable {
     var id: String { missionId }
 }
 
-nonisolated struct HeartRateSample: Codable, Sendable {
+nonisolated struct HeartRateSample: Codable, Sendable, Equatable {
     var date: Date
     var bpm: Double
 }
