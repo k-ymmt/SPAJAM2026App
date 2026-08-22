@@ -9,6 +9,8 @@
 import SwiftUI
 
 struct ProfileSetupView: View {
+    /// true なら設定変更(ホーム等から)。false なら初回登録
+    var isEditing = false
     var onComplete: () -> Void
 
     @State private var name = ""
@@ -28,7 +30,7 @@ struct ProfileSetupView: View {
                 .frame(width: 160, height: 160)
 
             VStack(spacing: 8) {
-                Text("はじめまして!")
+                Text(isEditing ? "なまえを変更する" : "はじめまして!")
                     .font(.handLargeTitle)
                     .foregroundStyle(Color.appAccent)
                     .shadow(color: Color.appAccent.opacity(0.65), radius: 0.5)
@@ -51,13 +53,16 @@ struct ProfileSetupView: View {
 
             Spacer()
 
-            BrushButton(label: "はじめる", disabled: trimmedName.isEmpty) {
+            BrushButton(label: isEditing ? "保存する" : "はじめる", disabled: trimmedName.isEmpty) {
                 saveIfPossible()
             }
         }
         .padding(24)
         .background(Color.appBackground)
-        .onAppear { isFocused = true }
+        .onAppear {
+            if name.isEmpty { name = UserProfileStore.name ?? "" }
+            isFocused = true
+        }
     }
 
     private func saveIfPossible() {

@@ -41,6 +41,8 @@ struct AreaSelectView: View {
 
     // 招待コード入力(子)
     @State private var isJoinDialogPresented = false
+    // なまえの変更
+    @State private var isProfilePresented = false
 
     var body: some View {
         VStack(spacing: 20) {
@@ -82,6 +84,13 @@ struct AreaSelectView: View {
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $isProfilePresented) {
+            ProfileSetupView(isEditing: true) {
+                isProfilePresented = false
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
     }
 
     // MARK: - ステップインジケータ
@@ -96,13 +105,18 @@ struct AreaSelectView: View {
         }
     }
 
-    /// ヘッダ右のアカウントアイコン。招待コードで参加する入口
+    /// ヘッダ右のアカウントアイコン。招待コード参加・なまえ変更の入口
     private var accountMenu: some View {
         Menu {
             Button {
                 isJoinDialogPresented = true
             } label: {
                 Label("招待コードを入力", systemImage: "ticket")
+            }
+            Button {
+                isProfilePresented = true
+            } label: {
+                Label("なまえを変更", systemImage: "person.crop.circle")
             }
         } label: {
             Image(systemName: "person.crop.circle")
