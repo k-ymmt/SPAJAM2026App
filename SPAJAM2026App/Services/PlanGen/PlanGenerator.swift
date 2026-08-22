@@ -49,9 +49,13 @@ struct PlanGenerator {
         let (areaHint, spots) = try await (areaTask, spotsTask)
         guard !spots.isEmpty else { throw GenError.noSpots }
 
-        // ③ 味付け: Gemini がスポットを選び、お題文言を書く
-        let plan = try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
-        return plan
+        // ③ 味付け: Gemini がスポットを選び、お題文言を書く(タイムアウト等に備えて 1 回だけ自動リトライ)
+        do {
+            return try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
+        } catch {
+            NSLog("[PlanGen] compose retrying after: \(error)")
+            return try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
+        }
     }
 
     // MARK: - Google Geocoding

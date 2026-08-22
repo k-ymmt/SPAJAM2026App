@@ -140,7 +140,7 @@ struct AreaSelectView: View {
 
     private var slideMood: some View {
         VStack(spacing: 16) {
-            title("旅の温度感は?", sub: "お題の難易度とテイストが変わります")
+            title("旅の温度感は?", sub: "ミッションの難易度とテイストが変わります")
 
             Spacer()
             illustration(symbol: moodSymbol, caption: mood.rawValue)
