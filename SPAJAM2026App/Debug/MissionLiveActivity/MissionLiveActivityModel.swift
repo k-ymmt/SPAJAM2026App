@@ -49,6 +49,9 @@ final class MissionLiveActivityModel: NSObject {
     }
     /// Whether the "写真を撮りませんか？" badge is currently shown.
     private(set) var showsPhotoPrompt = false
+    /// Local notification sent together with the badge.
+    var notificationPolicy = PhotoPromptNotificationPolicy()
+    let notifier = PhotoPromptNotifier.shared
 
     // MARK: Runtime
     private(set) var activity: Activity<Attributes>?
@@ -118,6 +121,11 @@ final class MissionLiveActivityModel: NSObject {
             )
             attach(activity)
             append("開始: id=\(activity.id.prefix(8))…")
+            Task {
+                if !(await notifier.requestAuthorization()) {
+                    append("通知が許可されていないため「写真を撮りませんか？」の通知は送られません")
+                }
+            }
         } catch {
             append("開始に失敗: \(error.localizedDescription)")
         }
@@ -162,6 +170,13 @@ final class MissionLiveActivityModel: NSObject {
         push(force: true, reason: next
              ? "写真提案を表示 (\(bpm) ≥ \(Int(photoTrigger.threshold)) bpm, \(reason))"
              : "写真提案を解除 (\(bpm) ≤ \(Int(photoTrigger.releaseThreshold)) bpm, \(reason))")
+        if next, activity != nil {
+            if notifier.notify(policy: notificationPolicy, heartRate: effectiveHeartRate, missionText: missionText) {
+                append("ローカル通知を送信")
+            } else if notificationPolicy.isEnabled {
+                append("ローカル通知は再通知間隔内のためスキップ")
+            }
+        }
         return true
     }
 

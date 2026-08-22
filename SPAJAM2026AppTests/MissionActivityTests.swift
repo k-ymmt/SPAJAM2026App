@@ -138,3 +138,27 @@ struct MissionContentStatePhotoPromptTests {
         #expect(decoded == state)
     }
 }
+
+struct PhotoPromptNotificationPolicyTests {
+    @Test func firstNotificationIsAlwaysAllowed() {
+        let policy = PhotoPromptNotificationPolicy(minimumInterval: 300)
+        #expect(policy.shouldNotify(lastSentAt: nil))
+    }
+
+    @Test func respectsMinimumInterval() {
+        let policy = PhotoPromptNotificationPolicy(minimumInterval: 300)
+        let now = Date(timeIntervalSince1970: 10_000)
+        #expect(!policy.shouldNotify(lastSentAt: now.addingTimeInterval(-299), now: now))
+        #expect(policy.shouldNotify(lastSentAt: now.addingTimeInterval(-300), now: now))
+    }
+
+    @Test func disabledNeverNotifies() {
+        let policy = PhotoPromptNotificationPolicy(isEnabled: false, minimumInterval: 0)
+        #expect(!policy.shouldNotify(lastSentAt: nil))
+    }
+
+    @Test func intervalIsClamped() {
+        #expect(PhotoPromptNotificationPolicy(minimumInterval: -1).minimumInterval == 0)
+        #expect(PhotoPromptNotificationPolicy(minimumInterval: 99_999).minimumInterval == PhotoPromptNotificationPolicy.intervalRange.upperBound)
+    }
+}
