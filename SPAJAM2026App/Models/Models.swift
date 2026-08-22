@@ -53,6 +53,25 @@ nonisolated struct GeoTarget: Codable, Sendable, Hashable {
     var name: String?
 }
 
+/// POSE ミッションで検出するポーズ(AR 2D 骨格判定が対応できるものだけ)
+nonisolated enum PoseType: String, Codable, Sendable {
+    /// 両手を頭より上
+    case banzai
+    /// 片手を頭より上
+    case handUp
+    /// 両手を左右に大きく広げる(大の字)
+    case wideArms
+
+    /// AR 撮影画面の指示文
+    var instruction: String {
+        switch self {
+        case .banzai: "両手を上げて 万歳!"
+        case .handUp: "片手を高くあげて!"
+        case .wideArms: "両手を横に大きくひろげて!"
+        }
+    }
+}
+
 nonisolated struct MissionJudgment: Codable, Sendable, Hashable {
     /// GPS 条件。nil なら位置判定はスキップ
     var location: GeoTarget?
@@ -60,6 +79,8 @@ nonisolated struct MissionJudgment: Codable, Sendable, Hashable {
     var locationRequired: Bool?
     /// 写真 AI 判定のお題プロンプト。nil なら写真判定はスキップ
     var aiPrompt: String?
+    /// POSE 用: AR で検出するポーズの種類(nil なら万歳)
+    var poseType: PoseType?
 }
 
 nonisolated struct Mission: Codable, Sendable, Identifiable, Hashable {

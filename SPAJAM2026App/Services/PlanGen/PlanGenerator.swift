@@ -182,19 +182,20 @@ struct PlanGenerator {
         \(spotList)
 
         ルール:
-        - ミッションは 5 つ。category は順に go, do, eat, face, pose
+        - ミッションは 5 つ。category は順に go, do, eat, [face または pose], [buy または find]
         - go は必ずスポットへ行くミッション。spotIndex に上の一覧の index を入れる
         - do は現地で写真を撮る系のお題。必ずどれかのスポットに紐づけ、spotIndex を入れる
         - eat はこの地域の名物料理を食べるお題(店は指定しない。有名な名物がなければ「地元の何かを食べる」系。spotIndex は入れない)
-        - face は笑顔・表情系、pose は「万歳する」など体のポーズ系のお題(お題は必ず万歳にする)。どちらも「◯◯の前で」「◯◯をバックに」のように必ずどれかのスポットに紐づけ、spotIndex を入れる
-        - go/do/face/pose の spotIndex はなるべく別々のスポットにする
+        - 4 つ目は face か pose をスポットや温度感に合う方で選ぶ。face は笑顔・表情系のお題。pose は poseType を banzai(万歳)/handUp(片手を高くあげる)/wideArms(両手を広げて大の字)から 1 つ選び、お題文言もそのポーズに合わせる。どちらも「◯◯の前で」「◯◯をバックに」のように必ずスポットに紐づけ、spotIndex を入れる
+        - 5 つ目は buy か find を選ぶ。buy はその土地らしいお土産・ご当地品を買うお題(買ったものを撮る)、find は現地でお題の被写体を探して撮るお題。必ずスポットに紐づけ、spotIndex を入れる
+        - 各ミッションの spotIndex はなるべく別々のスポットにする
         - title は日本語で 20 文字以内。aiPrompt は「この写真に◯◯が写っていますか?」の形で、写真 1 枚で Yes/No 判定できる内容にする
         - aiPrompt には上記の人数ルールに沿った人物条件を織り込むこと(1人なら人物条件なしでも可)
         - 気分に合わせて難易度・トーンを調整する
         - areaName はエリアの短い呼び名(例: 新宿、浅草)
 
-        JSON のみで回答:
-        {"areaName":"...","title":"プラン名(15文字以内)","missions":[{"category":"go","title":"...","aiPrompt":"...","spotIndex":0}, ...]}
+        JSON のみで回答(poseType は pose のときだけ):
+        {"areaName":"...","title":"プラン名(15文字以内)","missions":[{"category":"go","title":"...","aiPrompt":"...","spotIndex":0,"poseType":null}, ...]}
         """
 
         let text = try await judge.generateText(prompt: prompt)
@@ -204,6 +205,7 @@ struct PlanGenerator {
                 let title: String
                 let aiPrompt: String
                 let spotIndex: Int?
+                let poseType: String?
             }
             let areaName: String
             let title: String
@@ -217,7 +219,7 @@ struct PlanGenerator {
         // ① 構造 + ②座標はコード側で確定(AI に座標を書かせない)
         let missions: [Mission] = llm.missions.prefix(5).enumerated().compactMap { i, m in
             guard let category = MissionCategory(rawValue: m.category) else { return nil }
-            let slot: SlotType = (category == .face || category == .pose) ? .variable : .fixed
+            let slot: SlotType = [.go, .do, .eat].contains(category) ? .fixed : .variable
             // eat 以外は必ず座標を付ける(案内・接近振動・マップ用)。判定ゲートは go のみ。
             // LLM が spotIndex を返し忘れたら先頭スポットにフォールバック
             var location: GeoTarget?
@@ -235,7 +237,8 @@ struct PlanGenerator {
                 judgment: MissionJudgment(
                     location: location,
                     locationRequired: category == .go ? true : nil,
-                    aiPrompt: m.aiPrompt
+                    aiPrompt: m.aiPrompt,
+                    poseType: category == .pose ? (m.poseType.flatMap(PoseType.init(rawValue:)) ?? .banzai) : nil
                 ),
                 points: slot == .fixed ? 10 : 15,
                 hapticOnNear: location != nil ? true : nil,
