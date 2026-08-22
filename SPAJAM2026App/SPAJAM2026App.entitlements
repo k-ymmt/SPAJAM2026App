@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
 	<key>com.apple.developer.journal.allow</key>
-	<true/>
+	<string>suggestions</string>
 </dict>
 </plist>
