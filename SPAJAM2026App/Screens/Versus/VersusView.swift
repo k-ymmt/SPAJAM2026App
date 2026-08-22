@@ -70,7 +70,7 @@ struct VersusView: View {
                 .font(.handLargeTitle)
             Text(session.plan.title)
                 .font(.handCaption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
         }
     }
 
@@ -85,7 +85,7 @@ struct VersusView: View {
                     .font(.handHeadline)
                 Text("あなた \(myTotal)pt ・ あいて \(opTotal)pt(QUEST+HEART+OFFLINE)")
                     .font(.handCaption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
             }
             Spacer()
         }
@@ -142,7 +142,7 @@ struct VersusView: View {
     private func legend(color: Color, label: String) -> some View {
         HStack(spacing: 4) {
             Circle().fill(color).frame(width: 8, height: 8)
-            Text(label).font(.handCaption2).foregroundStyle(.secondary)
+            Text(label).font(.handCaption2).foregroundStyle(Color.inkSub)
         }
     }
 
@@ -155,7 +155,7 @@ struct VersusView: View {
                 Spacer()
                 Text("あなた \(myAchieved.count)/\(session.plan.missions.count)・あいて \(opponent.achievedMissionIds.count)/\(session.plan.missions.count)")
                     .font(.handCaption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
             }
             ForEach(session.plan.missions) { mission in
                 HStack(spacing: 12) {
@@ -165,7 +165,7 @@ struct VersusView: View {
                             .lineLimit(1)
                         Text(mission.category.label)
                             .font(.handCaption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.inkSub)
                     }
                     Spacer()
                     statusCircle(achieved: myAchieved.contains(mission.id), color: .orange)
@@ -205,7 +205,7 @@ struct VersusView: View {
                     .padding(.vertical, 14)
                     .background(.white, in: Capsule())
                     .overlay(Capsule().stroke(Color(.systemGray4)))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
             }
         }
     }

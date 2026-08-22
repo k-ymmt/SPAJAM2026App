@@ -36,7 +36,7 @@ struct PlanView: View {
                 .font(.handLargeTitle)
             Text("\(session.plan.missions.count)ミッション・\(session.plan.area)")
                 .font(.handCaption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
         }
     }
 
@@ -53,7 +53,7 @@ struct PlanView: View {
 
             Text("はじめるとスマホはおやすみモードになります")
                 .font(.handCaption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
                 .frame(maxWidth: .infinity)
 
             judgeToggle
@@ -67,7 +67,7 @@ struct PlanView: View {
         return Toggle(isOn: $session.useMockJudge) {
             Text("Mock 判定(電波なしデモ用)")
                 .font(.handCaption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
         }
         .tint(.orange)
         .padding(.horizontal, 4)
@@ -102,7 +102,7 @@ struct MissionTile: View {
             Spacer(minLength: 0)
             Text(achieved ? "達成" : "未達成")
                 .font(.handCaption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
         }
         .padding(14)
         .frame(height: 170)

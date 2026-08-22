@@ -33,13 +33,13 @@ struct TripMissionListView: View {
                 }
                 Text("ミッションは好きな順番で OK。タップして挑戦しよう")
                     .font(.handCaption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
                     .frame(maxWidth: .infinity)
 
                 Button(action: onEndTrip) {
                     Text("旅をおわる")
                         .font(.handBody)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSub)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                 }
@@ -96,13 +96,13 @@ struct TripMissionListView: View {
                     }
                 }
                 .font(.handCaption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
             }
             Spacer()
             Button(action: onOpenSettings) {
                 Image(systemName: "gearshape.fill")
                     .font(.handTitle)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
                     .padding(10)
                     .background(.white, in: Circle())
             }

@@ -24,7 +24,7 @@ struct RestrictionSetupView: View {
                     .font(.handLargeTitle)
                 Text("旅行中にシールドするアプリを選べます。ミッションのカメラはいつでも使えます")
                     .font(.handCaption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
             }
 
             statusCard
@@ -57,7 +57,7 @@ struct RestrictionSetupView: View {
 
                 Text("電話は緊急連絡のため制限しないことをおすすめします")
                     .font(.handCaption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -80,7 +80,7 @@ struct RestrictionSetupView: View {
                      ? "旅行を開始すると選んだアプリがおやすみになります"
                      : "スクリーンタイムの許可が必要です(実機のみ)")
                     .font(.handCaption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
             }
             Spacer()
         }

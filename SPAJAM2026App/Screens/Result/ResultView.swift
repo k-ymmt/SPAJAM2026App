@@ -50,7 +50,7 @@ struct ResultView: View {
                 .font(.handLargeTitle)
             Text(session.plan.title)
                 .font(.handCaption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
         }
     }
 
@@ -74,7 +74,7 @@ struct ResultView: View {
         VStack(spacing: 2) {
             Text("\(value)pt").font(.handHeadline)
             Text(label).font(.handCaption2).foregroundStyle(.orange)
-            Text(sub).font(.handCaption2).foregroundStyle(.secondary)
+            Text(sub).font(.handCaption2).foregroundStyle(Color.inkSub)
         }
         .frame(maxWidth: .infinity)
     }
@@ -94,7 +94,7 @@ struct ResultView: View {
         return HStack(spacing: 12) {
             Text(record.achievedAt.formatted(date: .omitted, time: .shortened))
                 .font(.handCaption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
             Group {
                 if let image = session.photo(for: record) {
                     Image(uiImage: image)
@@ -102,7 +102,7 @@ struct ResultView: View {
                         .scaledToFill()
                 } else {
                     Image(systemName: mission?.category.symbolName ?? "checkmark")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSub)
                 }
             }
             .frame(width: 44, height: 44)
@@ -115,7 +115,7 @@ struct ResultView: View {
                     .lineLimit(1)
                 Text("\(mission?.category.label ?? "")・達成 +\(record.points)pt")
                     .font(.handCaption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
             }
             Spacer()
             if let bpm = record.bpmAtAchieve {

@@ -32,7 +32,7 @@ struct RestrictionAdjustView: View {
                         .font(.handHeadline)
                     Text("これまでの調整: \(session.restrictionAdjustments)回(−\(session.adjustPenalty)pt)")
                         .font(.handCaption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSub)
                 }
             }
             .padding(14)
@@ -72,7 +72,7 @@ struct RestrictionAdjustView: View {
             } label: {
                 Text("やっぱりやめる(減点なし)")
                     .font(.handBody)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
                     .frame(maxWidth: .infinity)
             }
         }

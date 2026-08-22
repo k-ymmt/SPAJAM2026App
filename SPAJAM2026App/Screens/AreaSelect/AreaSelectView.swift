@@ -71,7 +71,7 @@ struct AreaSelectView: View {
                 .background(step >= n ? Color.orange : Color(.systemGray5), in: Circle())
             Text(label)
                 .font(.handCaption)
-                .foregroundStyle(step == n ? .primary : .secondary)
+                .foregroundStyle(step == n ? Color.inkMain : Color.inkSub)
         }
     }
 
@@ -103,7 +103,7 @@ struct AreaSelectView: View {
             } label: {
                 Text("デモプラン(浅草)で始める")
                     .font(.handBody)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
             }
         }
     }
@@ -188,7 +188,7 @@ struct AreaSelectView: View {
             .contentTransition(.symbolEffect(.replace))
             Text(caption)
                 .font(.handHeadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSub)
         }
         .animation(.default, value: symbol)
     }
@@ -196,7 +196,7 @@ struct AreaSelectView: View {
     private func title(_ main: String, sub: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(main).font(.handTitle)
-            Text(sub).font(.handCaption).foregroundStyle(.secondary)
+            Text(sub).font(.handCaption).foregroundStyle(Color.inkSub)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -208,7 +208,7 @@ struct AreaSelectView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
                 .background(selected ? Color.orange : .white, in: Capsule())
-                .foregroundStyle(selected ? .white : .secondary)
+                .foregroundStyle(selected ? .white : Color.inkSub)
                 .overlay(Capsule().stroke(Color(.systemGray4), lineWidth: selected ? 0 : 1))
         }
     }
