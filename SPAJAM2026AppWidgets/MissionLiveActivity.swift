@@ -94,14 +94,14 @@ private struct MissionCard: View {
     let state: MissionActivityAttributes.ContentState
 
     var body: some View {
-        ZStack(alignment: .trailing) {
-            // ミザルは右側全体に敷き、テキストやバーはその上に重ねて描く(デザイン準拠)
+        ZStack(alignment: .bottomTrailing) {
+            // ミザルは右下に敷き、テキスト・バー・マップはその上に重ねて描く(デザイン準拠)
             Image("Mizaru")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 108)
+                .frame(height: 104)
                 .opacity(0.9)
-                .offset(y: -4)
+                .offset(x: 2, y: -2)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text("NEXT")
@@ -124,7 +124,7 @@ private struct MissionCard: View {
                         .resizable()
                         .scaledToFill()
                         .frame(maxWidth: .infinity)
-                        .frame(height: 72)
+                        .frame(height: 66)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .padding(.vertical, 1)
                 }
@@ -138,10 +138,9 @@ private struct MissionCard: View {
 
                 IndicatorBar(indicator: state.indicator)
 
-                // マップ表示時は高さ上限(160pt)を優先してプラン名を省略する
-                if mapImage == nil, let planTitle = attributes.planTitle {
+                if let planTitle = attributes.planTitle {
                     Text(planTitle)
-                        .font(.caption2)
+                        .font(.system(size: 10))
                         .foregroundStyle(MissionPalette.inkSub)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
