@@ -31,8 +31,22 @@ extension Font {
 }
 
 extension Color {
-    /// 手書きフォントの可読性を保つ濃いめの文字色
-    static let inkMain = Color(red: 0.14, green: 0.12, blue: 0.10)
-    /// セカンダリ文字(.secondary より濃くして読みやすく)
-    static let inkSub = Color(red: 0.36, green: 0.33, blue: 0.27)
+    // Figma デザイン(docs/Figma)のパレット。キーカラーはティール、背景はグレイッシュグリーン。
+
+    /// 手書きフォントの可読性を保つ濃いめの文字色(#2F3833)
+    static let inkMain = Color(red: 0.184, green: 0.220, blue: 0.200)
+    /// セカンダリ文字(#55605C)
+    static let inkSub = Color(red: 0.333, green: 0.376, blue: 0.361)
+    /// キーカラーのティール(#2A7D6C)
+    static let appAccent = Color(red: 0.165, green: 0.490, blue: 0.424)
+    /// キーカラーの淡色(#8FBCB0)
+    static let appAccentSoft = Color(red: 0.561, green: 0.737, blue: 0.690)
+    /// 画面背景(#ECEEE7)
+    static let appBackground = Color(red: 0.925, green: 0.933, blue: 0.906)
+    /// カテゴリバッジ背景(#E9F4E6)
+    static let badgeBackground = Color(red: 0.914, green: 0.957, blue: 0.902)
+    /// カテゴリバッジ文字(#3E8E41)
+    static let badgeText = Color(red: 0.243, green: 0.557, blue: 0.255)
+    /// カードの枠線(#DDE2D8)
+    static let cardStroke = Color(red: 0.867, green: 0.886, blue: 0.847)
 }

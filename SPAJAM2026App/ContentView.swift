@@ -13,6 +13,7 @@ struct ContentView: View {
     /// 招待コードで参加し、親のプラン公開を待っている状態(子)
     @State private var pendingJoin: RoomMembership? = PendingJoinStore.load()
     @State private var isDebugMenuPresented = false
+    @State private var showAreaSelect = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -30,6 +31,7 @@ struct ContentView: View {
                         ResultView {
                             session.discard()
                             self.session = nil
+                            showAreaSelect = false
                         }
                     }
                 }
@@ -46,7 +48,7 @@ struct ContentView: View {
                     PendingJoinStore.clear()
                     self.pendingJoin = nil
                 }
-            } else {
+            } else if showAreaSelect {
                 AreaSelectView { plan, membership in
                     let new = TripSession(plan: plan, membership: membership)
                     new.persist()
@@ -55,10 +57,13 @@ struct ContentView: View {
                     PendingJoinStore.save(membership)
                     pendingJoin = membership
                 }
+            } else {
+                HomeView { showAreaSelect = true }
             }
         }
         .animation(.default, value: session == nil)
         .animation(.default, value: pendingJoin)
+        .animation(.default, value: showAreaSelect)
         // デザインはライト(クリーム背景)前提のため、ダークモードでも表示を固定する
         .preferredColorScheme(.light)
         .onChange(of: scenePhase) { _, newPhase in
