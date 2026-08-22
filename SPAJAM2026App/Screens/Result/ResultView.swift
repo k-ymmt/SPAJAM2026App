@@ -2,11 +2,11 @@
 //  ResultView.swift
 //  SPAJAM2026App
 //
-//  05 リザルト(旅後/結果画面 ver1)。
-//  緑帯のタイトル → 共通ミッションの写真 → ミッション写真と同期した自分の心拍バー(ドキドキ ログ)
-//  → まとめの一文 → 3 つの指標(オフライン・達成数・最高心拍)→ 旅のハイライト(Journaling Suggestions)→ シェア。
+//  05 リザルト(旅後/結果画面 ver2)。
+//  緑帯のタイトル → ガーランド飾り+共通ミッションの写真+ミザル → ミッション写真と同期した自分の心拍バー
+//  → まとめの一文 → 3 つの指標(手描きフレーム)→ 旅のハイライト(Journaling Suggestions)→ シェア。
 //  複数人の旅(membership あり)は rooms/{code}/results を購読し、全員が終わるまで待機表示にする。
-//  デザイン: Figma SPAJAM2026「旅後/結果画面ver1」(node 208:9060)
+//  デザイン: Figma SPAJAM2026「旅後/結果画面ver2」(node 208:9060)。手描き素材は Assets/Result に書き出し済み
 //
 
 import SwiftUI
@@ -48,15 +48,20 @@ struct ResultView: View {
                 if isWaitingForOthers {
                     waitingBanner
                 }
+                // ヒーローは Figma の 402pt 座標で組むので、余白を打ち消して画面幅いっぱいに置く
                 sharedPhotoSection
+                    .padding(.horizontal, -16)
+                    .padding(.top, -24)
                 HeartRateTimelineView(
                     timeline: timeline,
                     missions: achievedMissions,
                     photo: photo(for:),
                     selectedMissionId: $selectedMissionId
                 )
-                summaryText(timeline)
-                statCards(timeline)
+                VStack(spacing: 11) {
+                    summaryText(timeline)
+                    statCards(timeline)
+                }
                 HighlightSuggestionCard()
                 buttons
             }
@@ -130,47 +135,100 @@ struct ResultView: View {
         return withPhoto.max { ($0.bpmAtAchieve ?? 0) < ($1.bpmAtAchieve ?? 0) }
     }
 
+    /// Figma の座標(幅 402pt 基準)で装飾を絶対配置するヒーロー。写真は -3.95° 傾けたポラロイド
     private var sharedPhotoSection: some View {
         let record = sharedRecord
         let comment = record?.aiComment ?? "\(session.records.count)つのミッションをやりとげた\nいい旅だったみたい"
-        return VStack(spacing: 14) {
-            Group {
-                if let record, let image = session.photo(for: record) {
-                    Image(uiImage: image)
+        return GeometryReader { geometry in
+            let scale = geometry.size.width / 402
+            ZStack(alignment: .topLeading) {
+                // ガーランド(左)と、左右反転した同じ素材(右)
+                ForEach(Self.garland, id: \.name) { piece in
+                    Image(piece.name)
                         .resizable()
-                        .scaledToFill()
-                } else {
-                    Color(.systemGray4)
-                        .overlay {
-                            Text("共通ミッションの写真")
-                                .font(.handHeadline)
-                                .foregroundStyle(Color.inkSub)
-                        }
+                        .frame(width: piece.size.width, height: piece.size.height)
+                        .position(x: piece.origin.x + piece.size.width / 2, y: piece.origin.y + piece.size.height / 2)
+                    Image(piece.name)
+                        .resizable()
+                        .scaleEffect(x: -1)
+                        .frame(width: piece.size.width, height: piece.size.height)
+                        .position(x: 402 - piece.origin.x - piece.size.width / 2, y: piece.origin.y + piece.size.height / 2)
                 }
-            }
-            .frame(width: 272, height: 151)
-            .clipped()
-            .border(.white, width: 10)
-            .shadow(color: .black.opacity(0.15), radius: 6, y: 4)
-            .rotationEffect(.degrees(-3.95))
-            .padding(.vertical, 10)
 
-            Text(comment)
-                .font(.handCaption.bold())
-                .foregroundStyle(Color.inkMain)
-                .multilineTextAlignment(.center)
+                Group {
+                    if let record, let image = session.photo(for: record) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Color(.systemGray4)
+                            .overlay {
+                                Text("共通ミッションの写真")
+                                    .font(.handHeadline)
+                                    .foregroundStyle(Color.inkSub)
+                            }
+                    }
+                }
+                .frame(width: 272, height: 151)
+                .clipped()
+                .border(.white, width: 10)
+                .shadow(color: .black.opacity(0.15), radius: 6, y: 4)
+                .rotationEffect(.degrees(-3.95))
+                .position(x: 201, y: 28.8 + 169.4 / 2)
+
+                Image("DoodleStar")
+                    .resizable()
+                    .frame(width: 29.5, height: 30.3)
+                    .position(x: 15.4 + 14.7, y: 214 + 15.1)
+
+                Image("DoodleMonkey")
+                    .resizable()
+                    .scaleEffect(x: -1)
+                    .frame(width: 71.9, height: 75)
+                    .position(x: 301 + 36, y: 187 + 37.5)
+
+                Text(comment)
+                    .font(.handCaption.bold())
+                    .foregroundStyle(Color.inkMain)
+                    .multilineTextAlignment(.center)
+                    .fixedSize()
+                    .position(x: 201, y: 209 + 19)
+            }
+            .frame(width: 402, height: 250, alignment: .topLeading)
+            .scaleEffect(scale, anchor: .topLeading)
         }
-        .frame(maxWidth: .infinity)
+        .frame(height: 250)
     }
+
+    /// ガーランドの左半分(Figma 座標。y は緑帯の下端を 0 とする)
+    private static let garland: [(name: String, origin: CGPoint, size: CGSize)] = [
+        ("Garland1", CGPoint(x: 112, y: -1.2), CGSize(width: 31.9, height: 32)),
+        ("Garland2", CGPoint(x: 78.7, y: 20), CGSize(width: 36.5, height: 38.2)),
+        ("Garland3", CGPoint(x: 44.6, y: 41.7), CGSize(width: 35.8, height: 36.5)),
+        ("Garland4", CGPoint(x: 6.8, y: 58.6), CGSize(width: 37.5, height: 34.2)),
+        ("Garland5", CGPoint(x: -4.9, y: 71), CGSize(width: 11.9, height: 23.1)),
+    ]
 
     // MARK: - まとめの一文
 
     private func summaryText(_ timeline: HeartRateTimeline) -> some View {
-        Text("スマホを見なかった \(offlineText(long: true)) のあいだに\n心が動いた瞬間が \(timeline.spikeCount)回 ありました")
-            .font(.handCaption)
-            .foregroundStyle(Color.inkMain)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
+        HStack(spacing: 8) {
+            Image("DoodleHeart")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 23, height: 20)
+                .rotationEffect(.degrees(-18.8))
+            Text("スマホを見なかった \(offlineText(long: true)) のあいだに\n心が動いた瞬間が \(timeline.spikeCount)回 ありました")
+                .font(.handCaption)
+                .foregroundStyle(Color.inkMain)
+                .multilineTextAlignment(.center)
+            Image("DoodleClover")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 26)
+                .rotationEffect(.degrees(15.78))
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func offlineText(long: Bool) -> String {
@@ -186,14 +244,14 @@ struct ResultView: View {
 
     private func statCards(_ timeline: HeartRateTimeline) -> some View {
         HStack(spacing: 8) {
-            statCard(title: "目の前に夢中", label: "オフライン：", value: offlineText(long: false))
-            statCard(title: "いろいろチャレンジ", label: "ミッション達成数：", value: "\(session.records.count)")
+            statCard(title: "目の前に夢中", label: "オフライン：", value: offlineText(long: false), frame: "StatFrame")
+            statCard(title: "いろいろチャレンジ", label: "ミッション達成数：", value: "\(session.records.count)", frame: "StatFrame")
             statCard(title: "心が動いた", label: "最高心拍：",
-                     value: timeline.maximumBpm.map { "\(Int($0.rounded()))bpm" } ?? "--")
+                     value: timeline.maximumBpm.map { "\(Int($0.rounded()))bpm" } ?? "--", frame: "StatFrame2")
         }
     }
 
-    private func statCard(title: String, label: String, value: String) -> some View {
+    private func statCard(title: String, label: String, value: String, frame: String) -> some View {
         VStack(spacing: 4) {
             Text(title)
                 .font(.handCaption2.bold())
@@ -210,9 +268,12 @@ struct ResultView: View {
             .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
+        .frame(height: 58)
         .padding(.horizontal, 4)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.appAccent, lineWidth: 1))
+        .background {
+            Image(frame)
+                .resizable()
+        }
     }
 
     // MARK: - ボタン

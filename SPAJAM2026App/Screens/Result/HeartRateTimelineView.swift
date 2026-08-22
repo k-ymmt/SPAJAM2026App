@@ -2,10 +2,10 @@
 //  HeartRateTimelineView.swift
 //  SPAJAM2026App
 //
-//  リザルトの「ミッション写真 ↔ 心拍バー」同期ビュー。
-//  上段: 選択中ミッションの写真(中央・大)と前後のミッション(左右・小)
-//  中段: 旅の時間軸。ミッション達成時刻にピンを置く(選択中は大きいピン)
-//  下段: ドキドキ ログ。時間帯ごとの心拍バー。選択ミッションの区間とピークを強調する
+//  リザルトの「ミッション写真 ↔ 心拍バー」同期ビュー(Figma 旅後/結果画面 ver2)。
+//  上段: 選択中ミッションの写真(中央・大)と前後のミッション(左右・小)+ 右端に自分のアバター
+//  中段: 旅の時間軸。ミッション達成時刻にピン(選択中は大きいピン)、右端はハート入りのゴールピン
+//  下段: 時間帯ごとの心拍バー(クリーム帯)。選択ミッションの区間をグレーのカーソルで示し、ピークを強調
 //  バーをタップすると最寄りのミッションを選択し、写真も切り替わる(心拍は自分の分だけ)。
 //
 
@@ -27,10 +27,11 @@ struct HeartRateTimelineView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             photoStrip
             timelineAxis
             heartLog
+            dashedSeparator
         }
     }
 
@@ -52,6 +53,17 @@ struct HeartRateTimelineView: View {
             sidePhoto(next)
         }
         .frame(maxWidth: .infinity)
+        .overlay(alignment: .bottomTrailing) {
+            // 自分のアバター(ゴールピンの上)
+            Image("MizaruCharacter")
+                .resizable()
+                .scaledToFit()
+                .padding(3)
+                .frame(width: 28, height: 28)
+                .background(.white, in: Circle())
+                .overlay(Circle().stroke(Color.appAccent, lineWidth: 1))
+                .padding(.trailing, 4)
+        }
         .animation(.snappy, value: selectedMissionId)
     }
 
@@ -95,23 +107,38 @@ struct HeartRateTimelineView: View {
     private var timelineAxis: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
+            let inset: CGFloat = 20
+            let usable = max(0, width - inset * 2)
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(Color.appAccent)
                     .frame(height: 2)
                     .frame(maxHeight: .infinity)
+                // ゴール(右端)
+                Image("PinSmall2")
+                    .resizable()
+                    .frame(width: 16, height: 16)
+                    .overlay {
+                        Image("PinHeart")
+                            .resizable()
+                            .frame(width: 9, height: 8)
+                            .offset(y: -1)
+                    }
+                    .position(x: inset + usable, y: geometry.size.height / 2)
                 ForEach(timeline.markers) { marker in
                     let isSelected = marker.missionId == selectedMissionId
                     Button {
                         selectedMissionId = marker.missionId
                     } label: {
-                        Image(systemName: "mappin.circle.fill")
-                            .font(.system(size: isSelected ? 25 : 16))
-                            .foregroundStyle(.white, Color.appAccent)
+                        Image(isSelected ? "PinLarge" : "PinSmall")
+                            .resizable()
+                            .frame(width: isSelected ? 25 : 16, height: isSelected ? 25 : 16)
                             .frame(width: 32, height: 32)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .position(x: 16 + marker.position * max(0, width - 32), y: geometry.size.height / 2)
+                    // ゴールピンと重ならないよう 0.94 までに収める
+                    .position(x: inset + marker.position * usable * 0.94, y: geometry.size.height / 2)
                 }
             }
         }
@@ -119,27 +146,9 @@ struct HeartRateTimelineView: View {
         .animation(.snappy, value: selectedMissionId)
     }
 
-    // MARK: - ドキドキ ログ
+    // MARK: - 心拍バー(ドキドキ ログ)
 
     private var heartLog: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("ドキドキ ログ")
-                .font(.handHeadline)
-                .foregroundStyle(Color.inkMain)
-            bars
-                .frame(height: 70)
-            if let marker = selectedMarker {
-                Text(marker.achievedAt.formatted(date: .omitted, time: .shortened) + " にたっせい")
-                    .font(.handCaption2)
-                    .foregroundStyle(Color.inkSub)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-        }
-        .padding(14)
-        .background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
-    }
-
-    private var bars: some View {
         let selectedBar = selectedMarker?.barIndex
         let peak = timeline.peakBar?.index
         return HStack(alignment: .bottom, spacing: 5) {
@@ -155,14 +164,26 @@ struct HeartRateTimelineView: View {
                         Spacer(minLength: 0)
                         RoundedRectangle(cornerRadius: 3)
                             .fill(barColor(isSelected: isSelected, isPeak: isPeak))
-                            .frame(height: max(6, 70 * bar.level))
+                            .frame(height: max(6, 64 * bar.level))
                     }
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
+                    .overlay {
+                        if isSelected {
+                            // 選択区間のカーソル
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color(.systemGray4))
+                                .frame(width: 7)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
             }
         }
+        .frame(height: 76)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color(red: 0.98, green: 0.97, blue: 0.94))
         .animation(.snappy, value: selectedMissionId)
     }
 
@@ -171,5 +192,13 @@ struct HeartRateTimelineView: View {
         if isSelected { return hot }
         if isPeak { return hot.opacity(0.75) }
         return hot.opacity(0.28)
+    }
+
+    private var dashedSeparator: some View {
+        Rectangle()
+            .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+            .frame(height: 1)
+            .padding(.horizontal, 6)
+            .padding(.top, 6)
     }
 }

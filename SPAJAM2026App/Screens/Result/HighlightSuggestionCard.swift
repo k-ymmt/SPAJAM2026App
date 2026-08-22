@@ -20,7 +20,11 @@ struct HighlightSuggestionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .center, spacing: 8) {
+                Image("DoodlePen")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 26, height: 24)
                 Text("旅のハイライト")
                     .font(.handTitle)
                     .foregroundStyle(Color.inkMain)
