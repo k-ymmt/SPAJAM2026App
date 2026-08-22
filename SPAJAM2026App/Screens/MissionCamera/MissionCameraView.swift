@@ -277,22 +277,15 @@ struct MissionCameraView: View {
 
     private func controls(_ mission: Mission) -> some View {
         HStack(spacing: 12) {
-            // 撮影(メイン)。撮影済みなら再判定の導線に
+            // 撮影(メイン)
             Button {
-                if capturedImage != nil {
-                    showJudgeConfirm = true
-                } else {
-                    useLibrary = false
-                    showCamera = true
-                }
+                useLibrary = false
+                showCamera = true
             } label: {
-                Label(
-                    capturedImage != nil ? "この写真で判定する" : "撮影する",
-                    systemImage: capturedImage != nil ? "sparkles" : "camera.fill"
-                )
-                .font(.handHeadline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                Label("撮影する", systemImage: "camera.fill")
+                    .font(.handHeadline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
             .tint(.appAccent)
