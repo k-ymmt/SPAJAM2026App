@@ -81,7 +81,7 @@ struct MissionTile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("\(mission.category.label)・\(mission.slot.label)")
+                Text(mission.category.label)
                     .font(.caption2.bold())
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)

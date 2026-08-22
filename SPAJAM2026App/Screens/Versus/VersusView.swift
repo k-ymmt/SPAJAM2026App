@@ -163,7 +163,7 @@ struct VersusView: View {
                         Text(mission.title)
                             .font(.footnote.weight(.semibold))
                             .lineLimit(1)
-                        Text("\(mission.category.label)・\(mission.slot.label)")
+                        Text(mission.category.label)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
