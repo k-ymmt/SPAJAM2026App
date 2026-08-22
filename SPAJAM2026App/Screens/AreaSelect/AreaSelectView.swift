@@ -3,9 +3,9 @@
 //  SPAJAM2026App
 //
 //  01 エリア選択。3 ステップがスライドで切り替わる:
-//  Step1 どこへ(マップにピン) → Step2 だれと(1〜5人) → Step3 温度感(ゆったり/アクティブ/マニア)
+//  Step1 どこへ(マップにピン) → Step2 だれと(−/+で1〜5人) → Step3 温度感(ゆったり/アクティブ/マニア)
 //  中央のイラストはステップと選択に応じて変わる(手書きイラスト素材に差し替え予定)。
-//  ボタンは「つぎへ」のみ(戻るなし)。
+//  スワイプで前のステップに戻れる。
 //  複数人: Step2 で 2 人以上を選ぶとルームを作って招待コードを表示し、子が揃うまで「つぎへ」を無効にする。
 //  ヘッダ右のアカウントアイコン → 「招待コードを入力」で子として参加できる。
 //
@@ -28,7 +28,7 @@ struct AreaSelectView: View {
     )
     @State private var step = 1
     @State private var pin: CLLocationCoordinate2D?
-    @State private var partySize = 2
+    @State private var partySize = 1
     @State private var mood: TripMood = .relaxed
     @State private var isGenerating = false
     @State private var errorMessage: String?
@@ -41,27 +41,31 @@ struct AreaSelectView: View {
 
     // 招待コード入力(子)
     @State private var isJoinDialogPresented = false
-
-    private let slide: AnyTransition = .asymmetric(
-        insertion: .move(edge: .trailing).combined(with: .opacity),
-        removal: .move(edge: .leading).combined(with: .opacity)
-    )
+    // なまえの変更
+    @State private var isProfilePresented = false
 
     var body: some View {
         VStack(spacing: 20) {
             stepIndicator
                 .padding(.top, 12)
+                .padding(.horizontal, 24)
 
-            ZStack {
-                switch step {
-                case 1: slideWhere.transition(slide)
-                case 2: slideWho.transition(slide)
-                default: slideMood.transition(slide)
-                }
+            // スワイプで前後のステップに移動できるページャー
+            TabView(selection: $step) {
+                slideWhere
+                    .padding(.horizontal, 24)
+                    .tag(1)
+                slideWho
+                    .padding(.horizontal, 24)
+                    .tag(2)
+                slideMood
+                    .padding(.horizontal, 24)
+                    .tag(3)
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.35), value: step)
         }
-        .padding(24)
+        .padding(.vertical, 24)
         .background(Color.appBackground)
         .onChange(of: partySize) { _, newValue in
             syncRoom(partySize: newValue)
@@ -80,6 +84,13 @@ struct AreaSelectView: View {
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $isProfilePresented) {
+            ProfileSetupView(isEditing: true) {
+                isProfilePresented = false
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
     }
 
     // MARK: - ステップインジケータ
@@ -88,19 +99,24 @@ struct AreaSelectView: View {
         HStack(spacing: 8) {
             stepChip(1, "どこへ")
             stepChip(2, "だれと")
-            stepChip(3, "温度感")
+            stepChip(3, "すごしかた")
             Spacer()
             accountMenu
         }
     }
 
-    /// ヘッダ右のアカウントアイコン。招待コードで参加する入口
+    /// ヘッダ右のアカウントアイコン。招待コード参加・なまえ変更の入口
     private var accountMenu: some View {
         Menu {
             Button {
                 isJoinDialogPresented = true
             } label: {
                 Label("招待コードを入力", systemImage: "ticket")
+            }
+            Button {
+                isProfilePresented = true
+            } label: {
+                Label("なまえを変更", systemImage: "person.crop.circle")
             }
         } label: {
             Image(systemName: "person.crop.circle")
@@ -146,14 +162,6 @@ struct AreaSelectView: View {
             .clipShape(RoundedRectangle(cornerRadius: 24))
 
             nextButton("つぎへ", disabled: pin == nil) { step = 2 }
-
-            Button {
-                onPlanReady(.bundledDemoPlan(), nil)
-            } label: {
-                Text("デモプラン(浅草)で始める")
-                    .font(.handBody)
-                    .foregroundStyle(Color.inkSub)
-            }
         }
     }
 
@@ -167,11 +175,7 @@ struct AreaSelectView: View {
             illustration(symbol: partySymbol, caption: partySize == 1 ? "ひとり旅" : "\(partySize)人旅")
             Spacer()
 
-            HStack(spacing: 8) {
-                ForEach(1...5, id: \.self) { n in
-                    selectChip("\(n)", selected: partySize == n) { partySize = n }
-                }
-            }
+            partyStepper
 
             if partySize >= 2 {
                 inviteCard
@@ -190,41 +194,39 @@ struct AreaSelectView: View {
 
     /// 招待コードと参加状況
     private var inviteCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
                 Text("招待コード")
-                    .font(.handCaption)
+                    .font(.handCaption2)
                     .foregroundStyle(Color.inkSub)
-                Spacer()
                 if let roomCode {
+                    Text(roomCode)
+                        .font(.system(size: 20, weight: .bold, design: .rounded).monospacedDigit())
+                        .kerning(3)
+                        .foregroundStyle(Color.inkMain)
+                    Spacer()
                     Button {
                         UIPasteboard.general.string = roomCode
                     } label: {
-                        Label("コピー", systemImage: "doc.on.doc")
-                            .font(.handCaption)
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 14))
                     }
                     .tint(.orange)
+                } else if isCreatingRoom {
+                    Spacer()
+                    ProgressView()
+                } else if let roomError {
+                    Text(roomError)
+                        .font(.handCaption2)
+                        .foregroundStyle(.red)
                 }
-            }
-            if let roomCode {
-                Text(roomCode)
-                    .font(.handNumber(34))
-                    .kerning(6)
-                    .foregroundStyle(Color.inkMain)
-                    .frame(maxWidth: .infinity)
-            } else if isCreatingRoom {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-            } else if let roomError {
-                Text(roomError)
-                    .font(.handCaption)
-                    .foregroundStyle(.red)
             }
 
             let guestCapacity = partySize - 1
             let names = observer.members.map(\.name)
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Image(systemName: "person.2.fill")
+                    .font(.system(size: 11))
                     .foregroundStyle(.orange)
                 if names.isEmpty {
                     Text("参加を待っています(あと \(guestCapacity) 人)")
@@ -232,12 +234,13 @@ struct AreaSelectView: View {
                     Text(names.joined(separator: "、") + (observer.isPartyComplete ? " が参加(そろいました)" : " が参加(あと \(max(0, guestCapacity - names.count)) 人)"))
                 }
             }
-            .font(.handCaption)
+            .font(.handCaption2)
             .foregroundStyle(Color.inkSub)
         }
-        .padding(14)
-        .frame(maxWidth: .infinity)
-        .background(.white, in: RoundedRectangle(cornerRadius: 20))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white, in: RoundedRectangle(cornerRadius: 14))
     }
 
     /// 人数に応じてルームを作成/更新する。1 人なら何もしない(作成済みルームは残す)
@@ -263,6 +266,33 @@ struct AreaSelectView: View {
         }
     }
 
+    /// −/+ で 1〜5 人を選ぶステッパー(Figma 人数選択のデザイン準拠)
+    private var partyStepper: some View {
+        HStack(spacing: 28) {
+            stepperButton("minus", disabled: partySize <= 1) { partySize -= 1 }
+            Text("\(partySize)人")
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.inkMain)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .animation(.default, value: partySize)
+            stepperButton("plus", disabled: partySize >= 5) { partySize += 1 }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 4)
+    }
+
+    private func stepperButton(_ symbol: String, disabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 38, height: 38)
+                .background(disabled ? Color(.systemGray4) : Color.appAccent, in: Circle())
+        }
+        .disabled(disabled)
+    }
+
     private var partySymbol: String {
         switch partySize {
         case 1: "figure.walk"
@@ -275,7 +305,7 @@ struct AreaSelectView: View {
 
     private var slideMood: some View {
         VStack(spacing: 16) {
-            title("旅の温度感は?", sub: "ミッションの難易度とテイストが変わります")
+            title("すごしかたは?", sub: "ミッションの難易度とテイストが変わります")
 
             Spacer()
             illustration(symbol: moodSymbol, caption: mood.rawValue)
@@ -293,7 +323,7 @@ struct AreaSelectView: View {
                     .foregroundStyle(.red)
             }
 
-            nextButton(isGenerating ? "プランを生成中…" : "この旅先でプランをつくる", loading: isGenerating, disabled: isGenerating) {
+            nextButton(isGenerating ? "プランを生成中…" : "プランをつくる", loading: isGenerating, disabled: isGenerating) {
                 generate()
             }
         }
@@ -352,11 +382,16 @@ struct AreaSelectView: View {
         Task {
             do {
                 let plan = try await PlanGenerator().generate(at: pin, partySize: partySize, mood: mood)
-                let membership = (partySize >= 2 ? roomCode : nil).map { RoomMembership(code: $0, role: .host, name: nil) }
+                let membership = (partySize >= 2 ? roomCode : nil).map { RoomMembership(code: $0, role: .host, name: UserProfileStore.name) }
                 onPlanReady(plan, membership)
+            } catch PlanGenerator.GenError.timeout {
+                NSLog("[PlanGen] timed out")
+                errorMessage = "生成がタイムアウトしました。電波の良い場所でもう一度お試しください"
+            } catch PlanGenerator.GenError.noKey {
+                errorMessage = "API キー(Secrets.plist)が設定されていません"
             } catch {
                 NSLog("[PlanGen] failed: \(error)")
-                errorMessage = "生成に失敗しました。もう一度試すか、デモプランで始めてください"
+                errorMessage = "生成に失敗しました。もう一度お試しください"
             }
             isGenerating = false
         }

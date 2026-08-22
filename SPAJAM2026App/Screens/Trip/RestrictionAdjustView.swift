@@ -21,7 +21,7 @@ struct RestrictionAdjustView: View {
                 .frame(maxWidth: .infinity)
 
             Text("制限をととのえる")
-                .font(.handTitle)
+                .font(.system(size: 20, weight: .bold))
 
             // ペナルティの警告
             HStack(spacing: 10) {
@@ -29,7 +29,7 @@ struct RestrictionAdjustView: View {
                     .foregroundStyle(Color.appAccent)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("調整すると OFFLINE SCORE −5pt")
-                        .font(.handHeadline)
+                        .font(.system(size: 15, weight: .semibold))
                     Text("これまでの調整: \(session.restrictionAdjustments)回(−\(session.adjustPenalty)pt)")
                         .font(.handCaption2)
                         .foregroundStyle(Color.inkSub)
@@ -46,7 +46,7 @@ struct RestrictionAdjustView: View {
                 }
             } label: {
                 Label("おやすみにするアプリを選び直す", systemImage: "moon.zzz.fill")
-                    .font(.handHeadline)
+                    .font(.system(size: 15, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
             }
@@ -60,7 +60,7 @@ struct RestrictionAdjustView: View {
                 dismiss()
             } label: {
                 Text("この設定に変更する(−5pt)")
-                    .font(.handHeadline)
+                    .font(.system(size: 16, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
             }
@@ -71,7 +71,7 @@ struct RestrictionAdjustView: View {
                 dismiss()
             } label: {
                 Text("やっぱりやめる(減点なし)")
-                    .font(.handBody)
+                    .font(.handCaption)
                     .foregroundStyle(Color.inkSub)
                     .frame(maxWidth: .infinity)
             }

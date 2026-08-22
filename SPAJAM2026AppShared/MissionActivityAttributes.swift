@@ -29,10 +29,12 @@ struct MissionActivityAttributes: ActivityAttributes {
         var updatedAt: Date
         /// Whether the "写真を撮りませんか？" badge is shown (heart rate crossed the threshold).
         var showsPhotoPrompt: Bool
+        /// Map snapshot (App Group 内のファイル名)。location 指定ミッションの案内用。nil で非表示。
+        var mapImageFileName: String?
 
         init(missionNumber: Int, missionTotal: Int, missionText: String, landmarkName: String,
              distanceMeters: Double?, heartRate: Double?, indicator: MissionIndicator,
-             updatedAt: Date, showsPhotoPrompt: Bool = false) {
+             updatedAt: Date, showsPhotoPrompt: Bool = false, mapImageFileName: String? = nil) {
             self.missionNumber = missionNumber
             self.missionTotal = missionTotal
             self.missionText = missionText
@@ -42,11 +44,12 @@ struct MissionActivityAttributes: ActivityAttributes {
             self.indicator = indicator
             self.updatedAt = updatedAt
             self.showsPhotoPrompt = showsPhotoPrompt
+            self.mapImageFileName = mapImageFileName
         }
 
         private enum CodingKeys: String, CodingKey {
             case missionNumber, missionTotal, missionText, landmarkName, distanceMeters, heartRate,
-                 indicator, updatedAt, showsPhotoPrompt
+                 indicator, updatedAt, showsPhotoPrompt, mapImageFileName
         }
 
         /// `showsPhotoPrompt` is optional when decoding so activities started by an older
@@ -62,6 +65,7 @@ struct MissionActivityAttributes: ActivityAttributes {
             indicator = try c.decode(MissionIndicator.self, forKey: .indicator)
             updatedAt = try c.decode(Date.self, forKey: .updatedAt)
             showsPhotoPrompt = try c.decodeIfPresent(Bool.self, forKey: .showsPhotoPrompt) ?? false
+            mapImageFileName = try c.decodeIfPresent(String.self, forKey: .mapImageFileName)
         }
 
         static let photoPromptText = "写真を撮りませんか？"
@@ -77,6 +81,8 @@ struct MissionActivityAttributes: ActivityAttributes {
     var brandName: String
     /// SF Symbol drawn in the top-left tile.
     var iconSymbol: String
+    /// カード右下に小さく出すプラン名(「浅草 まったり旅」)。旧ビルドの再接続用に optional。
+    var planTitle: String?
 }
 
 /// Segmented indicator: `completedCount` bright segments, then an optional dimmed

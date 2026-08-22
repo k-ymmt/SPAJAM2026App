@@ -31,20 +31,41 @@ nonisolated extension MissionState {
     }
 }
 
-/// Watch へ送る単発イベント(触覚フィードバックのトリガー)
+/// Watch へ送る単発イベントの種類(触覚フィードバックのトリガー)
 nonisolated enum WatchEventKind: String, Codable, Sendable {
-    /// ミッション達成
+    /// 自分がミッション達成
     case achieved
     /// 目的地に接近
     case near
+    /// 心拍が高まった(写真を撮るチャンス)
+    case heartSpike
+    /// 自分以外のメンバーがミッション達成
+    case memberAchieved
+}
 
-    static let payloadKey = "watchEvent"
+/// Watch へ送る単発イベント。text は Watch 画面に短く出す表示用文言
+nonisolated struct WatchEvent: Sendable {
+    var kind: WatchEventKind
+    var text: String?
 
-    var payload: [String: Any] { [Self.payloadKey: rawValue] }
+    static let kindKey = "watchEvent"
+    static let textKey = "watchEventText"
+
+    var payload: [String: Any] {
+        var p: [String: Any] = [Self.kindKey: kind.rawValue]
+        if let text { p[Self.textKey] = text }
+        return p
+    }
+
+    init(kind: WatchEventKind, text: String? = nil) {
+        self.kind = kind
+        self.text = text
+    }
 
     init?(payload: [String: Any]) {
-        guard let raw = payload[Self.payloadKey] as? String,
+        guard let raw = payload[Self.kindKey] as? String,
               let kind = WatchEventKind(rawValue: raw) else { return nil }
-        self = kind
+        self.kind = kind
+        self.text = payload[Self.textKey] as? String
     }
 }

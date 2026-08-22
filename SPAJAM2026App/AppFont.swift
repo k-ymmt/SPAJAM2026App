@@ -22,10 +22,12 @@ extension Font {
     static let handHeadline = Font.custom(koyomi, size: 18).bold()
     /// 本文
     static let handBody = Font.custom(koyomi, size: 16)
-    /// 補足
-    static let handCaption = Font.custom(koyomi, size: 14)
-    /// 最小の注釈
-    static let handCaption2 = Font.custom(koyomi, size: 13)
+    // 方針: 手書きは「声」(タイトル・お題・ボタン・演出)にだけ使い、16pt 未満にはしない。
+    // 補足説明・計測値など「読ませる情報」はシステムフォントで可読性を優先する。
+    /// 補足(システムフォント)
+    static let handCaption = Font.system(size: 14)
+    /// 最小の注釈(システムフォント)
+    static let handCaption2 = Font.system(size: 13)
     /// スコアなどの特大数字・英字(Hetakawa は数字/英字のみ対応)
     static func handNumber(_ size: CGFloat) -> Font { .custom(hetakawa, size: size).bold() }
 }

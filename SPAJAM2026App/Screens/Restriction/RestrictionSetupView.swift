@@ -90,7 +90,7 @@ struct RestrictionSetupView: View {
                 .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 12))
             VStack(alignment: .leading, spacing: 2) {
                 Text(category.label)
-                    .font(.handBody.bold())
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(Color.inkMain)
                 Text(category.detail)
                     .font(.handCaption2)

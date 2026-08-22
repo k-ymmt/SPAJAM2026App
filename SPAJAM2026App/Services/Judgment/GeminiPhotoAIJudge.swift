@@ -68,7 +68,7 @@ struct GeminiPhotoAIJudge: PhotoAIJudging {
 
     /// テキストのみの生成呼び出し(JSON モード)。プラン生成などに使う
     func generateText(prompt: String) async throws -> String {
-        let data = try await generateContent(parts: [["text": prompt]], timeout: 60)
+        let data = try await generateContent(parts: [["text": prompt]], timeout: 25)
         return try extractText(data)
     }
 
