@@ -2,11 +2,11 @@
 //  ResultView.swift
 //  SPAJAM2026App
 //
-//  05 リザルト(旅後/結果画面 ver2)。
-//  緑帯のタイトル → ガーランド飾り+共通ミッションの写真+ミザル → ミッション写真と同期した自分の心拍バー
+//  05 リザルト(旅後/結果画面 ver3)。
+//  緑帯のタイトル → ガーランド飾り+共通ミッションの写真+ミザル → 心拍が上がったミッションのピン+自分の心拍バー
 //  → まとめの一文 → 3 つの指標(手描きフレーム)→ 旅のハイライト(Journaling Suggestions)→ シェア。
 //  複数人の旅(membership あり)は rooms/{code}/results を購読し、全員が終わるまで待機表示にする。
-//  デザイン: Figma SPAJAM2026「旅後/結果画面ver2」(node 208:9060)。手描き素材は Assets/Result に書き出し済み
+//  デザイン: Figma SPAJAM2026「旅後/結果画面ver3」(node 208:9060)。手描き素材は Assets/Result に書き出し済み
 //
 
 import SwiftUI
@@ -16,33 +16,22 @@ struct ResultView: View {
     var onRestart: () -> Void
 
     @State private var observer = TripRoomObserver()
-    @State private var selectedMissionId: String?
 
     private var isShared: Bool { session.membership != nil }
 
     /// 複数人の旅で、まだ終わっていない人がいる
     private var isWaitingForOthers: Bool { isShared && !observer.isAllFinished }
 
-    /// 達成したミッションを達成順に
-    private var achievedMissions: [Mission] {
-        session.records
-            .sorted { $0.achievedAt < $1.achievedAt }
-            .compactMap { record in session.plan.missions.first { $0.id == record.missionId } }
-    }
-
-    /// 自分の心拍だけで組み立てる時間軸。サンプルが無ければデモ波形
-    private var timeline: HeartRateTimeline {
-        let interval = session.tripInterval
-        var samples = session.heartRateSamples
-        if samples.count < 3 {
-            let demoInterval = interval ?? HeartRateTimeline(samples: [], records: session.records, interval: nil).interval
-            samples = HeartRateTimeline.demoSamples(records: session.records, interval: demoInterval)
-        }
-        return HeartRateTimeline(samples: samples, records: session.records, interval: interval)
+    /// 他の参加者(自分を除く)が共有してきた最高心拍ミッション
+    private var otherPeaks: [HeartRateTimeline.OtherPeak] {
+        let myUid = AuthService.shared.uid
+        return observer.results
+            .filter { $0.id != myUid }
+            .compactMap(\.peak)
     }
 
     var body: some View {
-        let timeline = self.timeline
+        let timeline = session.resultTimeline
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 if isWaitingForOthers {
@@ -54,9 +43,9 @@ struct ResultView: View {
                     .padding(.top, -24)
                 HeartRateTimelineView(
                     timeline: timeline,
-                    missions: achievedMissions,
-                    photo: photo(for:),
-                    selectedMissionId: $selectedMissionId
+                    pins: timeline.pins(records: session.records, others: otherPeaks),
+                    missions: session.plan.missions,
+                    photo: photo(for:)
                 )
                 VStack(spacing: 11) {
                     summaryText(timeline)
@@ -70,13 +59,6 @@ struct ResultView: View {
         }
         .background(Color.appBackground)
         .safeAreaInset(edge: .top, spacing: 0) { headerBand }
-        .onAppear {
-            if selectedMissionId == nil {
-                // 最初は最も心拍が上がっていたミッションを見せる
-                let peak = timeline.peakBar?.index ?? 0
-                selectedMissionId = timeline.marker(nearestTo: peak)?.missionId ?? achievedMissions.first?.id
-            }
-        }
         .task(id: session.membership?.code) {
             guard let code = session.membership?.code else { return }
             observer.start(code: code)

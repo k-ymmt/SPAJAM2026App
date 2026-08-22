@@ -247,8 +247,16 @@ final class TripSession {
             total: totalScore,
             achievedMissionIds: records.map(\.missionId),
             bpmBars: myBars,
-            finishedAt: tripEndedAt ?? Date()
+            finishedAt: tripEndedAt ?? Date(),
+            peakMissionId: peakRecord?.missionId,
+            peakMissionAchievedAt: peakRecord?.achievedAt
         )
+    }
+
+    /// 自分の心拍が最も高かった時刻に近いミッションの達成ログ(リザルトのピンと同じロジック)
+    private var peakRecord: MissionRecord? {
+        guard let id = resultTimeline.peakMissionId else { return nil }
+        return records.first { $0.missionId == id }
     }
 
     /// 複数人の旅なら自分の結果をルームに書き込む。ひとり旅・送信済みなら何もしない
