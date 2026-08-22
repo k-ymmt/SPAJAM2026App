@@ -53,11 +53,15 @@ nonisolated struct GeoTarget: Codable, Sendable, Hashable {
     var latitude: Double
     var longitude: Double
     var radiusMeters: Double
+    /// 案内表示用の場所名(「雷門」など)。LA の「◯◯から △m」に使う
+    var name: String?
 }
 
 nonisolated struct MissionJudgment: Codable, Sendable, Hashable {
     /// GPS 条件。nil なら位置判定はスキップ
     var location: GeoTarget?
+    /// true のときだけ location を判定ゲートに使う(false/nil なら案内・接近振動専用)
+    var locationRequired: Bool?
     /// 写真 AI 判定のお題プロンプト。nil なら写真判定はスキップ
     var aiPrompt: String?
     /// THRILL 用: 安静時比の心拍上昇量 (bpm)

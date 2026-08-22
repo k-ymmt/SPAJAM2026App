@@ -64,7 +64,7 @@ final class TripActivityController {
             missionNumber: mission.order,
             missionTotal: total,
             missionText: mission.title,
-            landmarkName: "目的地",
+            landmarkName: mission.judgment.location?.name ?? "目的地",
             distanceMeters: distanceMeters,
             heartRate: bpm,
             indicator: MissionIndicator(segmentCount: total, completedCount: achievedCount),

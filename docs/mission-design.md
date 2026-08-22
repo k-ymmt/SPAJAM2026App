@@ -114,7 +114,9 @@
 ```
 
 - プランは固定 JSON をアプリ内バンドル(バックエンド不要)
-- `judgment.location` が null なら GPS 判定スキップ
+- `judgment.location` は**案内・接近振動用**(LA の「◯◯から △m」表示と Watch 接近振動)。go 以外にも spot があれば付ける。`location.name` が案内表示名
+- 判定ゲートに使うのは `judgment.locationRequired: true` のミッションのみ(通常 go だけ)。それ以外は場所を外れていても AI 写真判定のみで達成できる(判定は緩く、案内は手厚く)
+- `judgment.location` が null なら GPS 判定・案内とも無し(eat など目的地のないお題)
 - `camera`: front / back(デフォルト back)
 - Live Activity には「現在のミッション order / title / 進捗」を表示
 

@@ -10,8 +10,14 @@
       "slot": "fixed",
       "title": "雷門へ行く",
       "judgment": {
-        "location": { "latitude": 35.711018, "longitude": 139.796301, "radiusMeters": 150 },
-        "aiPrompt": "この写真に浅草の雷門(大きな赤い提灯のある門)が写っていますか?"
+        "location": {
+          "latitude": 35.711018,
+          "longitude": 139.796301,
+          "radiusMeters": 150,
+          "name": "雷門"
+        },
+        "aiPrompt": "この写真に浅草の雷門(大きな赤い提灯のある門)が写っていますか?",
+        "locationRequired": true
       },
       "hapticOnNear": true,
       "points": 10

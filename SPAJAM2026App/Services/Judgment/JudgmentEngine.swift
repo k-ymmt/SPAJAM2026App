@@ -35,8 +35,8 @@ struct JudgmentEngine {
     var photoJudge: any PhotoAIJudging
 
     func judge(mission: Mission, input: JudgeInput) async -> JudgeResult {
-        // 1. GPS 条件(ある場合のみ)
-        if let target = mission.judgment.location {
+        // 1. GPS 条件(locationRequired のミッションのみ。それ以外の location は案内・接近振動専用)
+        if mission.judgment.locationRequired == true, let target = mission.judgment.location {
             guard let location = input.location else {
                 return .failed(reason: "現在地が取得できませんでした")
             }
