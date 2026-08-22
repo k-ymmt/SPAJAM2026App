@@ -45,6 +45,25 @@ struct TripMemberResultTests {
         #expect(party[1].bpmBars == [0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
     }
 
+    @Test func peakIsAvailableOnlyWhenBothFieldsArePresent() throws {
+        let at = Date(timeIntervalSince1970: 1_750_000_000)
+        var result = TripMemberResult(id: "u", name: "たろう", isHost: false, questScore: 1, heartScore: 2, offlineScore: 3,
+                                      total: 6, achievedMissionIds: ["a"], bpmBars: [0.5], finishedAt: at)
+        #expect(result.peak == nil)
+        result.peakMissionId = "a"
+        #expect(result.peak == nil)
+        result.peakMissionAchievedAt = at
+        #expect(result.peak == HeartRateTimeline.OtherPeak(id: "u", name: "たろう", missionId: "a", achievedAt: at))
+
+        // 古いクライアントのドキュメント(peak 無し)も読める
+        let legacy = """
+        {"id":"u","name":"n","isHost":false,"questScore":0,"heartScore":0,"offlineScore":0,"total":0,
+         "achievedMissionIds":[],"bpmBars":[],"finishedAt":0}
+        """
+        let decoded = try JSONDecoder().decode(TripMemberResult.self, from: Data(legacy.utf8))
+        #expect(decoded.peak == nil)
+    }
+
     @Test func resultRoundTripsThroughCodable() throws {
         let result = TripMemberResult(id: "u", name: "n", isHost: false, questScore: 1, heartScore: 2, offlineScore: 3,
                                       total: 6, achievedMissionIds: ["a"], bpmBars: [0.5], finishedAt: Date())
