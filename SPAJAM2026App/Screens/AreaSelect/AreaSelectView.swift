@@ -322,7 +322,7 @@ struct AreaSelectView: View {
             title("すごしかたは?", sub: "ミッションの難易度とテイストが変わります")
 
             Spacer()
-            illustration(image: moodImageName, symbol: moodSymbol, caption: mood.rawValue)
+            illustration(image: moodImageName, symbol: moodSymbol, caption: moodCaption)
             Spacer()
 
             HStack(spacing: 8) {
@@ -340,6 +340,14 @@ struct AreaSelectView: View {
             nextButton(isGenerating ? "プランを生成中…" : "プランをつくる", loading: isGenerating, disabled: isGenerating) {
                 generate()
             }
+        }
+    }
+
+    private var moodCaption: String {
+        switch mood {
+        case .relaxed: "のんびりいこうぜ"
+        case .active: "たのしみだらけ"
+        case .mania: "新たな発見あり"
         }
     }
 
