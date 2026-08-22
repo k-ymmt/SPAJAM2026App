@@ -14,8 +14,11 @@ struct OpponentData {
     var achievedMissionIds: Set<String>
     var points: Int
     var focusScore: Int
+    var notLookingScore: Int
     /// 時間帯ごとの心拍変動量(グラフ用・正規化済み 0...1)
     var bpmBars: [Double]
+
+    var total: Int { points + focusScore + notLookingScore }
 
     /// Mock: 自分より少し控えめな対戦相手を生成する
     static func mock(for session: TripSession) -> OpponentData {
@@ -29,6 +32,7 @@ struct OpponentData {
             achievedMissionIds: achieved,
             points: points,
             focusScore: max(0, session.focusScore * 7 / 10 + 3),
+            notLookingScore: max(0, session.notLookingScore * 8 / 10),
             bpmBars: [0.3, 0.4, 0.5, 0.45, 0.35, 0.4]
         )
     }
@@ -43,8 +47,8 @@ struct VersusView: View {
 
     var body: some View {
         let opponent = self.opponent
-        let myTotal = session.totalPoints + session.focusScore
-        let opTotal = opponent.points + opponent.focusScore
+        let myTotal = session.totalPoints + session.focusScore + session.notLookingScore
+        let opTotal = opponent.total
         let iWin = myTotal >= opTotal
 
         ScrollView {

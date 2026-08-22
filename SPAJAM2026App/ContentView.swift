@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var session: TripSession?
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -16,7 +17,9 @@ struct ContentView: View {
                 Group {
                     switch session.phase {
                     case .planning:
-                        PlanView { session.startTrip() }
+                        PlanView { session.proceedToRestrictionSetup() }
+                    case .restrictionSetup:
+                        RestrictionSetupView { session.startTrip() }
                     case .traveling:
                         MissionCameraView()
                     case .finished:
@@ -31,6 +34,9 @@ struct ContentView: View {
             }
         }
         .animation(.default, value: session == nil)
+        .onChange(of: scenePhase) { _, newPhase in
+            session?.noteScenePhase(active: newPhase == .active)
+        }
     }
 }
 

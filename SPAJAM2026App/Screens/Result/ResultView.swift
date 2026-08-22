@@ -56,14 +56,14 @@ struct ResultView: View {
 
     private var scoreCard: some View {
         VStack(spacing: 14) {
-            Text("\(session.totalPoints + session.focusScore) pt")
+            Text("\(session.totalPoints + session.focusScore + session.notLookingScore) pt")
                 .font(.system(size: 44, weight: .bold))
             HStack(spacing: 20) {
                 scoreItem(label: "ミッション", value: "\(session.totalPoints)pt")
                 scoreItem(label: "心拍のゆらぎ", value: "\(session.focusScore)pt")
-                scoreItem(label: "みない時間", value: "—")
+                scoreItem(label: "みない時間", value: "\(session.notLookingScore)pt")
             }
-            Text("スクリーンタイム連携は実装中(P1)")
+            Text("みない時間 = 旅行中にスマホを見なかった分数")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }

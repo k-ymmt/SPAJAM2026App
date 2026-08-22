@@ -13,9 +13,10 @@ import UIKit
 @Observable
 final class TripSession {
     enum Phase {
-        case planning      // プラン確認中
-        case traveling     // 旅行中
-        case finished      // 全ミッション終了
+        case planning         // プラン確認中
+        case restrictionSetup // おやすみ設定(シールド選択)
+        case traveling        // 旅行中
+        case finished         // 全ミッション終了
     }
 
     let plan: TravelPlan
@@ -30,7 +31,14 @@ final class TripSession {
     var useMockJudge: Bool
 
     let heartRateReceiver = WatchHeartRateReceiver()
+    let shield = ShieldService()
     private let activityController = TripActivityController()
+
+    // 「みない時間」計測: 旅行中にこのアプリを見ていた時間を積算する
+    private var tripStartedAt: Date?
+    private var tripEndedAt: Date?
+    private var foregroundSeconds: TimeInterval = 0
+    private var becameActiveAt: Date?
 
     init(plan: TravelPlan = .bundledDemoPlan()) {
         self.plan = plan
@@ -51,17 +59,49 @@ final class TripSession {
 
     // MARK: - フロー
 
+    /// プラン確認 → おやすみ設定へ
+    func proceedToRestrictionSetup() {
+        phase = .restrictionSetup
+    }
+
     func startTrip() {
         phase = .traveling
         currentIndex = 0
+        tripStartedAt = Date()
+        becameActiveAt = Date()
+        shield.start()
         if let mission = currentMission {
             activityController.start(plan: plan, mission: mission)
         }
     }
 
     func endTrip() {
+        noteScenePhase(active: false)
+        tripEndedAt = Date()
         phase = .finished
+        shield.stop()
         activityController.end()
+    }
+
+    /// アプリの前面/背面切り替えを記録(旅行中のみ積算)
+    func noteScenePhase(active: Bool) {
+        guard phase == .traveling else { return }
+        if active {
+            becameActiveAt = Date()
+        } else if let since = becameActiveAt {
+            foregroundSeconds += Date().timeIntervalSince(since)
+            becameActiveAt = nil
+        }
+    }
+
+    /// みない時間スコア: 旅行時間のうちスマホ(このアプリ)を見ていなかった分数
+    var notLookingScore: Int {
+        guard let start = tripStartedAt else { return 0 }
+        let end = tripEndedAt ?? Date()
+        var active = foregroundSeconds
+        if let since = becameActiveAt { active += end.timeIntervalSince(since) }
+        let notLooking = max(0, end.timeIntervalSince(start) - active)
+        return Int(notLooking / 60)
     }
 
     // MARK: - 判定
