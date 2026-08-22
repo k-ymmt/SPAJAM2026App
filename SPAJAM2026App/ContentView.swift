@@ -31,6 +31,15 @@ struct ContentView: View {
                             systemImage: "platter.filled.top.iphone"
                         )
                     }
+                    NavigationLink {
+                        ScreenTimeTrialView()
+                    } label: {
+                        TrialRow(
+                            title: "Screen Time API",
+                            subtitle: "認可・アプリ選択・シールド・各種制限・利用状況モニタリングを試します。",
+                            systemImage: "hourglass"
+                        )
+                    }
                 }
             }
             .navigationTitle("SPAJAM2026")
