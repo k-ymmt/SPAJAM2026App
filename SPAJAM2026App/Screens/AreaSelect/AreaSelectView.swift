@@ -368,7 +368,7 @@ struct AreaSelectView: View {
         Task {
             do {
                 let plan = try await PlanGenerator().generate(at: pin, partySize: partySize, mood: mood)
-                let membership = (partySize >= 2 ? roomCode : nil).map { RoomMembership(code: $0, role: .host, name: nil) }
+                let membership = (partySize >= 2 ? roomCode : nil).map { RoomMembership(code: $0, role: .host, name: UserProfileStore.name) }
                 onPlanReady(plan, membership)
             } catch PlanGenerator.GenError.timeout {
                 NSLog("[PlanGen] timed out")

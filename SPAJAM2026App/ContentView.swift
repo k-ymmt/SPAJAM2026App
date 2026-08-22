@@ -10,6 +10,8 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var session: TripSession? = TripSession.restore()
+    /// 初回起動のなまえ登録が済んでいるか
+    @State private var hasProfile = UserProfileStore.name != nil
     /// 招待コードで参加し、親のプラン公開を待っている状態(子)
     @State private var pendingJoin: RoomMembership? = PendingJoinStore.load()
     @State private var isDebugMenuPresented = false
@@ -20,7 +22,12 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if let session {
+            if !hasProfile {
+                // 初回起動: なまえ登録(匿名認証のまま表示名だけ保存)
+                ProfileSetupView {
+                    withAnimation { hasProfile = true }
+                }
+            } else if let session {
                 Group {
                     switch session.phase {
                     case .planning, .restrictionSetup:

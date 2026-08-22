@@ -13,7 +13,8 @@ struct InviteCodeJoinView: View {
     var onJoin: (_ name: String, _ code: String) async -> String?
 
     @Environment(\.dismiss) private var dismiss
-    @State private var name = ""
+    /// プロフィール登録済みの名前をデフォルトにする
+    @State private var name = UserProfileStore.name ?? ""
     @State private var code = ""
     @State private var isJoining = false
     @State private var errorMessage: String?
