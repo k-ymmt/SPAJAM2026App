@@ -14,6 +14,10 @@ import SwiftUI
 /// 主要 CTA。筆致シェイプの画像を背景にした塗りボタン
 struct BrushButton: View {
     let label: String
+    /// 通常は手書き。システムフォント画面(制限調整など)では差し替える
+    var font: Font = .handHeadline
+    /// 手書きフォントの線を太らせるシャドウ(システムフォント時は false)
+    var thickens = true
     var loading = false
     var disabled = false
     var action: () -> Void
@@ -23,10 +27,10 @@ struct BrushButton: View {
             HStack(spacing: 8) {
                 if loading { ProgressView().tint(.white) }
                 Text(label)
-                    .font(.handHeadline)
+                    .font(font)
                     .foregroundStyle(.white)
                     // こよみゆるは太字面がないため、同色シャドウで線を太らせる
-                    .shadow(color: .white.opacity(0.8), radius: 0.5)
+                    .shadow(color: .white.opacity(thickens ? 0.8 : 0), radius: 0.5)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)

@@ -60,18 +60,7 @@ struct InviteCodeJoinView: View {
             Spacer()
 
             VStack(spacing: 10) {
-                Button(action: join) {
-                    HStack(spacing: 8) {
-                        if isJoining { ProgressView().tint(.white) }
-                        Text("参加する")
-                    }
-                    .font(.handHeadline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.orange)
-                .disabled(!canJoin)
+                BrushButton(label: "参加する", loading: isJoining, disabled: !canJoin, action: join)
 
                 Text("参加すると、プランができるまで待機画面になります")
                     .font(.handCaption2)
@@ -80,7 +69,7 @@ struct InviteCodeJoinView: View {
             }
         }
         .padding(24)
-        .background(Color(red: 0.98, green: 0.965, blue: 0.94))
+        .background(Color.appBackground)
         .onAppear { focus = .name }
         .interactiveDismissDisabled(isJoining)
     }
@@ -97,7 +86,7 @@ struct InviteCodeJoinView: View {
                 .foregroundStyle(Color.inkMain)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
-                .background(Color(red: 0.98, green: 0.965, blue: 0.94), in: RoundedRectangle(cornerRadius: 14))
+                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(.systemGray4), lineWidth: 1))
         }
     }

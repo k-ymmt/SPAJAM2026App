@@ -19,6 +19,7 @@ struct TripMissionListView: View {
     var body: some View {
         MissionListScreen(
             plan: session.plan,
+            startDate: session.startDate,
             trailing: AnyView(HeaderIconButton(systemName: "gearshape.fill", action: onOpenSettings)),
             ctaLabel: "ただいま",
             onCTA: onEndTrip

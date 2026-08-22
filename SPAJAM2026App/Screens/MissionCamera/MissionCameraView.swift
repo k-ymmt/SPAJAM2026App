@@ -286,6 +286,7 @@ struct MissionCameraView: View {
     private func resultArea(_ mission: Mission, achieved: Bool) -> some View {
         if session.isJudging, mission.id == selectedMissionId {
             Label("AI が判定中…", systemImage: "sparkles")
+                .foregroundStyle(Color.appAccentSoft)
                 .padding()
         } else if let reason = session.lastFailReason, mission.id == selectedMissionId {
             Label(reason, systemImage: "xmark.circle.fill")
@@ -299,18 +300,10 @@ struct MissionCameraView: View {
     private func controls(_ mission: Mission) -> some View {
         HStack(spacing: 12) {
             // 撮影(メイン)
-            Button {
+            BrushButton(label: "撮影する", disabled: session.isJudging) {
                 useLibrary = false
                 showCamera = true
-            } label: {
-                Label("撮影する", systemImage: "camera.fill")
-                    .font(.handHeadline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.appAccent)
-            .disabled(session.isJudging)
 
             // 予備: カメラロールから取り込み(端に配置)
             Button {

@@ -13,12 +13,6 @@ struct HomeView: View {
     var onStart: () -> Void
     @State private var isProfilePresented = false
 
-    /// デモ用の過去の旅(デザインのサンプルと同じ)
-    private let pastTrips: [(title: String, date: String)] = [
-        ("群馬 OB旅行", "2026年8月21日"),
-        ("青森 OB旅行", "2026年1月21日"),
-    ]
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // なまえの変更(アカウント)
@@ -46,18 +40,6 @@ struct HomeView: View {
                 .padding(.top, 28)
 
             Spacer()
-
-            Text("今までの旅のきろく")
-                .font(.handCaption.bold())
-                .foregroundStyle(Color.appAccent)
-                .padding(.bottom, 10)
-
-            HStack(spacing: 14) {
-                ForEach(pastTrips, id: \.title) { trip in
-                    pastTripCard(title: trip.title, date: trip.date)
-                }
-            }
-            .padding(.bottom, 8)
         }
         .padding(24)
         .background(Color.appBackground)
@@ -70,35 +52,6 @@ struct HomeView: View {
         }
     }
 
-    private func pastTripCard(title: String, date: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.cardStroke)
-                    .frame(height: 96)
-                Image(systemName: "photo.on.rectangle")
-                    .font(.system(size: 28))
-                    .foregroundStyle(Color.inkSub.opacity(0.5))
-            }
-            Text(title)
-                .font(.handCaption.bold())
-                .foregroundStyle(Color.inkMain)
-            Text(date)
-                .font(.handCaption2)
-                .foregroundStyle(Color.inkSub)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
-        .overlay(alignment: .topLeading) {
-            // マスキングテープ風のアクセント
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color.appAccentSoft.opacity(0.55))
-                .frame(width: 40, height: 14)
-                .rotationEffect(.degrees(-18))
-                .offset(x: -8, y: -5)
-        }
-    }
 }
 
 #Preview {
