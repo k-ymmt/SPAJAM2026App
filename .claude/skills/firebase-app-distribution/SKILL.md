@@ -31,18 +31,22 @@ spreadsheet; don't invent or paste keys yourself.
 
 ### 2. Resolve the tester group
 
+The team's only tester group is **SPAJAM2026**, whose alias is `spajam2026`.
+When the user doesn't name a group, use `spajam2026` — that is what "配布して"
+means in this project, and uploading without a group creates a release that
+nobody is notified about.
+
+If the user names a different group, remember that
 `firebase appdistribution:distribute --groups` takes the group **alias**, not
-the display name shown in the console. The user will usually give you the
-display name ("SPAJAM2026"), so look up the alias first:
+the display name shown in the console, so look it up:
 
 ```bash
 firebase appdistribution:group:list --project spajam2026-app
 ```
 
-Match the requested name against the `Display Name` column (case-insensitively)
-and use the value in the `Group` column. If nothing matches, show the user the
-table and stop — uploading without a group creates an undelivered release
-that nobody gets notified about, which is rarely what they intended.
+Match the requested name against the `Display Name` column
+(case-insensitively) and use the value in the `Group` column. If nothing
+matches, show the user the table and stop rather than guessing.
 
 If this command fails with an auth error, the Firebase CLI isn't logged in.
 Ask the user to run `firebase login` in their terminal; it opens a browser
@@ -51,7 +55,7 @@ sign-in that you can't complete for them.
 ### 3. Build and upload
 
 ```bash
-FIREBASE_TESTER_GROUPS=<alias> scripts/distribute.sh [release notes]
+FIREBASE_TESTER_GROUPS=spajam2026 scripts/distribute.sh [release notes]
 ```
 
 - Release notes default to `<last commit subject> (<short hash>)`. Pass a
