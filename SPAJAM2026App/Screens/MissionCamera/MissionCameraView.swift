@@ -29,10 +29,17 @@ struct MissionCameraView: View {
         .background(.black)
         .foregroundStyle(.white)
         .sheet(isPresented: $showCamera) {
-            CameraPicker(facing: session.currentMission?.camera ?? .back) { image in
-                capturedImage = image
+            // FACE ミッションは AR 笑顔キャプチャ(対応実機のみ)、それ以外は通常カメラ
+            if session.currentMission?.category == .face, FaceSmileCaptureView.isSupported {
+                FaceSmileCaptureView { image in
+                    capturedImage = image
+                }
+            } else {
+                CameraPicker(facing: session.currentMission?.camera ?? .back) { image in
+                    capturedImage = image
+                }
+                .ignoresSafeArea()
             }
-            .ignoresSafeArea()
         }
         .onAppear { locationProvider.start() }
     }
