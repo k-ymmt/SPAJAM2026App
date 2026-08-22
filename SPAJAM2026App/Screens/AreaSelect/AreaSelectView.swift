@@ -90,7 +90,7 @@ struct AreaSelectView: View {
         HStack(spacing: 8) {
             stepChip(1, "どこへ")
             stepChip(2, "だれと")
-            stepChip(3, "温度感")
+            stepChip(3, "すごしかた")
             Spacer()
             accountMenu
         }
