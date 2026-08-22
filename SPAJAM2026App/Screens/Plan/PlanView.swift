@@ -182,15 +182,13 @@ struct MissionListRow: View {
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 // 行内イラスト/写真と重ならないように右を空ける
                 .padding(.trailing, achieved ? 140 : 110)
-            }
-            // イラストは枠ボックス基準で縦中央(やや下寄せ)に置く
-            .overlay(alignment: .trailing) {
-                Image(categoryIllustration)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 86)
-                    .padding(.trailing, 22)
-                    .offset(y: 3)
+                .overlay(alignment: .trailing) {
+                    Image(categoryIllustration)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 92)
+                        .padding(.trailing, 2)
+                }
             }
             .padding(.top, 11)
 
