@@ -44,7 +44,7 @@ struct FaceSmileCaptureView: View {
                         cornerGauge(label: "右の口角", value: smileRight)
                     }
                     ProgressView(value: min(1, smileLevel))
-                        .tint(.orange)
+                        .tint(.appAccent)
                         .frame(width: 240)
                     Text(smileLevel > 0.5 ? "その笑顔キープ!" : "口角をトラッキング中…")
                         .font(.handCaption)
@@ -61,7 +61,7 @@ struct FaceSmileCaptureView: View {
         VStack(spacing: 4) {
             Text("\(Int(min(1, value) * 100))%")
                 .font(.handHeadline)
-                .foregroundStyle(value > 0.5 ? .orange : .white)
+                .foregroundStyle(value > 0.5 ? Color.appAccentSoft : .white)
             Text(label)
                 .font(.handCaption2)
                 .foregroundStyle(.white.opacity(0.8))

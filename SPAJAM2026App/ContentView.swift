@@ -11,6 +11,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var session: TripSession? = TripSession.restore()
     @State private var isDebugMenuPresented = false
+    @State private var showAreaSelect = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -28,19 +29,23 @@ struct ContentView: View {
                         ResultView {
                             session.discard()
                             self.session = nil
+                            showAreaSelect = false
                         }
                     }
                 }
                 .environment(session)
-            } else {
+            } else if showAreaSelect {
                 AreaSelectView { plan in
                     let new = TripSession(plan: plan)
                     new.persist()
                     session = new
                 }
+            } else {
+                HomeView { showAreaSelect = true }
             }
         }
         .animation(.default, value: session == nil)
+        .animation(.default, value: showAreaSelect)
         // デザインはライト(クリーム背景)前提のため、ダークモードでも表示を固定する
         .preferredColorScheme(.light)
         .onChange(of: scenePhase) { _, newPhase in

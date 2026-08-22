@@ -26,7 +26,7 @@ struct RestrictionAdjustView: View {
             // ペナルティの警告
             HStack(spacing: 10) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.appAccent)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("調整すると OFFLINE SCORE −5pt")
                         .font(.handHeadline)
@@ -37,7 +37,7 @@ struct RestrictionAdjustView: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+            .background(Color.badgeBackground, in: RoundedRectangle(cornerRadius: 16))
 
             Button {
                 Task {
@@ -51,7 +51,7 @@ struct RestrictionAdjustView: View {
                     .padding(.vertical, 14)
             }
             .buttonStyle(.bordered)
-            .tint(.teal)
+            .tint(.appAccent)
 
             Spacer()
 
@@ -65,7 +65,7 @@ struct RestrictionAdjustView: View {
                     .padding(.vertical, 16)
             }
             .buttonStyle(.borderedProminent)
-            .tint(.orange)
+            .tint(.appAccent)
 
             Button {
                 dismiss()
@@ -77,7 +77,7 @@ struct RestrictionAdjustView: View {
             }
         }
         .padding(24)
-        .background(Color(red: 0.98, green: 0.965, blue: 0.94))
+        .background(Color.appBackground)
         #if canImport(FamilyControls)
         .familyActivityPicker(isPresented: $showPicker, selection: Bindable(session.shield).selection)
         #endif
