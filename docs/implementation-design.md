@@ -184,7 +184,7 @@ struct JudgmentEngine {
 - **デザイン**: Figma(docs/Figma)のデザインを全画面に反映済み。パレット=ティール #2A7D6C / 背景 #ECEEE7 / インク #2F3833、CTA は筆致画像(BrushButton)、ミッション行は手書きフレーム(HandFrameRow)、キャラは見ざる(ミザル)。手書きフォント: こよみゆる(日本語)+ Hetakawa(数字/英字)
 - **フロー**: Home(起動時)→ AreaSelect(3 スライド)→ Plan(リスト)→ Restriction(トグル)→ Trip(一覧⇄カメラ)→ Result。TripSession は永続化(キル後復元)対応済み(山本さん)
 - **判定**: Gemini 画像判定 Live で動作確認済み(モデルは flash-lite → flash のフォールバック連鎖)。Mock 切替は Plan 画面のトグル
-- **リザルト**: 05/07 を統合し「みんなの旅の記録」1 画面に(順位なし・共有体験重視、夜 MTG 方針)。メンバーは `MemberResult.demoParty` のデモデータ(同期実装が来たらここを差し替え)。心拍ハイライト×写真=Journaling 相当はアプリ内ログから生成
+- **リザルト**: 05/07 を統合し「みんなの旅の記録」1 画面に(順位なし・共有体験重視、夜 MTG 方針)。複数人の旅(招待コードあり)は各自の結果を `rooms/{code}/results/{uid}`(`TripMemberResult`: スコア・達成ミッション・心拍バー 6 値)に書き込み、リザルトで `TripRoomObserver` がリアルタイム購読。親+参加者の全員分が揃うまで「他の人の終わりを待っています...」表示でボタン無効。ひとり旅は `MemberResult.demoParty` のデモデータ。心拍ハイライト×写真=Journaling 相当はアプリ内ログから生成
 - **スコア**: QUEST(達成 pt)+ HEART(移動平均からの乖離)+ OFFLINE(非注視時間+制限ボーナス − 調整 5pt/回)
 - **残タスク**: アカウント/グループ画面(山本さん・WF は Pencil 00 系に用意)、キャラ・ミッション出現演出素材(広瀬さん)、100%達成のサプライズ演出動画(多田)、提出物(README・技術仕様書・フォーム)
 
