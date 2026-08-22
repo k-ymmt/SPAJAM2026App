@@ -18,37 +18,18 @@ struct PlanView: View {
     @State private var publishError: String?
 
     var body: some View {
-        // スクロールなしで 1 画面に収める
-        VStack(alignment: .leading, spacing: 10) {
-            PlanHeaderView(plan: session.plan)
-            ForEach(session.plan.missions) { mission in
-                MissionListRow(mission: mission)
-            }
-            Spacer(minLength: 0)
-            footer
+        MissionListScreen(
+            plan: session.plan,
+            ctaLabel: "いってきます",
+            ctaLoading: isPublishing,
+            errorText: publishError,
+            onCTA: start
+        ) { mission in
+            AnyView(MissionListRow(mission: mission))
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color.appBackground)
         .task(id: session.membership?.code) {
             if let membership = session.membership, membership.role == .host {
                 observer.start(code: membership.code)
-            }
-        }
-    }
-
-    private var footer: some View {
-        VStack(spacing: 10) {
-            Divider()
-                .overlay(Color.cardStroke)
-                .padding(.top, 4)
-            BrushButton(label: "旅をはじめる", loading: isPublishing, disabled: isPublishing, action: start)
-            if let publishError {
-                Text(publishError)
-                    .font(.handCaption)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity)
             }
         }
     }
@@ -67,6 +48,45 @@ struct PlanView: View {
             }
             isPublishing = false
         }
+    }
+}
+
+/// プラン(いってきます)と旅行中(ただいま)で共通のミッション一覧画面。
+/// ヘッダ・行・フッターの設計と配置を完全に揃える
+struct MissionListScreen: View {
+    let plan: TravelPlan
+    var trailing: AnyView?
+    let ctaLabel: String
+    var ctaLoading = false
+    var errorText: String?
+    let onCTA: () -> Void
+    let row: (Mission) -> AnyView
+
+    var body: some View {
+        // スクロールなしで 1 画面に収める
+        VStack(alignment: .leading, spacing: 10) {
+            PlanHeaderView(plan: plan, trailing: trailing)
+            ForEach(plan.missions) { mission in
+                row(mission)
+            }
+            Spacer(minLength: 0)
+            VStack(spacing: 10) {
+                Divider()
+                    .overlay(Color.cardStroke)
+                    .padding(.top, 4)
+                BrushButton(label: ctaLabel, loading: ctaLoading, disabled: ctaLoading, action: onCTA)
+                if let errorText {
+                    Text(errorText)
+                        .font(.handCaption)
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color.appBackground)
     }
 }
 

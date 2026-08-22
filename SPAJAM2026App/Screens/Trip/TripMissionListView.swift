@@ -17,22 +17,14 @@ struct TripMissionListView: View {
     var onEndTrip: () -> Void
 
     var body: some View {
-        // スクロールなしで 1 画面に収める
-        VStack(alignment: .leading, spacing: 10) {
-            PlanHeaderView(
-                plan: session.plan,
-                trailing: AnyView(HeaderIconButton(systemName: "gearshape.fill", action: onOpenSettings))
-            )
-            ForEach(session.plan.missions) { mission in
-                missionRow(mission)
-            }
-            Spacer(minLength: 0)
-            footer
+        MissionListScreen(
+            plan: session.plan,
+            trailing: AnyView(HeaderIconButton(systemName: "gearshape.fill", action: onOpenSettings)),
+            ctaLabel: "ただいま",
+            onCTA: onEndTrip
+        ) { mission in
+            AnyView(missionRow(mission))
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color.appBackground)
     }
 
     @ViewBuilder
@@ -50,14 +42,5 @@ struct TripMissionListView: View {
             )
         }
         .buttonStyle(.plain)
-    }
-
-    private var footer: some View {
-        VStack(spacing: 10) {
-            Divider()
-                .overlay(Color.cardStroke)
-                .padding(.top, 4)
-            BrushButton(label: "旅を終える", action: onEndTrip)
-        }
     }
 }
