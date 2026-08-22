@@ -172,7 +172,11 @@ struct AreaSelectView: View {
             title("だれと行く?", sub: "いっしょに旅する人数を選んでください")
 
             Spacer()
-            illustration(symbol: partySymbol, caption: partySize == 1 ? "ひとり旅" : "\(partySize)人旅")
+            illustration(
+                image: partySize == 1 ? "MizaruCharacter" : "Mizarus\(min(partySize, 5))",
+                symbol: partySymbol,
+                caption: partyCaption
+            )
             Spacer()
 
             partyStepper
@@ -293,6 +297,16 @@ struct AreaSelectView: View {
         .disabled(disabled)
     }
 
+    private var partyCaption: String {
+        switch partySize {
+        case 1: "孤高の挑戦"
+        case 2: "最強タッグ"
+        case 3: "われら3銃士"
+        case 4: "伝説の4天王"
+        default: "5人衆ここにあり"
+        }
+    }
+
     private var partySymbol: String {
         switch partySize {
         case 1: "figure.walk"
@@ -308,7 +322,7 @@ struct AreaSelectView: View {
             title("すごしかたは?", sub: "ミッションの難易度とテイストが変わります")
 
             Spacer()
-            illustration(symbol: moodSymbol, caption: mood.rawValue)
+            illustration(image: moodImageName, symbol: moodSymbol, caption: moodCaption)
             Spacer()
 
             HStack(spacing: 8) {
@@ -329,6 +343,22 @@ struct AreaSelectView: View {
         }
     }
 
+    private var moodCaption: String {
+        switch mood {
+        case .relaxed: "のんびりいこうぜ"
+        case .active: "たのしみだらけ"
+        case .mania: "新たな発見あり"
+        }
+    }
+
+    private var moodImageName: String {
+        switch mood {
+        case .relaxed: "MizaruYuttari"
+        case .active: "MizaruActive"
+        case .mania: "MizaruMania"
+        }
+    }
+
     private var moodSymbol: String {
         switch mood {
         case .relaxed: "cup.and.saucer.fill"
@@ -339,20 +369,20 @@ struct AreaSelectView: View {
 
     // MARK: - 部品
 
-    /// 中央イラスト。見ざるキャラ(広瀬さんの差し替え素材が来たらステップごとに切り替える)
-    private func illustration(symbol: String, caption: String) -> some View {
+    /// 中央イラスト。見ざるキャラ(image でポーズ違いに差し替え可能)
+    private func illustration(image: String = "MizaruCharacter", symbol: String, caption: String) -> some View {
         VStack(spacing: 14) {
-            Image("MizaruCharacter")
+            Image(image)
                 .resizable()
                 .scaledToFit()
-                .padding(16)
-                .frame(width: 210, height: 210)
-                .background(.white, in: RoundedRectangle(cornerRadius: 24))
+                .padding(10)
+                .frame(width: 290, height: 214)
             Text(caption)
                 .font(.handHeadline)
                 .foregroundStyle(Color.appAccent)
         }
         .animation(.default, value: symbol)
+        .animation(.default, value: image)
     }
 
     private func title(_ main: String, sub: String) -> some View {
