@@ -33,10 +33,8 @@ struct HomeView: View {
 
             // ロゴ(仮: 見ざるキャラ。ロゴ素材が来たら差し替え)
             VStack(spacing: 10) {
-                Image("MizaruCharacter")
-                    .resizable()
-                    .scaledToFit()
-                    .padding(20)
+                MizaruLoopView()
+                    .padding(10)
                     .frame(width: 230, height: 230)
                 Text("ミザル")
                     .font(.handLargeTitle)
