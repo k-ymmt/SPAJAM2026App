@@ -298,6 +298,21 @@ struct MissionCameraView: View {
             .tint(.appAccent)
             .disabled(session.isJudging)
 
+            // 撮影済みのときは撮り直しボタンを出す
+            if capturedImage != nil {
+                Button {
+                    capturedImage = nil
+                    useLibrary = false
+                    showCamera = true
+                } label: {
+                    Image(systemName: "camera.fill")
+                        .padding(14)
+                }
+                .buttonStyle(.bordered)
+                .tint(.white)
+                .disabled(session.isJudging)
+            }
+
             // 予備: カメラロールから取り込み(端に配置)
             Button {
                 useLibrary = true
