@@ -35,6 +35,10 @@ final class LocationMapLiveActivityModel: NSObject {
     /// Side length of the map region shown in the snapshot (m).
     var regionSpan: CLLocationDistance = 600
     var title = "現在地を追跡中"
+    /// Free text shown in the activity. Applied with `applyDisplaySettings()`.
+    var message = ""
+    var showsProgress = false
+    var progress = 0.0
 
     // MARK: Runtime
     private(set) var authorizationStatus: CLAuthorizationStatus
@@ -71,6 +75,11 @@ final class LocationMapLiveActivityModel: NSObject {
         if let existing = Activity<Attributes>.activities.first {
             activity = existing
             updateCount = existing.content.state.updateCount
+            message = existing.content.state.message
+            if let p = existing.content.state.progress {
+                showsProgress = true
+                progress = p
+            }
             observe(existing)
             append("既存の Live Activity に再接続: \(existing.id.prefix(8))…")
         }
@@ -114,7 +123,9 @@ final class LocationMapLiveActivityModel: NSObject {
                 longitude: lastLocation?.coordinate.longitude ?? 0,
                 accuracy: lastLocation?.horizontalAccuracy ?? 0,
                 updatedAt: .now,
-                updateCount: 0
+                updateCount: 0,
+                message: message,
+                progress: showsProgress ? progress : nil
             )
             let activity = try Activity.request(
                 attributes: Attributes(title: title),
@@ -161,6 +172,18 @@ final class LocationMapLiveActivityModel: NSObject {
         Task { await renderAndUpdate(for: location, force: true) }
     }
 
+    /// Pushes the current message / progress to the activity without re-rendering the map.
+    func applyDisplaySettings() {
+        guard let activity else { return }
+        Task {
+            var state = activity.content.state
+            state.message = message
+            state.progress = showsProgress ? progress : nil
+            await activity.update(ActivityContent(state: state, staleDate: nil))
+            append("表示設定を反映: message=\"\(message)\" progress=\(showsProgress ? "\(Int(progress * 100))%" : "なし")")
+        }
+    }
+
     func clearLog() { log.removeAll() }
 
     // MARK: - Snapshot pipeline
@@ -193,7 +216,9 @@ final class LocationMapLiveActivityModel: NSObject {
                 longitude: location.coordinate.longitude,
                 accuracy: location.horizontalAccuracy,
                 updatedAt: .now,
-                updateCount: updateCount
+                updateCount: updateCount,
+                message: message,
+                progress: showsProgress ? progress : nil
             )
             await activity.update(ActivityContent(state: state, staleDate: Date.now.addingTimeInterval(180)))
             lastSnapshot = image

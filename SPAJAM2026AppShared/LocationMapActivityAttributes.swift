@@ -23,6 +23,10 @@ struct LocationMapActivityAttributes: ActivityAttributes {
         var updatedAt: Date
         /// Number of updates since the activity started.
         var updateCount: Int
+        /// Free text shown over the map. Empty hides the line.
+        var message: String = ""
+        /// 0...1 progress bar shown under the map. `nil` hides the bar.
+        var progress: Double?
     }
 
     var title: String

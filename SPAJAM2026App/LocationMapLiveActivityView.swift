@@ -15,6 +15,7 @@ struct LocationMapLiveActivityView: View {
         Form {
             statusSection
             previewSection
+            displaySection
             settingsSection
             logSection
         }
@@ -82,6 +83,38 @@ struct LocationMapLiveActivityView: View {
                         }
                     }
             }
+        }
+    }
+
+    private var displaySection: some View {
+        Section {
+            TextField("メッセージ(地図の上に表示)", text: $model.message, axis: .vertical)
+                .lineLimit(1...3)
+            Toggle("進捗バーを表示", isOn: $model.showsProgress)
+            if model.showsProgress {
+                Slider(value: $model.progress, in: 0...1, step: 0.05) {
+                    Text("進捗")
+                } minimumValueLabel: {
+                    Text("0%")
+                } maximumValueLabel: {
+                    Text("100%")
+                }
+                LabeledContent("進捗", value: model.progress, format: .percent.precision(.fractionLength(0)))
+            }
+            if model.isTracking {
+                Button {
+                    model.applyDisplaySettings()
+                } label: {
+                    Label("Live Activity に反映", systemImage: "paperplane.fill")
+                        .frame(maxWidth: .infinity)
+                }
+            }
+        } header: {
+            Text("表示内容")
+        } footer: {
+            Text(model.isTracking
+                 ? "「反映」を押すと地図を再生成せずにメッセージと進捗だけを更新します。"
+                 : "開始時の Live Activity に反映されます。開始後も変更して反映できます。")
         }
     }
 

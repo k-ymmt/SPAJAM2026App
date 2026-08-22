@@ -27,14 +27,27 @@ struct LocationMapLiveActivity: Widget {
                         .foregroundStyle(.secondary)
                 }
                 DynamicIslandExpandedRegion(.center) {
-                    Text(context.attributes.title)
-                        .font(.headline)
-                        .lineLimit(1)
+                    VStack(spacing: 2) {
+                        Text(context.attributes.title)
+                            .font(.headline)
+                            .lineLimit(1)
+                        if !context.state.message.isEmpty {
+                            Text(context.state.message)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    SnapshotImage(fileName: context.state.imageFileName)
-                        .frame(height: 100)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    VStack(spacing: 6) {
+                        SnapshotImage(fileName: context.state.imageFileName)
+                            .frame(height: context.state.progress == nil ? 100 : 84)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        if let progress = context.state.progress {
+                            ProgressView(value: progress).tint(.blue)
+                        }
+                    }
                 }
             } compactLeading: {
                 Image(systemName: "location.fill").foregroundStyle(.blue)
@@ -53,6 +66,18 @@ private struct LockScreenMapView: View {
     let context: ActivityViewContext<LocationMapActivityAttributes>
 
     var body: some View {
+        VStack(spacing: 0) {
+            mapArea
+            if let progress = context.state.progress {
+                ProgressView(value: progress)
+                    .tint(.blue)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            }
+        }
+    }
+
+    private var mapArea: some View {
         ZStack(alignment: .bottomLeading) {
             SnapshotImage(fileName: context.state.imageFileName)
             LinearGradient(colors: [.clear, .black.opacity(0.6)], startPoint: .center, endPoint: .bottom)
@@ -60,6 +85,11 @@ private struct LockScreenMapView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(context.attributes.title)
                         .font(.headline)
+                    if !context.state.message.isEmpty {
+                        Text(context.state.message)
+                            .font(.subheadline)
+                            .lineLimit(2)
+                    }
                     Text(String(format: "%.4f, %.4f  ±%.0fm",
                                 context.state.latitude, context.state.longitude, context.state.accuracy))
                         .font(.caption2.monospacedDigit())
@@ -81,7 +111,8 @@ private struct LockScreenMapView: View {
             .foregroundStyle(.white)
             .padding(12)
         }
-        .frame(height: 150)
+        .frame(height: context.state.progress == nil ? 150 : 130)
+        .clipped()
     }
 }
 
