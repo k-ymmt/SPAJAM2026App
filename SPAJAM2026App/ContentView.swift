@@ -32,6 +32,15 @@ struct ContentView: View {
                         )
                     }
                     NavigationLink {
+                        LocationMapLiveActivityView()
+                    } label: {
+                        TrialRow(
+                            title: "地図 Live Activity",
+                            subtitle: "現在地の地図画像をバックグラウンドで生成し、Live Activity に表示し続けます。",
+                            systemImage: "map.fill"
+                        )
+                    }
+                    NavigationLink {
                         ScreenTimeTrialView()
                     } label: {
                         TrialRow(
