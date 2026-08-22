@@ -142,20 +142,7 @@ struct PlanHeaderView: View {
                         .frame(width: 34, height: 34)
                 }
             }
-
-            // ミザルの吹き出し
-            HStack(spacing: 4) {
-                Text("今回のミッションは\nこれだよっ")
-                    .font(.handTitle)
-                    .foregroundStyle(Color.inkMain)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                Image("MizaruCharacter")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 88, height: 88)
-            }
-            .padding(.top, 2)
+            .padding(.bottom, 6)
         }
     }
 }
@@ -167,9 +154,20 @@ struct MissionListRow: View {
     var achieved = false
     var photo: UIImage?
 
+    /// カテゴリ別の行内ミザルイラスト(pose/buy は近いポーズで代用)
+    private var categoryIllustration: String {
+        switch mission.category {
+        case .go: "MizaruMissionGo"
+        case .do, .pose: "MizaruMissionDo"
+        case .eat: "MizaruMissionEat"
+        case .face: "MizaruMissionFace"
+        case .find, .buy: "MizaruMissionFind"
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .topLeading) {
-            HandFrameRow(minHeight: 64) {
+            HandFrameRow(minHeight: 96) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(mission.title)
                         .font(.handBody.bold())
@@ -181,9 +179,16 @@ struct MissionListRow: View {
                             .foregroundStyle(Color.appAccent)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                // 写真と重ならないように右を空ける
-                .padding(.trailing, achieved ? 140 : 0)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                // 行内イラスト/写真と重ならないように右を空ける
+                .padding(.trailing, achieved ? 140 : 110)
+                .overlay(alignment: .trailing) {
+                    Image(categoryIllustration)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 92)
+                        .padding(.trailing, 2)
+                }
             }
             .padding(.top, 11)
 
