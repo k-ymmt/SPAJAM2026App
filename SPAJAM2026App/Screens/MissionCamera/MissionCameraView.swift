@@ -321,7 +321,7 @@ struct MissionCameraView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
-        .padding(.bottom, 36)
+        .padding(.bottom, 64) // 下のページドットと重ならないように
     }
 
     /// FACE / POSE: AR 判定済みの写真をそのまま達成にして CLEAR を出す
@@ -365,7 +365,7 @@ struct MissionCameraView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
-        .padding(.bottom, 36)
+        .padding(.bottom, 64) // 下のページドットと重ならないように
     }
 }
 
