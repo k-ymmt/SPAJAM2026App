@@ -29,16 +29,27 @@ nonisolated struct TripSessionSnapshot: Codable, Equatable, Sendable {
     /// FamilyActivitySelection を JSON エンコードしたもの(FamilyControls が無い環境では nil)
     var shieldSelectionData: Data?
     var savedAt: Date
+    /// 複数人の旅なら、自分のルームと役割(親/子)
+    var membership: RoomMembership? = nil
+}
+
+/// スナップショットのリモート保存先(Firestore など)。テストでは nil のまま
+nonisolated protocol TripSessionRemoteStore: Sendable {
+    func save(_ snapshot: TripSessionSnapshot)
+    func clear()
 }
 
 /// スナップショットの保存先。テストでは `defaults` を差し替える
 nonisolated enum TripSessionStore {
     static let key = "tripSession.snapshot"
     nonisolated(unsafe) static var defaults = UserDefaults.standard
+    /// Firebase 構成時に FirestoreSessionStore が入る。UserDefaults と併せて二重に保存する
+    nonisolated(unsafe) static var remote: (any TripSessionRemoteStore)?
 
     static func save(_ snapshot: TripSessionSnapshot) {
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
         defaults.set(data, forKey: key)
+        remote?.save(snapshot)
     }
 
     static func load() -> TripSessionSnapshot? {
@@ -48,6 +59,7 @@ nonisolated enum TripSessionStore {
 
     static func clear() {
         defaults.removeObject(forKey: key)
+        remote?.clear()
     }
 
     /// デバッグメニューなど外部から保存内容を書き換えたときに投げる通知。ルート画面はこれを受けてセッションを作り直す

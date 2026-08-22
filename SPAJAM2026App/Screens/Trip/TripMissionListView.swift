@@ -2,7 +2,8 @@
 //  TripMissionListView.swift
 //  SPAJAM2026App
 //
-//  旅行中のメイン画面。全ミッションと達成状況を一覧し、タップで挑戦(カメラ)へ。
+//  旅行中のメイン画面。プラン画面と同じ手書き風リストで全ミッションと達成状況を一覧し、
+//  タップで挑戦(カメラ)へ。達成行は写真サムネ+済バッジに変わる。
 //  右上の設定から制限調整(調整すると OFFLINE SCORE が減る)。
 //
 
@@ -14,73 +15,42 @@ struct TripMissionListView: View {
     var onOpenSettings: () -> Void
     var onEndTrip: () -> Void
 
-    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
-
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 header
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(session.plan.missions) { mission in
-                        Button {
-                            onSelectMission(mission)
-                        } label: {
-                            missionTile(mission)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(session.isAchieved(mission))
-                    }
+                ForEach(session.plan.missions) { mission in
+                    missionRow(mission)
                 }
                 Text("ミッションは好きな順番で OK。タップして挑戦しよう")
                     .font(.handCaption2)
                     .foregroundStyle(Color.inkSub)
                     .frame(maxWidth: .infinity)
+                    .padding(.top, 4)
 
-                Button(action: onEndTrip) {
-                    Text("旅をおわる")
-                        .font(.handBody)
-                        .foregroundStyle(Color.inkSub)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                }
+                OutlineButton(label: "旅をおわる", tint: .appAccent, action: onEndTrip)
             }
             .padding(24)
         }
-        .background(Color(red: 0.98, green: 0.965, blue: 0.94))
+        .background(Color.appBackground)
     }
 
     @ViewBuilder
-    private func missionTile(_ mission: Mission) -> some View {
+    private func missionRow(_ mission: Mission) -> some View {
         let achieved = session.isAchieved(mission)
         let record = session.records.first { $0.missionId == mission.id }
 
-        if achieved, let record, let image = session.photo(for: record) {
-            // 達成済み: 写真タイルに変わる(setlog 風)
-            Color.clear
-                .frame(height: 170)
-                .overlay {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-                .overlay(alignment: .topLeading) {
-                    Text("\(mission.category.label)・達成")
-                        .font(.handCaption2)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(.white, in: Capsule())
-                        .foregroundStyle(.teal)
-                        .padding(10)
-                }
-                .overlay(alignment: .topTrailing) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.white, .teal)
-                        .padding(10)
-                }
-        } else {
-            MissionTile(mission: mission, achieved: achieved)
+        Button {
+            onSelectMission(mission)
+        } label: {
+            MissionListRow(
+                mission: mission,
+                achieved: achieved,
+                note: achieved ? "達成! タップで写真をみる" : nil,
+                photo: record.flatMap { session.photo(for: $0) }
+            )
         }
+        .buttonStyle(.plain)
     }
 
     private var header: some View {

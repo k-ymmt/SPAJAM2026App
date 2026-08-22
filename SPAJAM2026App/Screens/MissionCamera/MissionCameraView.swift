@@ -97,7 +97,7 @@ struct MissionCameraView: View {
                     .font(.handCaption2)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(achieved ? .teal : .orange, in: Capsule())
+                    .background(achieved ? Color.appAccentSoft : Color.appAccent, in: Capsule())
                 if achieved {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.teal)
@@ -234,7 +234,7 @@ struct MissionCameraView: View {
                     .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
-            .tint(.orange)
+            .tint(.appAccent)
             .disabled(capturedImage == nil || session.isJudging)
         }
         .padding(.horizontal, 20)

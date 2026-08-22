@@ -32,13 +32,14 @@ SPAJAM2026App/
     Journal/      // JournalingImporter(Suggestions 取り込み)
     LiveActivity/ // TripActivityController(開始/更新/終了)
   Screens/        // 画面ごとにフォルダ(Pencil の画面番号と対応)
-    AreaSelect/   // 01 ピン設置→主要地スナップ
-    Plan/         // 02 ミッションログ(setlog風タイル)
-    Restriction/  // 06 おやすみにするアプリ
-    Trip/         // 03 相当(アプリ内の旅行中ホーム/デバッグ用)
-    MissionCamera// 04 撮影+判定
-    Result/       // 05 個人リザルト
-    Versus/       // 07 ふたりの旅くらべ
+    Home/         // 00 起動時トップ(ミザル+旅をはじめる+旅のきろく)
+    AreaSelect/   // 01 ピン設置→主要地スナップ(3ステップスライド)
+    Plan/         // 02 プラン提案(手書きフレームのリスト形式)
+    Restriction/  // 06 おやすみにするアプリ(カテゴリトグル+システムピッカー)
+    Trip/         // 04b 旅行中メイン(02と同形式のミッション一覧)+制限調整
+    MissionCamera// 04 撮影+判定(スワイプページャ)
+    Result/       // 05 リザルト「みんなの旅の記録」(個人スコア+結果発表+ハイライトを統合)
+    AppTheme.swift // 共通部品: BrushButton / HandFrameRow / CategoryBadge
   Resources/      // demo-plan-asakusa.json(同梱デモプラン)
 Shared/           // HeartRateUpdate, TripActivityAttributes(iOS/Watch/Widget 共有)
 SPAJAM2026Watch/  // Watch UI(W1/W2)+ HeartRateWorkoutManager
@@ -177,6 +178,18 @@ struct JudgmentEngine {
 - **多田**: Models・デモプラン JSON・PlanGen(生成プロンプト)・JudgmentEngine
 - **山本**: Watch 移植・Live Activity・Journaling(API 検証の続き)・Firebase
 - **広瀬/杉浦**: Screens 実装(Pencil デザイン準拠)・アセット
+
+## 9.5 実装状況アップデート(2 日目 0:00 時点)
+
+計画からの主な差分と現状:
+
+- **ターゲット**: Live Activity は自前 TripActivityWidget ではなく山本さん実装の `SPAJAM2026AppWidgets`(TABI MISSION / `MissionActivityAttributes`)に統一。共有コードは `SPAJAM2026AppShared/`
+- **デザイン**: Figma(docs/Figma)のデザインを全画面に反映済み。パレット=ティール #2A7D6C / 背景 #ECEEE7 / インク #2F3833、CTA は筆致画像(BrushButton)、ミッション行は手書きフレーム(HandFrameRow)、キャラは見ざる(ミザル)。手書きフォント: こよみゆる(日本語)+ Hetakawa(数字/英字)
+- **フロー**: Home(起動時)→ AreaSelect(3 スライド)→ Plan(リスト)→ Restriction(トグル)→ Trip(一覧⇄カメラ)→ Result。TripSession は永続化(キル後復元)対応済み(山本さん)
+- **判定**: Gemini 画像判定 Live で動作確認済み(モデルは flash-lite → flash のフォールバック連鎖)。Mock 切替は Plan 画面のトグル
+- **リザルト**: 05/07 を統合し「みんなの旅の記録」1 画面に(順位なし・共有体験重視、夜 MTG 方針)。メンバーは `MemberResult.demoParty` のデモデータ(同期実装が来たらここを差し替え)。心拍ハイライト×写真=Journaling 相当はアプリ内ログから生成
+- **スコア**: QUEST(達成 pt)+ HEART(移動平均からの乖離)+ OFFLINE(非注視時間+制限ボーナス − 調整 5pt/回)
+- **残タスク**: アカウント/グループ画面(山本さん・WF は Pencil 00 系に用意)、キャラ・ミッション出現演出素材(広瀬さん)、100%達成のサプライズ演出動画(多田)、提出物(README・技術仕様書・フォーム)
 
 ## 10. リスクと逃げ道
 

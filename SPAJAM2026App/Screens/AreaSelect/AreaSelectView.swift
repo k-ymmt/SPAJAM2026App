@@ -6,6 +6,8 @@
 //  Step1 どこへ(マップにピン) → Step2 だれと(1〜5人) → Step3 温度感(ゆったり/アクティブ/マニア)
 //  中央のイラストはステップと選択に応じて変わる(手書きイラスト素材に差し替え予定)。
 //  ボタンは「つぎへ」のみ(戻るなし)。
+//  複数人: Step2 で 2 人以上を選ぶとルームを作って招待コードを表示し、子が揃うまで「つぎへ」を無効にする。
+//  ヘッダ右のアカウントアイコン → 「招待コードを入力」で子として参加できる。
 //
 
 import CoreLocation
@@ -13,7 +15,10 @@ import MapKit
 import SwiftUI
 
 struct AreaSelectView: View {
-    var onPlanReady: (TravelPlan) -> Void
+    /// プランができた(親 or ひとり旅)。複数人なら親の RoomMembership を渡す
+    var onPlanReady: (TravelPlan, RoomMembership?) -> Void
+    /// 招待コードで子として参加した
+    var onJoinedRoom: (RoomMembership) -> Void
 
     @State private var camera: MapCameraPosition = .region(
         MKCoordinateRegion(
@@ -27,6 +32,15 @@ struct AreaSelectView: View {
     @State private var mood: TripMood = .relaxed
     @State private var isGenerating = false
     @State private var errorMessage: String?
+
+    // 複数人(親)
+    @State private var roomCode: String?
+    @State private var isCreatingRoom = false
+    @State private var roomError: String?
+    @State private var observer = TripRoomObserver()
+
+    // 招待コード入力(子)
+    @State private var isJoinDialogPresented = false
 
     private let slide: AnyTransition = .asymmetric(
         insertion: .move(edge: .trailing).combined(with: .opacity),
@@ -48,7 +62,24 @@ struct AreaSelectView: View {
             .animation(.easeInOut(duration: 0.35), value: step)
         }
         .padding(24)
-        .background(Color(red: 0.98, green: 0.965, blue: 0.94))
+        .background(Color.appBackground)
+        .onChange(of: partySize) { _, newValue in
+            syncRoom(partySize: newValue)
+        }
+        .sheet(isPresented: $isJoinDialogPresented) {
+            InviteCodeJoinView { name, code in
+                do {
+                    let membership = try await TripRoomService.shared.join(code: code, name: name)
+                    onJoinedRoom(membership)
+                    return nil
+                } catch {
+                    NSLog("[Room] join failed: \(error)")
+                    return error.localizedDescription
+                }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
     }
 
     // MARK: - ステップインジケータ
@@ -59,6 +90,24 @@ struct AreaSelectView: View {
             stepChip(2, "だれと")
             stepChip(3, "温度感")
             Spacer()
+            accountMenu
+        }
+    }
+
+    /// ヘッダ右のアカウントアイコン。招待コードで参加する入口
+    private var accountMenu: some View {
+        Menu {
+            Button {
+                isJoinDialogPresented = true
+            } label: {
+                Label("招待コードを入力", systemImage: "ticket")
+            }
+        } label: {
+            Image(systemName: "person.crop.circle")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(Color.inkSub)
+                .frame(width: 44, height: 44)
+                .background(.white, in: Circle())
         }
     }
 
@@ -68,7 +117,7 @@ struct AreaSelectView: View {
                 .font(.handCaption2)
                 .foregroundStyle(step >= n ? .white : .secondary)
                 .frame(width: 18, height: 18)
-                .background(step >= n ? Color.orange : Color(.systemGray5), in: Circle())
+                .background(step >= n ? Color.appAccent : Color(.systemGray5), in: Circle())
             Text(label)
                 .font(.handCaption)
                 .foregroundStyle(step == n ? Color.inkMain : Color.inkSub)
@@ -85,7 +134,7 @@ struct AreaSelectView: View {
                 Map(position: $camera) {
                     if let pin {
                         Marker("旅先", coordinate: pin)
-                            .tint(.orange)
+                            .tint(Color.appAccent)
                     }
                 }
                 .onTapGesture { point in
@@ -99,7 +148,7 @@ struct AreaSelectView: View {
             nextButton("つぎへ", disabled: pin == nil) { step = 2 }
 
             Button {
-                onPlanReady(.bundledDemoPlan())
+                onPlanReady(.bundledDemoPlan(), nil)
             } label: {
                 Text("デモプラン(浅草)で始める")
                     .font(.handBody)
@@ -124,7 +173,93 @@ struct AreaSelectView: View {
                 }
             }
 
-            nextButton("つぎへ") { step = 3 }
+            if partySize >= 2 {
+                inviteCard
+            }
+
+            nextButton("つぎへ", disabled: !canLeaveWhoStep) { step = 3 }
+        }
+        .onAppear { syncRoom(partySize: partySize) }
+    }
+
+    /// 2 人以上なら子が揃うまで進めない(Firebase 未構成時はデモ用にそのまま進める)
+    private var canLeaveWhoStep: Bool {
+        guard partySize >= 2, FirebaseBootstrap.isConfigured else { return true }
+        return roomCode != nil && observer.isPartyComplete
+    }
+
+    /// 招待コードと参加状況
+    private var inviteCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("招待コード")
+                    .font(.handCaption)
+                    .foregroundStyle(Color.inkSub)
+                Spacer()
+                if let roomCode {
+                    Button {
+                        UIPasteboard.general.string = roomCode
+                    } label: {
+                        Label("コピー", systemImage: "doc.on.doc")
+                            .font(.handCaption)
+                    }
+                    .tint(.orange)
+                }
+            }
+            if let roomCode {
+                Text(roomCode)
+                    .font(.handNumber(34))
+                    .kerning(6)
+                    .foregroundStyle(Color.inkMain)
+                    .frame(maxWidth: .infinity)
+            } else if isCreatingRoom {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+            } else if let roomError {
+                Text(roomError)
+                    .font(.handCaption)
+                    .foregroundStyle(.red)
+            }
+
+            let guestCapacity = partySize - 1
+            let names = observer.members.map(\.name)
+            HStack(spacing: 6) {
+                Image(systemName: "person.2.fill")
+                    .foregroundStyle(.orange)
+                if names.isEmpty {
+                    Text("参加を待っています(あと \(guestCapacity) 人)")
+                } else {
+                    Text(names.joined(separator: "、") + (observer.isPartyComplete ? " が参加(そろいました)" : " が参加(あと \(max(0, guestCapacity - names.count)) 人)"))
+                }
+            }
+            .font(.handCaption)
+            .foregroundStyle(Color.inkSub)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity)
+        .background(.white, in: RoundedRectangle(cornerRadius: 20))
+    }
+
+    /// 人数に応じてルームを作成/更新する。1 人なら何もしない(作成済みルームは残す)
+    private func syncRoom(partySize: Int) {
+        guard partySize >= 2, FirebaseBootstrap.isConfigured else { return }
+        if let roomCode {
+            Task { try? await TripRoomService.shared.updatePartySize(code: roomCode, partySize: partySize) }
+            return
+        }
+        guard !isCreatingRoom else { return }
+        isCreatingRoom = true
+        roomError = nil
+        Task {
+            do {
+                let code = try await TripRoomService.shared.createRoom(partySize: self.partySize)
+                roomCode = code
+                observer.start(code: code)
+            } catch {
+                NSLog("[Room] create failed: \(error)")
+                roomError = "招待コードを発行できませんでした。通信環境を確認してください"
+            }
+            isCreatingRoom = false
         }
     }
 
@@ -174,21 +309,18 @@ struct AreaSelectView: View {
 
     // MARK: - 部品
 
-    /// 中央イラスト。広瀬さんの手書きイラスト素材に差し替える前提のプレースホルダ
+    /// 中央イラスト。見ざるキャラ(広瀬さんの差し替え素材が来たらステップごとに切り替える)
     private func illustration(symbol: String, caption: String) -> some View {
         VStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(Color.orange.opacity(0.12))
-                    .frame(width: 200, height: 200)
-                Image(systemName: symbol)
-                    .font(.system(size: 80))
-                    .foregroundStyle(.orange)
-            }
-            .contentTransition(.symbolEffect(.replace))
+            Image("MizaruCharacter")
+                .resizable()
+                .scaledToFit()
+                .padding(16)
+                .frame(width: 210, height: 210)
+                .background(.white, in: RoundedRectangle(cornerRadius: 24))
             Text(caption)
                 .font(.handHeadline)
-                .foregroundStyle(Color.inkSub)
+                .foregroundStyle(Color.appAccent)
         }
         .animation(.default, value: symbol)
     }
@@ -203,25 +335,14 @@ struct AreaSelectView: View {
                 .font(.handBody)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(selected ? Color.orange : .white, in: Capsule())
+                .background(selected ? Color.appAccent : .white, in: Capsule())
                 .foregroundStyle(selected ? .white : Color.inkSub)
                 .overlay(Capsule().stroke(Color(.systemGray4), lineWidth: selected ? 0 : 1))
         }
     }
 
     private func nextButton(_ label: String, loading: Bool = false, disabled: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                if loading { ProgressView().tint(.white) }
-                Text(label)
-            }
-            .font(.handHeadline)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 15)
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(.orange)
-        .disabled(disabled)
+        BrushButton(label: label, loading: loading, disabled: disabled, action: action)
     }
 
     private func generate() {
@@ -231,7 +352,8 @@ struct AreaSelectView: View {
         Task {
             do {
                 let plan = try await PlanGenerator().generate(at: pin, partySize: partySize, mood: mood)
-                onPlanReady(plan)
+                let membership = (partySize >= 2 ? roomCode : nil).map { RoomMembership(code: $0, role: .host, name: nil) }
+                onPlanReady(plan, membership)
             } catch {
                 NSLog("[PlanGen] failed: \(error)")
                 errorMessage = "生成に失敗しました。もう一度試すか、デモプランで始めてください"
