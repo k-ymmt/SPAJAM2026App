@@ -32,13 +32,13 @@ struct TripMissionListView: View {
                     }
                 }
                 Text("ミッションは好きな順番で OK。タップして挑戦しよう")
-                    .font(.caption2)
+                    .font(.handCaption2)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
 
                 Button(action: onEndTrip) {
                     Text("旅をおわる")
-                        .font(.footnote.weight(.semibold))
+                        .font(.handBody)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
@@ -66,7 +66,7 @@ struct TripMissionListView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .overlay(alignment: .topLeading) {
                     Text("\(mission.category.label)・達成")
-                        .font(.caption2.bold())
+                        .font(.handCaption2)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(.white, in: Capsule())
@@ -87,7 +87,7 @@ struct TripMissionListView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(session.plan.title)
-                    .font(.title3.bold())
+                    .font(.handTitle)
                 HStack(spacing: 8) {
                     Text("達成 \(session.records.count)/\(session.plan.missions.count)")
                     if let bpm = session.heartRateReceiver.latest?.beatsPerMinute {
@@ -95,13 +95,13 @@ struct TripMissionListView: View {
                             .foregroundStyle(.orange)
                     }
                 }
-                .font(.caption)
+                .font(.handCaption)
                 .foregroundStyle(.secondary)
             }
             Spacer()
             Button(action: onOpenSettings) {
                 Image(systemName: "gearshape.fill")
-                    .font(.title3)
+                    .font(.handTitle)
                     .foregroundStyle(.secondary)
                     .padding(10)
                     .background(.white, in: Circle())

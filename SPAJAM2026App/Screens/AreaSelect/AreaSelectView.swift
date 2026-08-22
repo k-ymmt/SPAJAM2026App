@@ -65,12 +65,12 @@ struct AreaSelectView: View {
     private func stepChip(_ n: Int, _ label: String) -> some View {
         HStack(spacing: 5) {
             Text("\(n)")
-                .font(.caption2.bold())
+                .font(.handCaption2)
                 .foregroundStyle(step >= n ? .white : .secondary)
                 .frame(width: 18, height: 18)
                 .background(step >= n ? Color.orange : Color(.systemGray5), in: Circle())
             Text(label)
-                .font(.caption.weight(step == n ? .bold : .regular))
+                .font(.handCaption)
                 .foregroundStyle(step == n ? .primary : .secondary)
         }
     }
@@ -102,7 +102,7 @@ struct AreaSelectView: View {
                 onPlanReady(.bundledDemoPlan())
             } label: {
                 Text("デモプラン(浅草)で始める")
-                    .font(.footnote)
+                    .font(.handBody)
                     .foregroundStyle(.secondary)
             }
         }
@@ -154,7 +154,7 @@ struct AreaSelectView: View {
 
             if let errorMessage {
                 Text(errorMessage)
-                    .font(.caption)
+                    .font(.handCaption)
                     .foregroundStyle(.red)
             }
 
@@ -187,7 +187,7 @@ struct AreaSelectView: View {
             }
             .contentTransition(.symbolEffect(.replace))
             Text(caption)
-                .font(.subheadline.weight(.semibold))
+                .font(.handHeadline)
                 .foregroundStyle(.secondary)
         }
         .animation(.default, value: symbol)
@@ -195,8 +195,8 @@ struct AreaSelectView: View {
 
     private func title(_ main: String, sub: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(main).font(.title3.bold())
-            Text(sub).font(.caption).foregroundStyle(.secondary)
+            Text(main).font(.handTitle)
+            Text(sub).font(.handCaption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -204,7 +204,7 @@ struct AreaSelectView: View {
     private func selectChip(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.footnote.weight(.semibold))
+                .font(.handBody)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
                 .background(selected ? Color.orange : .white, in: Capsule())
@@ -219,7 +219,7 @@ struct AreaSelectView: View {
                 if loading { ProgressView().tint(.white) }
                 Text(label)
             }
-            .font(.headline)
+            .font(.handHeadline)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 15)
         }

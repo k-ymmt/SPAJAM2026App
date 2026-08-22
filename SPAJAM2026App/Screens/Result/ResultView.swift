@@ -36,7 +36,7 @@ struct ResultView: View {
             showVersus = true
         } label: {
             Label("ふたりの旅くらべを見る", systemImage: "person.2.fill")
-                .font(.headline)
+                .font(.handHeadline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
         }
@@ -47,9 +47,9 @@ struct ResultView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("旅のリザルト")
-                .font(.title2.bold())
+                .font(.handLargeTitle)
             Text(session.plan.title)
-                .font(.caption)
+                .font(.handCaption)
                 .foregroundStyle(.secondary)
         }
     }
@@ -57,7 +57,7 @@ struct ResultView: View {
     private var scoreCard: some View {
         VStack(spacing: 14) {
             Text("\(session.totalScore) pt")
-                .font(.system(size: 44, weight: .bold))
+                .font(.handNumber(48))
             HStack(spacing: 12) {
                 scoreItem(label: "QUEST", sub: "ミッション達成", value: session.questScore)
                 scoreItem(label: "HEART", sub: "心の動き", value: session.heartScore)
@@ -72,9 +72,9 @@ struct ResultView: View {
 
     private func scoreItem(label: String, sub: String, value: Int) -> some View {
         VStack(spacing: 2) {
-            Text("\(value)pt").font(.headline)
-            Text(label).font(.caption2.bold()).foregroundStyle(.orange)
-            Text(sub).font(.caption2).foregroundStyle(.secondary)
+            Text("\(value)pt").font(.handHeadline)
+            Text(label).font(.handCaption2).foregroundStyle(.orange)
+            Text(sub).font(.handCaption2).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
     }
@@ -82,7 +82,7 @@ struct ResultView: View {
     private var missionLog: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("ミッション ログ")
-                .font(.headline)
+                .font(.handHeadline)
             ForEach(session.records) { record in
                 logRow(record)
             }
@@ -93,7 +93,7 @@ struct ResultView: View {
         let mission = session.plan.missions.first { $0.id == record.missionId }
         return HStack(spacing: 12) {
             Text(record.achievedAt.formatted(date: .omitted, time: .shortened))
-                .font(.caption2)
+                .font(.handCaption2)
                 .foregroundStyle(.secondary)
             Group {
                 if let image = session.photo(for: record) {
@@ -111,16 +111,16 @@ struct ResultView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(mission?.title ?? record.missionId)
-                    .font(.footnote.weight(.semibold))
+                    .font(.handBody)
                     .lineLimit(1)
                 Text("\(mission?.category.label ?? "")・達成 +\(record.points)pt")
-                    .font(.caption2)
+                    .font(.handCaption2)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             if let bpm = record.bpmAtAchieve {
                 Text("\(bpm)bpm")
-                    .font(.caption2.bold())
+                    .font(.handCaption2)
                     .foregroundStyle(.orange)
             }
         }
@@ -129,7 +129,7 @@ struct ResultView: View {
     private var restartButton: some View {
         Button(action: onRestart) {
             Text("もう一回たびする")
-                .font(.headline)
+                .font(.handHeadline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
         }

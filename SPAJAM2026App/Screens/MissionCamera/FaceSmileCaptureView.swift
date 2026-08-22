@@ -30,7 +30,7 @@ struct FaceSmileCaptureView: View {
 
             VStack {
                 Text("にっこり笑って!")
-                    .font(.title3.bold())
+                    .font(.handTitle)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
@@ -47,7 +47,7 @@ struct FaceSmileCaptureView: View {
                         .tint(.orange)
                         .frame(width: 240)
                     Text(smileLevel > 0.5 ? "その笑顔キープ!" : "口角をトラッキング中…")
-                        .font(.caption)
+                        .font(.handCaption)
                         .foregroundStyle(.white)
                 }
                 .padding(16)
@@ -60,10 +60,10 @@ struct FaceSmileCaptureView: View {
     private func cornerGauge(label: String, value: Double) -> some View {
         VStack(spacing: 4) {
             Text("\(Int(min(1, value) * 100))%")
-                .font(.headline.monospacedDigit())
+                .font(.handHeadline)
                 .foregroundStyle(value > 0.5 ? .orange : .white)
             Text(label)
-                .font(.caption2)
+                .font(.handCaption2)
                 .foregroundStyle(.white.opacity(0.8))
         }
         .frame(width: 90)

@@ -33,9 +33,9 @@ struct PlanView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(session.plan.title)
-                .font(.title2.bold())
+                .font(.handLargeTitle)
             Text("\(session.plan.missions.count)ミッション・\(session.plan.area)")
-                .font(.caption)
+                .font(.handCaption)
                 .foregroundStyle(.secondary)
         }
     }
@@ -44,7 +44,7 @@ struct PlanView: View {
         VStack(spacing: 10) {
             Button(action: onStart) {
                 Text("旅をはじめる")
-                    .font(.headline)
+                    .font(.handHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
             }
@@ -52,7 +52,7 @@ struct PlanView: View {
             .tint(.orange)
 
             Text("はじめるとスマホはおやすみモードになります")
-                .font(.caption2)
+                .font(.handCaption2)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
 
@@ -66,7 +66,7 @@ struct PlanView: View {
         @Bindable var session = session
         return Toggle(isOn: $session.useMockJudge) {
             Text("Mock 判定(電波なしデモ用)")
-                .font(.caption)
+                .font(.handCaption)
                 .foregroundStyle(.secondary)
         }
         .tint(.orange)
@@ -82,7 +82,7 @@ struct MissionTile: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(mission.category.label)
-                    .font(.caption2.bold())
+                    .font(.handCaption2)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(badgeBackground, in: Capsule())
@@ -94,14 +94,14 @@ struct MissionTile: View {
                 }
             }
             Image(systemName: mission.category.symbolName)
-                .font(.title3)
+                .font(.handTitle)
             Text(mission.title)
-                .font(.footnote.weight(.semibold))
+                .font(.handBody)
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Spacer(minLength: 0)
             Text(achieved ? "達成" : "未達成")
-                .font(.caption2)
+                .font(.handCaption2)
                 .foregroundStyle(.secondary)
         }
         .padding(14)
