@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isHost() {
+      return signedIn() && resource.data.hostUid == request.auth.uid;
+    }
+
+    // 招待コード = ドキュメント ID。コードを知っているサインイン済みユーザーだけが読める
+    match /rooms/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.partySize is int
+        && request.resource.data.partySize >= 2 && request.resource.data.partySize <= 5
+        && request.resource.data.status in ['waiting', 'started'];
+      // 親だけが更新・削除できる(hostUid は変更不可)
+      allow update: if isHost() && request.resource.data.hostUid == resource.data.hostUid;
+      allow delete: if isHost();
+
+      // 参加者は自分の uid のドキュメントだけ書ける
+      match /members/{uid} {
+        allow read: if signedIn();
+        allow create, update: if signedIn() && uid == request.auth.uid
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 1
+          && request.resource.data.name.size() <= 20;
+        allow delete: if signedIn() && (uid == request.auth.uid
+          || get(/databases/$(database)/documents/rooms/$(code)).data.hostUid == request.auth.uid);
+      }
+    }
+
+    // 各ユーザーの進行状況(プラン達成状況)は本人だけ
+    match /sessions/{uid} {
+      allow read, write: if signedIn() && uid == request.auth.uid;
+    }
+  }
+}

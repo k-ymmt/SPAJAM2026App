@@ -27,6 +27,16 @@ SPAJAM2026 ハッカソン用 iOS アプリ(作業用リポジトリ)。
 - `SPAJAM2026App/Secrets.sample.plist` を同フォルダに `Secrets.plist` としてコピーし、キーを記入して使う(`Secrets.plist` は gitignore 済み)
 - キーの実体はチームのスプレッドシート「SPAJAM2026-ツナカン」を参照
 
+## Firebase
+
+- Firebase プロジェクト: `spajam2026-app`(匿名認証 + Cloud Firestore)
+- SDK 設定ファイル `SPAJAM2026App/GoogleService-Info.plist` は **gitignore 済み**。以下で取得する
+  1. Firebase プロジェクト `spajam2026-app` にメンバー追加してもらう(yamamoto に依頼)
+  2. `npx -y firebase-tools@latest login`
+  3. `scripts/fetch-google-service-info.sh` を実行
+- 無くてもアプリは起動するが、招待コードなどの複数人機能は使えない
+- Firestore のルール・インデックスは `firestore.rules` / `firestore.indexes.json`。変更したら `firebase deploy --only firestore:rules`
+
 ### Claude Code への指示
 
 - コミットが必要な変更は、必ず `main` 以外の作業ブランチ上で行うこと

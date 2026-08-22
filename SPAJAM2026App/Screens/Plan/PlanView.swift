@@ -12,6 +12,10 @@ struct PlanView: View {
     @Environment(TripSession.self) private var session
     var onStart: () -> Void
 
+    @State private var observer = TripRoomObserver()
+    @State private var isPublishing = false
+    @State private var publishError: String?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
@@ -28,15 +32,49 @@ struct PlanView: View {
             .padding(24)
         }
         .background(Color.appBackground)
+        .task(id: session.membership?.code) {
+            if let membership = session.membership, membership.role == .host {
+                observer.start(code: membership.code)
+            }
+        }
     }
 
     private var header: some View {
-        ScreenHeader(session.plan.title, subtitle: session.plan.area)
+        VStack(alignment: .leading, spacing: 8) {
+            ScreenHeader(session.plan.title, subtitle: session.plan.area)
+            if let membership = session.membership {
+                companions(membership)
+            }
+        }
+    }
+
+    /// いっしょに行く人(親: 参加者名、子: 参加中の名前)
+    private func companions(_ membership: RoomMembership) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "person.2.fill")
+                .foregroundStyle(.orange)
+            switch membership.role {
+            case .host:
+                let names = observer.members.map(\.name)
+                Text(names.isEmpty ? "参加者を待っています(コード \(membership.code))" : "いっしょに行く: " + names.joined(separator: "、"))
+            case .guest:
+                Text("\(membership.name ?? "") として参加中(コード \(membership.code))")
+            }
+        }
+        .font(.handCaption)
+        .foregroundStyle(Color.inkSub)
     }
 
     private var startButton: some View {
         VStack(spacing: 10) {
-            BrushButton(label: "旅をはじめる", action: onStart)
+            BrushButton(label: "旅をはじめる", loading: isPublishing, disabled: isPublishing, action: start)
+
+            if let publishError {
+                Text(publishError)
+                    .font(.handCaption)
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity)
+            }
 
             Text("はじめるとスマホはおやすみモードになります")
                 .font(.handCaption2)
@@ -46,6 +84,22 @@ struct PlanView: View {
             judgeToggle
         }
         .padding(.top, 8)
+    }
+
+    /// 親ならプランをルームに公開してから(待機中の子も開始)次へ進む
+    private func start() {
+        isPublishing = true
+        publishError = nil
+        Task {
+            do {
+                try await session.publishPlanToRoomIfHost()
+                onStart()
+            } catch {
+                NSLog("[Room] publish failed: \(error)")
+                publishError = "プランを共有できませんでした。通信環境を確認してもう一度お試しください"
+            }
+            isPublishing = false
+        }
     }
 
     /// デモ用: AI 判定の Mock/Live 切り替え(電波なし対策)

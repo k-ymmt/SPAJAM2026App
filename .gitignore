@@ -50,3 +50,6 @@ iOSInjectionProject/
 
 # Secrets (API keys) — committed禁止。Secrets.sample.plist をコピーして作成する
 SPAJAM2026App/Secrets.plist
+
+# Firebase SDK config — committed禁止。scripts/fetch-google-service-info.sh で取得する
+SPAJAM2026App/GoogleService-Info.plist

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		39540B46410A00E6583138B0 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = EEA928FFDCB12323EACEC4B3 /* FirebaseFirestore */; };
+		499DA38040B5D232A6F79C33 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 07AC4170128068FD4A33E1B2 /* FirebaseCore */; };
+		C9626BDE216CC4EDD65020D2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 192098BF60B595AA72DBE5DF /* FirebaseAuth */; };
 		D0DA0000000000000000000C /* SPAJAM2026Watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D0DA00000000000000000002 /* SPAJAM2026Watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		LA0000000000000000000E /* SPAJAM2026AppWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -161,6 +164,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				499DA38040B5D232A6F79C33 /* FirebaseCore in Frameworks */,
+				C9626BDE216CC4EDD65020D2 /* FirebaseAuth in Frameworks */,
+				39540B46410A00E6583138B0 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,6 +254,9 @@
 			);
 			name = SPAJAM2026App;
 			packageProductDependencies = (
+				07AC4170128068FD4A33E1B2 /* FirebaseCore */,
+				192098BF60B595AA72DBE5DF /* FirebaseAuth */,
+				EEA928FFDCB12323EACEC4B3 /* FirebaseFirestore */,
 			);
 			productName = SPAJAM2026App;
 			productReference = C469262A303883090067188C /* SPAJAM2026App.app */;
@@ -383,6 +392,9 @@
 			);
 			mainGroup = C4692621303883090067188C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E53A7B80154A8E9CB8800B50 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C469262B303883090067188C /* Products */;
 			projectDirPath = "";
@@ -647,6 +659,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -688,6 +701,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -976,6 +990,35 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E53A7B80154A8E9CB8800B50 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.18.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		07AC4170128068FD4A33E1B2 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E53A7B80154A8E9CB8800B50 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		192098BF60B595AA72DBE5DF /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E53A7B80154A8E9CB8800B50 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		EEA928FFDCB12323EACEC4B3 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E53A7B80154A8E9CB8800B50 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C4692622303883090067188C /* Project object */;
 }
