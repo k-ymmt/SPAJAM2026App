@@ -2,20 +2,22 @@
 //  HeartRateMonitor.swift
 //  SPAJAM2026App
 //
-//  Main-actor model behind the real-time heart rate screen. Merges readings
-//  streamed from the watch app with readings observed in HealthKit.
+//  Main-actor model behind the real-time heart rate screen. Keeps a short
+//  history of the readings published by `HeartRateFeed`.
 //
 
 import Foundation
 import Observation
 
+@MainActor
 @Observable
 final class HeartRateMonitor {
     private(set) var history = HeartRateHistory(window: 120)
-    private(set) var watchStatus = WatchStatus()
-    private(set) var isWatchStreaming = false
-    private(set) var healthAuthorization: HealthKitHeartRateSource.Authorization = .notDetermined
-    private(set) var lastCommandError: String?
+
+    var watchStatus: WatchStatus { feed.watchStatus }
+    var isWatchStreaming: Bool { feed.isWatchStreaming }
+    var healthAuthorization: HealthKitHeartRateSource.Authorization { feed.healthAuthorization }
+    var lastCommandError: String? { feed.lastCommandError }
 
     var latest: HeartRateSample? { history.latest }
 
@@ -24,34 +26,21 @@ final class HeartRateMonitor {
         latest.map { now.timeIntervalSince($0.timestamp) }
     }
 
-    private let relay = WatchSessionRelay()
-    private let healthSource = HealthKitHeartRateSource()
-    private var isRunning = false
+    private let feed = HeartRateFeed.shared
+    private var subscription: UUID?
 
     func start() async {
-        guard !isRunning else { return }
-        isRunning = true
-
-        relay.onMessage = { [weak self] message in
-            Task { @MainActor in self?.receive(message) }
+        guard subscription == nil else { return }
+        subscription = feed.subscribe { [weak self] sample in
+            self?.append(sample)
         }
-        relay.onStatusChange = { [weak self] status in
-            Task { @MainActor in self?.watchStatus = status }
-        }
-        relay.activate()
-
-        healthSource.onSample = { [weak self] sample in
-            Task { @MainActor in self?.append(sample) }
-        }
-        healthAuthorization = await healthSource.requestAuthorization()
-        if healthAuthorization == .authorized {
-            healthSource.start(since: .now.addingTimeInterval(-history.window))
-        }
+        if let latest = feed.latest { append(latest) }
+        await feed.startHealthKit(since: .now.addingTimeInterval(-history.window))
     }
 
     func stop() {
-        healthSource.stop()
-        isRunning = false
+        if let subscription { feed.unsubscribe(subscription) }
+        subscription = nil
     }
 
     func clear() {
@@ -59,27 +48,12 @@ final class HeartRateMonitor {
     }
 
     func sendCommand(_ command: HeartRateMessage.Command) {
-        lastCommandError = nil
-        if !relay.send(.command(command)) {
-            lastCommandError = "Watch アプリに接続できません。Watch 側でアプリを開いてください。"
-        }
+        feed.sendCommand(command)
     }
 
     /// Drops stale samples; call periodically from the view.
     func tick(now: Date = .now) {
         history.trim(now: now)
-    }
-
-    private func receive(_ message: HeartRateMessage) {
-        switch message {
-        case let .heartRate(bpm, timestamp):
-            append(HeartRateSample(timestamp: timestamp, beatsPerMinute: bpm, source: .watch))
-            isWatchStreaming = true
-        case let .streamingState(isActive):
-            isWatchStreaming = isActive
-        case .command:
-            break
-        }
     }
 
     private func append(_ sample: HeartRateSample) {

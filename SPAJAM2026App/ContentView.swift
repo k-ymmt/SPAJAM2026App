@@ -41,6 +41,15 @@ struct ContentView: View {
                         )
                     }
                     NavigationLink {
+                        MissionLiveActivityView()
+                    } label: {
+                        TrialRow(
+                            title: "TABI MISSION Live Activity",
+                            subtitle: "ミッション・地点からの距離・Apple Watch の心拍を Live Activity に表示します。",
+                            systemImage: "mappin.and.ellipse"
+                        )
+                    }
+                    NavigationLink {
                         ScreenTimeTrialView()
                     } label: {
                         TrialRow(

@@ -11,5 +11,6 @@ struct SPAJAM2026AppWidgetsBundle: WidgetBundle {
     var body: some Widget {
         TrialLiveActivity()
         LocationMapLiveActivity()
+        MissionLiveActivity()
     }
 }

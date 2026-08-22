@@ -23,6 +23,7 @@ nonisolated final class HealthKitHeartRateSource {
     private let heartRateType = HKQuantityType(.heartRate)
     private let unit = HKUnit.count().unitDivided(by: .minute())
     private var query: HKAnchoredObjectQuery?
+    private var observerQuery: HKObserverQuery?
 
     var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
 
@@ -65,10 +66,30 @@ nonisolated final class HealthKitHeartRateSource {
         store.execute(query)
     }
 
+    /// Asks HealthKit to wake the app whenever new heart rate samples arrive (e.g. synced
+    /// from the watch). Requires the `healthkit.background-delivery` entitlement. Heart
+    /// rate is not on HealthKit's hourly-limited list, so `.immediate` is honoured.
+    func enableBackgroundDelivery() async {
+        guard isAvailable, observerQuery == nil else { return }
+        let observer = HKObserverQuery(sampleType: heartRateType, predicate: nil) { _, completion, _ in
+            // The anchored query (re)started in `start` delivers the actual samples; we only
+            // need to acknowledge the wake-up so HealthKit keeps delivering.
+            completion()
+        }
+        observerQuery = observer
+        store.execute(observer)
+        try? await store.enableBackgroundDelivery(for: heartRateType, frequency: .immediate)
+    }
+
     func stop() {
         if let query {
             store.stop(query)
         }
         query = nil
+        if let observerQuery {
+            store.stop(observerQuery)
+        }
+        observerQuery = nil
+        store.disableBackgroundDelivery(for: heartRateType) { _, _ in }
     }
 }
