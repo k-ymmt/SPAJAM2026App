@@ -68,8 +68,7 @@
       },
       "camera": "front",
       "points": 15,
-      "hapticOnNear": true,
-      "isShared": true
+      "hapticOnNear": true
     },
     {
       "id": "m5",
@@ -87,9 +86,7 @@
         }
       },
       "points": 15,
-      "hapticOnNear": true,
-      "isShared": true
+      "hapticOnNear": true
     }
-  ],
-  "partySize": 2
+  ]
 }
