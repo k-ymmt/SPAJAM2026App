@@ -165,6 +165,13 @@ final class TripSession {
         persist()
     }
 
+    /// おやすみ設定のモーダルを閉じてプラン確認に戻る
+    func returnToPlanning() {
+        guard phase == .restrictionSetup else { return }
+        phase = .planning
+        persist()
+    }
+
     /// 親が「旅をはじめる」を押したとき: プランをルームに公開し、待機中の子を開始させる。
     /// ひとり旅・子の場合は何もしない
     func publishPlanToRoomIfHost() async throws {

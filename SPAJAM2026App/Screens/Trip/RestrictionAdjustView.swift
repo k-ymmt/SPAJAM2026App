@@ -21,7 +21,7 @@ struct RestrictionAdjustView: View {
                 .frame(maxWidth: .infinity)
 
             Text("制限をととのえる")
-                .font(.handTitle)
+                .font(.system(size: 20, weight: .bold))
 
             // ペナルティの警告
             HStack(spacing: 10) {
@@ -60,7 +60,7 @@ struct RestrictionAdjustView: View {
                 dismiss()
             } label: {
                 Text("この設定に変更する(−5pt)")
-                    .font(.handHeadline)
+                    .font(.system(size: 16, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
             }

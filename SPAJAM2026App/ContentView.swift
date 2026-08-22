@@ -23,10 +23,19 @@ struct ContentView: View {
             if let session {
                 Group {
                     switch session.phase {
-                    case .planning:
+                    case .planning, .restrictionSetup:
+                        // おやすみ設定は補足画面なのでプランの上にモーダルで出す
                         PlanView { session.proceedToRestrictionSetup() }
-                    case .restrictionSetup:
-                        RestrictionSetupView { session.startTrip() }
+                            .sheet(isPresented: Binding(
+                                get: { session.phase == .restrictionSetup },
+                                set: { shown in
+                                    if !shown { session.returnToPlanning() }
+                                }
+                            )) {
+                                RestrictionSetupView { session.startTrip() }
+                                    .presentationDetents([.large])
+                                    .presentationDragIndicator(.visible)
+                            }
                     case .traveling:
                         TripMainView()
                     case .finished:

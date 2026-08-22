@@ -257,7 +257,7 @@ struct AreaSelectView: View {
         HStack(spacing: 28) {
             stepperButton("minus", disabled: partySize <= 1) { partySize -= 1 }
             Text("\(partySize)人")
-                .font(.handTitle)
+                .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.inkMain)
                 .monospacedDigit()
                 .contentTransition(.numericText())
@@ -291,7 +291,7 @@ struct AreaSelectView: View {
 
     private var slideMood: some View {
         VStack(spacing: 16) {
-            title("旅の温度感は?", sub: "ミッションの難易度とテイストが変わります")
+            title("すごしかたは?", sub: "ミッションの難易度とテイストが変わります")
 
             Spacer()
             illustration(symbol: moodSymbol, caption: mood.rawValue)
@@ -309,7 +309,7 @@ struct AreaSelectView: View {
                     .foregroundStyle(.red)
             }
 
-            nextButton(isGenerating ? "プランを生成中…" : "この旅先でプランをつくる", loading: isGenerating, disabled: isGenerating) {
+            nextButton(isGenerating ? "プランを生成中…" : "プランをつくる", loading: isGenerating, disabled: isGenerating) {
                 generate()
             }
         }
