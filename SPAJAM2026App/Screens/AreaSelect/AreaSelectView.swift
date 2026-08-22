@@ -172,7 +172,11 @@ struct AreaSelectView: View {
             title("だれと行く?", sub: "いっしょに旅する人数を選んでください")
 
             Spacer()
-            illustration(symbol: partySymbol, caption: partySize == 1 ? "ひとり旅" : "\(partySize)人旅")
+            illustration(
+                image: partySize == 1 ? "MizaruCharacter" : "Mizarus\(min(partySize, 5))",
+                symbol: partySymbol,
+                caption: partySize == 1 ? "ひとり旅" : "\(partySize)人旅"
+            )
             Spacer()
 
             partyStepper
@@ -339,19 +343,20 @@ struct AreaSelectView: View {
 
     // MARK: - 部品
 
-    /// 中央イラスト。見ざるキャラ(広瀬さんの差し替え素材が来たらステップごとに切り替える)
-    private func illustration(symbol: String, caption: String) -> some View {
+    /// 中央イラスト。見ざるキャラ(image でポーズ違いに差し替え可能)
+    private func illustration(image: String = "MizaruCharacter", symbol: String, caption: String) -> some View {
         VStack(spacing: 14) {
-            Image("MizaruCharacter")
+            Image(image)
                 .resizable()
                 .scaledToFit()
-                .padding(16)
-                .frame(width: 210, height: 210)
+                .padding(10)
+                .frame(width: 290, height: 214)
             Text(caption)
                 .font(.handHeadline)
                 .foregroundStyle(Color.appAccent)
         }
         .animation(.default, value: symbol)
+        .animation(.default, value: image)
     }
 
     private func title(_ main: String, sub: String) -> some View {
