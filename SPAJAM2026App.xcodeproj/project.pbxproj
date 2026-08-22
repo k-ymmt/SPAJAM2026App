@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C49BE1F430396E17001745AC /* SPAJAM2026WatchApp Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = C49BE1D430396E11001745AC /* SPAJAM2026WatchApp Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C46926383038830A0067188C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +25,61 @@
 			remoteGlobalIDString = C4692629303883090067188C;
 			remoteInfo = SPAJAM2026App;
 		};
+		C49BE1E130396E17001745AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4692622303883090067188C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C49BE1D330396E11001745AC;
+			remoteInfo = "SPAJAM2026WatchApp Watch App";
+		};
+		C49BE1EB30396E17001745AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4692622303883090067188C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C49BE1D330396E11001745AC;
+			remoteInfo = "SPAJAM2026WatchApp Watch App";
+		};
+		C49BE1F230396E17001745AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4692622303883090067188C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C49BE1D330396E11001745AC;
+			remoteInfo = "SPAJAM2026WatchApp Watch App";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C49BE1F530396E17001745AC /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				C49BE1F430396E17001745AC /* SPAJAM2026WatchApp Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		C469262A303883090067188C /* SPAJAM2026App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SPAJAM2026App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C46926373038830A0067188C /* SPAJAM2026AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SPAJAM2026AppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C46926413038830A0067188C /* SPAJAM2026AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SPAJAM2026AppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C49BE1D430396E11001745AC /* SPAJAM2026WatchApp Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SPAJAM2026WatchApp Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C49BE1E030396E17001745AC /* SPAJAM2026WatchApp Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SPAJAM2026WatchApp Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C49BE1EA30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SPAJAM2026WatchApp Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C4A1B2C3D4E5F60718293A4C /* Exceptions for "SPAJAM2026WatchApp Watch App" folder in "SPAJAM2026WatchApp Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C49BE1D330396E11001745AC /* SPAJAM2026WatchApp Watch App */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C469262C303883090067188C /* SPAJAM2026App */ = {
@@ -43,6 +95,29 @@
 		C46926443038830A0067188C /* SPAJAM2026AppUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = SPAJAM2026AppUITests;
+			sourceTree = "<group>";
+		};
+		C49BE1D530396E11001745AC /* SPAJAM2026WatchApp Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C4A1B2C3D4E5F60718293A4C /* Exceptions for "SPAJAM2026WatchApp Watch App" folder in "SPAJAM2026WatchApp Watch App" target */,
+			);
+			path = "SPAJAM2026WatchApp Watch App";
+			sourceTree = "<group>";
+		};
+		C49BE1E330396E17001745AC /* SPAJAM2026WatchApp Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "SPAJAM2026WatchApp Watch AppTests";
+			sourceTree = "<group>";
+		};
+		C49BE1ED30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "SPAJAM2026WatchApp Watch AppUITests";
+			sourceTree = "<group>";
+		};
+		C4A1B2C3D4E5F60718293A4B /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +144,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C49BE1D130396E11001745AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C49BE1DD30396E17001745AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C49BE1E730396E17001745AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +174,10 @@
 				C469262C303883090067188C /* SPAJAM2026App */,
 				C469263A3038830A0067188C /* SPAJAM2026AppTests */,
 				C46926443038830A0067188C /* SPAJAM2026AppUITests */,
+				C49BE1D530396E11001745AC /* SPAJAM2026WatchApp Watch App */,
+				C49BE1E330396E17001745AC /* SPAJAM2026WatchApp Watch AppTests */,
+				C49BE1ED30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests */,
+				C4A1B2C3D4E5F60718293A4B /* Shared */,
 				C469262B303883090067188C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +188,9 @@
 				C469262A303883090067188C /* SPAJAM2026App.app */,
 				C46926373038830A0067188C /* SPAJAM2026AppTests.xctest */,
 				C46926413038830A0067188C /* SPAJAM2026AppUITests.xctest */,
+				C49BE1D430396E11001745AC /* SPAJAM2026WatchApp Watch App.app */,
+				C49BE1E030396E17001745AC /* SPAJAM2026WatchApp Watch AppTests.xctest */,
+				C49BE1EA30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,13 +205,16 @@
 				C4692626303883090067188C /* Sources */,
 				C4692627303883090067188C /* Frameworks */,
 				C4692628303883090067188C /* Resources */,
+				C49BE1F530396E17001745AC /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C49BE1F330396E17001745AC /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C469262C303883090067188C /* SPAJAM2026App */,
+				C4A1B2C3D4E5F60718293A4B /* Shared */,
 			);
 			name = SPAJAM2026App;
 			packageProductDependencies = (
@@ -163,6 +269,75 @@
 			productReference = C46926413038830A0067188C /* SPAJAM2026AppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		C49BE1D330396E11001745AC /* SPAJAM2026WatchApp Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C49BE1FC30396E17001745AC /* Build configuration list for PBXNativeTarget "SPAJAM2026WatchApp Watch App" */;
+			buildPhases = (
+				C49BE1D030396E11001745AC /* Sources */,
+				C49BE1D130396E11001745AC /* Frameworks */,
+				C49BE1D230396E11001745AC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C49BE1D530396E11001745AC /* SPAJAM2026WatchApp Watch App */,
+				C4A1B2C3D4E5F60718293A4B /* Shared */,
+			);
+			name = "SPAJAM2026WatchApp Watch App";
+			packageProductDependencies = (
+			);
+			productName = "SPAJAM2026WatchApp Watch App";
+			productReference = C49BE1D430396E11001745AC /* SPAJAM2026WatchApp Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C49BE1DF30396E17001745AC /* SPAJAM2026WatchApp Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C49BE1FD30396E17001745AC /* Build configuration list for PBXNativeTarget "SPAJAM2026WatchApp Watch AppTests" */;
+			buildPhases = (
+				C49BE1DC30396E17001745AC /* Sources */,
+				C49BE1DD30396E17001745AC /* Frameworks */,
+				C49BE1DE30396E17001745AC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C49BE1E230396E17001745AC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C49BE1E330396E17001745AC /* SPAJAM2026WatchApp Watch AppTests */,
+			);
+			name = "SPAJAM2026WatchApp Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "SPAJAM2026WatchApp Watch AppTests";
+			productReference = C49BE1E030396E17001745AC /* SPAJAM2026WatchApp Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C49BE1E930396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C49BE1FE30396E17001745AC /* Build configuration list for PBXNativeTarget "SPAJAM2026WatchApp Watch AppUITests" */;
+			buildPhases = (
+				C49BE1E630396E17001745AC /* Sources */,
+				C49BE1E730396E17001745AC /* Frameworks */,
+				C49BE1E830396E17001745AC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C49BE1EC30396E17001745AC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C49BE1ED30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests */,
+			);
+			name = "SPAJAM2026WatchApp Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "SPAJAM2026WatchApp Watch AppUITests";
+			productReference = C49BE1EA30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +359,17 @@
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = C4692629303883090067188C;
 					};
+					C49BE1D330396E11001745AC = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					C49BE1DF30396E17001745AC = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = C49BE1D330396E11001745AC;
+					};
+					C49BE1E930396E17001745AC = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = C49BE1D330396E11001745AC;
+					};
 				};
 			};
 			buildConfigurationList = C4692625303883090067188C /* Build configuration list for PBXProject "SPAJAM2026App" */;
@@ -203,6 +389,9 @@
 				C4692629303883090067188C /* SPAJAM2026App */,
 				C46926363038830A0067188C /* SPAJAM2026AppTests */,
 				C46926403038830A0067188C /* SPAJAM2026AppUITests */,
+				C49BE1D330396E11001745AC /* SPAJAM2026WatchApp Watch App */,
+				C49BE1DF30396E17001745AC /* SPAJAM2026WatchApp Watch AppTests */,
+				C49BE1E930396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +412,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C469263F3038830A0067188C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C49BE1D230396E11001745AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C49BE1DE30396E17001745AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C49BE1E830396E17001745AC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +463,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C49BE1D030396E11001745AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C49BE1DC30396E17001745AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C49BE1E630396E17001745AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +496,21 @@
 			isa = PBXTargetDependency;
 			target = C4692629303883090067188C /* SPAJAM2026App */;
 			targetProxy = C46926423038830A0067188C /* PBXContainerItemProxy */;
+		};
+		C49BE1E230396E17001745AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C49BE1D330396E11001745AC /* SPAJAM2026WatchApp Watch App */;
+			targetProxy = C49BE1E130396E17001745AC /* PBXContainerItemProxy */;
+		};
+		C49BE1EC30396E17001745AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C49BE1D330396E11001745AC /* SPAJAM2026WatchApp Watch App */;
+			targetProxy = C49BE1EB30396E17001745AC /* PBXContainerItemProxy */;
+		};
+		C49BE1F330396E17001745AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C49BE1D330396E11001745AC /* SPAJAM2026WatchApp Watch App */;
+			targetProxy = C49BE1F230396E17001745AC /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -401,6 +647,7 @@
 				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "心拍数をリアルタイムに表示するために使用します。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -435,6 +682,7 @@
 				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "心拍数をリアルタイムに表示するために使用します。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -544,6 +792,170 @@
 			};
 			name = Release;
 		};
+		C49BE1F630396E17001745AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "SPAJAM2026WatchApp Watch App/SPAJAM2026WatchApp Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SPAJAM2026WatchApp Watch App/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = SPAJAM2026WatchApp;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "心拍数を計測して iPhone に送信するために使用します。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "心拍計測用のワークアウトセッションを開始するために使用します。";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = app.kymmt.SPAJAM2026App;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		C49BE1F730396E17001745AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "SPAJAM2026WatchApp Watch App/SPAJAM2026WatchApp Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SPAJAM2026WatchApp Watch App/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = SPAJAM2026WatchApp;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "心拍数を計測して iPhone に送信するために使用します。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "心拍計測用のワークアウトセッションを開始するために使用します。";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = app.kymmt.SPAJAM2026App;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		C49BE1F830396E17001745AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.kymmt.SPAJAM2026WatchApp-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SPAJAM2026WatchApp Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SPAJAM2026WatchApp Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		C49BE1F930396E17001745AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.kymmt.SPAJAM2026WatchApp-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SPAJAM2026WatchApp Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SPAJAM2026WatchApp Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		C49BE1FA30396E17001745AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.kymmt.SPAJAM2026WatchApp-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "SPAJAM2026WatchApp Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		C49BE1FB30396E17001745AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.kymmt.SPAJAM2026WatchApp-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "SPAJAM2026WatchApp Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -579,6 +991,33 @@
 			buildConfigurations = (
 				C46926523038830A0067188C /* Debug */,
 				C46926533038830A0067188C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C49BE1FC30396E17001745AC /* Build configuration list for PBXNativeTarget "SPAJAM2026WatchApp Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C49BE1F630396E17001745AC /* Debug */,
+				C49BE1F730396E17001745AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C49BE1FD30396E17001745AC /* Build configuration list for PBXNativeTarget "SPAJAM2026WatchApp Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C49BE1F830396E17001745AC /* Debug */,
+				C49BE1F930396E17001745AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C49BE1FE30396E17001745AC /* Build configuration list for PBXNativeTarget "SPAJAM2026WatchApp Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C49BE1FA30396E17001745AC /* Debug */,
+				C49BE1FB30396E17001745AC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
