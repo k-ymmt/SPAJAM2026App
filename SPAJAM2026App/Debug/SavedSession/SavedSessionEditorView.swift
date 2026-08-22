@@ -118,10 +118,18 @@ struct SavedSessionEditorView: View {
         Section("心拍サンプル(HEART SCORE)") {
             LabeledContent("件数", value: "\(s.wrappedValue.heartRateSamples.count)")
             Button("ランダムに 10 件追加") {
-                let now = Date()
-                s.wrappedValue.heartRateSamples += (0..<10).map {
-                    HeartRateSample(date: now.addingTimeInterval(Double($0) * 30), bpm: Double(Int.random(in: 65...120)))
+                // リザルトの心拍グラフは旅の時間帯(開始〜終了)を区間に分けて集計するので、
+                // サンプルも同じ時間帯に散らす(未開始なら直近 1 時間)
+                let end = s.wrappedValue.tripEndedAt ?? Date()
+                let start = s.wrappedValue.tripStartedAt ?? end.addingTimeInterval(-3600)
+                let span = max(60, end.timeIntervalSince(start))
+                s.wrappedValue.heartRateSamples += (0..<10).map { _ in
+                    HeartRateSample(
+                        date: start.addingTimeInterval(Double.random(in: 0...span)),
+                        bpm: Double(Int.random(in: 65...120))
+                    )
                 }
+                s.wrappedValue.heartRateSamples.sort { $0.date < $1.date }
             }
             Button("全消去", role: .destructive) { s.wrappedValue.heartRateSamples = [] }
                 .disabled(s.wrappedValue.heartRateSamples.isEmpty)
