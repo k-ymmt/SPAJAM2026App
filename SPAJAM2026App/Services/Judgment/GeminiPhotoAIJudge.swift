@@ -18,6 +18,40 @@ struct GeminiPhotoAIJudge: PhotoAIJudging {
         return GeminiPhotoAIJudge(apiKey: key)
     }
 
+    /// テキストのみの生成呼び出し(JSON モード)。プラン生成などに使う
+    func generateText(prompt: String) async throws -> String {
+        let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
+        var request = URLRequest(url: url, timeoutInterval: 40)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        let body: [String: Any] = [
+            "contents": [["parts": [["text": prompt]]]],
+            "generationConfig": ["response_mime_type": "application/json"],
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+            NSLog("[PlanGen] gemini HTTP \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+            throw URLError(.badServerResponse)
+        }
+        struct Res: Decodable {
+            struct C: Decodable {
+                struct Content: Decodable {
+                    struct P: Decodable { let text: String? }
+                    let parts: [P]?
+                }
+                let content: Content?
+            }
+            let candidates: [C]?
+        }
+        let decoded = try JSONDecoder().decode(Res.self, from: data)
+        guard let text = decoded.candidates?.first?.content?.parts?.compactMap(\.text).joined(), !text.isEmpty else {
+            throw URLError(.cannotParseResponse)
+        }
+        return text
+    }
+
     func judge(imageJPEG: Data, prompt: String) async throws -> (ok: Bool, reason: String) {
         let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
         var request = URLRequest(url: url, timeoutInterval: 25)

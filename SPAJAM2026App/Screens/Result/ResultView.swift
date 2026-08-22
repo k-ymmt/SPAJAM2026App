@@ -11,6 +11,7 @@ import SwiftUI
 struct ResultView: View {
     @Environment(TripSession.self) private var session
     var onRestart: () -> Void
+    @State private var showVersus = false
 
     var body: some View {
         ScrollView {
@@ -18,11 +19,29 @@ struct ResultView: View {
                 header
                 scoreCard
                 missionLog
+                versusButton
                 restartButton
             }
             .padding(24)
         }
         .background(Color(red: 0.98, green: 0.965, blue: 0.94))
+        .sheet(isPresented: $showVersus) {
+            VersusView(onRestart: onRestart)
+                .environment(session)
+        }
+    }
+
+    private var versusButton: some View {
+        Button {
+            showVersus = true
+        } label: {
+            Label("ふたりの旅くらべを見る", systemImage: "person.2.fill")
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.teal)
     }
 
     private var header: some View {
