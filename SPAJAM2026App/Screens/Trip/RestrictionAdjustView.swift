@@ -17,9 +17,6 @@ struct RestrictionAdjustView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Capsule().fill(Color(.systemGray4)).frame(width: 44, height: 5)
-                .frame(maxWidth: .infinity)
-
             Text("制限をととのえる")
                 .font(.system(size: 20, weight: .bold))
 
@@ -55,17 +52,14 @@ struct RestrictionAdjustView: View {
 
             Spacer()
 
-            Button {
+            BrushButton(
+                label: "この設定に変更する(−5pt)",
+                font: .system(size: 16, weight: .semibold),
+                thickens: false
+            ) {
                 session.applyShieldAdjustment()
                 dismiss()
-            } label: {
-                Text("この設定に変更する(−5pt)")
-                    .font(.system(size: 16, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.appAccent)
 
             Button {
                 dismiss()

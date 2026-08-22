@@ -26,9 +26,9 @@ struct WaitingForPlanView: View {
             VStack(spacing: 18) {
                 ProgressView()
                     .controlSize(.large)
-                    .tint(.orange)
+                    .tint(.appAccent)
                 Text("一緒に行く人がプランを作成するのを待ってます...")
-                    .font(.handHeadline)
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Color.inkMain)
                     .multilineTextAlignment(.center)
                 if let name = membership.name {
@@ -58,13 +58,13 @@ struct WaitingForPlanView: View {
                 }
             } label: {
                 Text("退出する")
-                    .font(.handBody)
+                    .font(.handCaption)
                     .foregroundStyle(Color.inkSub)
             }
             .disabled(isLeaving)
         }
         .padding(24)
-        .background(Color(red: 0.98, green: 0.965, blue: 0.94))
+        .background(Color.appBackground)
         .task(id: membership.code) {
             observer.start(code: membership.code)
         }

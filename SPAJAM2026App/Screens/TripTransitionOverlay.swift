@@ -38,9 +38,7 @@ struct TripTransitionOverlay: View {
 
     var body: some View {
         VStack(spacing: 18) {
-            Image("MizaruCharacter")
-                .resizable()
-                .scaledToFit()
+            MizaruLoopView()
                 .frame(width: 170, height: 170)
                 .scaleEffect(appeared ? 1.0 : 0.82)
                 .rotationEffect(.degrees(appeared ? 0 : -4))

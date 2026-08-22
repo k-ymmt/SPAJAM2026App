@@ -136,6 +136,9 @@ final class TripSession {
         TripSessionStore.clear()
     }
 
+    /// ヘッダ表示用の旅の開始日(未開始なら nil)
+    var startDate: Date? { tripStartedAt }
+
     var currentMission: Mission? {
         guard phase == .traveling else { return nil }
         return plan.missions.first { $0.id == currentMissionId }
