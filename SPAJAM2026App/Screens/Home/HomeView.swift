@@ -11,6 +11,7 @@ import SwiftUI
 
 struct HomeView: View {
     var onStart: () -> Void
+    @State private var isProfilePresented = false
 
     /// デモ用の過去の旅(デザインのサンプルと同じ)
     private let pastTrips: [(title: String, date: String)] = [
@@ -20,6 +21,14 @@ struct HomeView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // なまえの変更(アカウント)
+            HStack {
+                Spacer()
+                HeaderIconButton(systemName: "person.crop.circle") {
+                    isProfilePresented = true
+                }
+            }
+
             Spacer()
 
             // ロゴ(仮: 見ざるキャラ。ロゴ素材が来たら差し替え)
@@ -55,6 +64,13 @@ struct HomeView: View {
         }
         .padding(24)
         .background(Color.appBackground)
+        .sheet(isPresented: $isProfilePresented) {
+            ProfileSetupView(isEditing: true) {
+                isProfilePresented = false
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
     }
 
     private func pastTripCard(title: String, date: String) -> some View {

@@ -165,6 +165,13 @@ final class TripSession {
         persist()
     }
 
+    /// おやすみ設定のモーダルを閉じてプラン確認に戻る
+    func returnToPlanning() {
+        guard phase == .restrictionSetup else { return }
+        phase = .planning
+        persist()
+    }
+
     /// 親が「旅をはじめる」を押したとき: プランをルームに公開し、待機中の子を開始させる。
     /// ひとり旅・子の場合は何もしない
     func publishPlanToRoomIfHost() async throws {
@@ -192,12 +199,16 @@ final class TripSession {
             self?.handleLocation(location)
         }
         locationProvider.start()
+        // 通知許可(接近・心拍上昇・メンバー達成をロック画面にも出す)
+        Task { await TripNotifier.shared.requestAuthorization() }
         // Watch へ現在ミッションを送信 + LA を 15 秒ごとに更新(bpm・距離)
         sendMissionStateToWatch()
         activityRefreshTask?.cancel()
         activityRefreshTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(15))
+                self?.recordHeartRateIfAvailable()
+                self?.checkHeartSpike()
                 self?.updateActivity()
             }
         }
@@ -213,6 +224,39 @@ final class TripSession {
         activityRefreshTask = nil
         locationProvider.stop()
         persist()
+        Task { await submitResultToRoomIfNeeded() }
+    }
+
+    // MARK: - 結果の共有(複数人の旅)
+
+    /// ルームに自分の結果を送信済みか(セッション内のみ。リザルト表示時に未送信なら再送する)
+    private(set) var isResultSubmitted = false
+
+    /// 自分の結果(ルーム共有用)。uid は送信時に埋める
+    var memberResult: TripMemberResult {
+        TripMemberResult(
+            id: "",
+            name: membership?.name ?? "ホスト",
+            isHost: membership?.role == .host,
+            questScore: questScore,
+            heartScore: heartScore,
+            offlineScore: offlineScore,
+            total: totalScore,
+            achievedMissionIds: records.map(\.missionId),
+            bpmBars: myBars,
+            finishedAt: tripEndedAt ?? Date()
+        )
+    }
+
+    /// 複数人の旅なら自分の結果をルームに書き込む。ひとり旅・送信済みなら何もしない
+    func submitResultToRoomIfNeeded() async {
+        guard let membership, !isResultSubmitted else { return }
+        do {
+            try await TripRoomService.shared.submitResult(code: membership.code, result: memberResult)
+            isResultSubmitted = true
+        } catch {
+            print("result submit failed: \(error)")
+        }
     }
 
     // MARK: - 位置更新(接近振動・LA 距離)
@@ -225,8 +269,51 @@ final class TripSession {
         let nearThreshold = max(200, target.radiusMeters * 2)
         if distance <= nearThreshold, mission.hapticOnNear == true, !nearNotified.contains(mission.id) {
             nearNotified.insert(mission.id)
-            heartRateReceiver.sendEvent(.near)
+            let place = target.name ?? "目的地"
+            heartRateReceiver.sendEvent(WatchEvent(kind: .near, text: "\(place)がもうすぐ!"))
+            TripNotifier.shared.post(
+                kind: "near",
+                title: "🗺️ \(place)がもうすぐ!",
+                body: "ミッション「\(mission.title)」のチャンス"
+            )
         }
+    }
+
+    // MARK: - 心拍上昇(写真チャンス)
+
+    /// 直近サンプルが移動平均を大きく上回ったら「心が動いた」として Watch 触覚+通知
+    private var lastSpikeAt: Date?
+
+    private func checkHeartSpike() {
+        guard phase == .traveling,
+              let bpm = heartRateReceiver.latest?.beatsPerMinute else { return }
+        // 直近を除いた過去サンプルの平均を基準にする(最低 5 サンプル)
+        let history = heartRateSamples.dropLast().suffix(20).map(\.bpm)
+        guard history.count >= 5 else { return }
+        let average = history.reduce(0, +) / Double(history.count)
+        guard bpm - average >= 15 else { return }
+        // 3 分に 1 回まで
+        if let last = lastSpikeAt, Date().timeIntervalSince(last) < 180 { return }
+        lastSpikeAt = Date()
+        heartRateReceiver.sendEvent(WatchEvent(kind: .heartSpike, text: "心が動いた! 写真を撮ろう"))
+        TripNotifier.shared.post(
+            kind: "heartSpike",
+            title: "❤️ 心が動いた瞬間!",
+            body: "心拍が \(Int(bpm.rounded())) bpm に上がったよ。写真を撮って残そう"
+        )
+    }
+
+    // MARK: - メンバー達成(同期レイヤーから呼ぶ)
+
+    /// 自分以外のメンバーの達成を受け取ったときに呼ぶ(Watch 触覚+通知)
+    func noteMemberAchieved(memberName: String, missionTitle: String) {
+        guard phase == .traveling else { return }
+        heartRateReceiver.sendEvent(WatchEvent(kind: .memberAchieved, text: "\(memberName)が達成!"))
+        TripNotifier.shared.post(
+            kind: "memberAchieved",
+            title: "🎉 \(memberName)がミッション達成!",
+            body: "「\(missionTitle)」をクリアしたよ"
+        )
     }
 
     /// LA 用の目的地までの距離(GPS 条件のあるミッションのみ)
@@ -321,7 +408,7 @@ final class TripSession {
     }
 
     /// 撮影した写真で現在ミッションを判定する。達成なら true
-    func judgeCurrentMission(image: UIImage?, location: CLLocation?, answerText: String? = nil) async -> Bool {
+    func judgeCurrentMission(image: UIImage?, location: CLLocation?) async -> Bool {
         guard let mission = currentMission else { return false }
         isJudging = true
         lastFailReason = nil
@@ -332,10 +419,7 @@ final class TripSession {
 
         let input = JudgeInput(
             image: image,
-            location: location,
-            currentBPM: bpm,
-            baselineBPM: baselineBPM,
-            answerText: answerText
+            location: location
         )
 
         switch await engine.judge(mission: mission, input: input) {
@@ -359,6 +443,26 @@ final class TripSession {
         }
     }
 
+    /// FACE / POSE 用: AR 判定で既に OK が出た撮影を、AI 判定なしでそのまま達成として記録する
+    func recordARAchievement(image: UIImage) {
+        guard let mission = currentMission else { return }
+        let bpm = heartRateReceiver.latest?.beatsPerMinute
+        recordHeartRateIfAvailable()
+        let record = MissionRecord(
+            missionId: mission.id,
+            achievedAt: Date(),
+            photoFileName: saveImage(image, missionId: mission.id),
+            bpmAtAchieve: bpm.map(Int.init),
+            points: mission.points,
+            aiComment: mission.category == .face ? "最高の表情!" : "ナイスポーズ!"
+        )
+        records.append(record)
+        lastFailReason = nil
+        heartRateReceiver.sendEvent(.achieved)
+        advance()
+        persist()
+    }
+
     private func advance() {
         let achieved = Set(records.map(\.missionId))
         // 順序どおりの「次の未達成」を優先しつつ、無ければ先頭から探す(順不同対応)
@@ -379,7 +483,8 @@ final class TripSession {
             total: plan.missions.count,
             achievedCount: records.count,
             distanceMeters: distanceMeters,
-            bpm: heartRateReceiver.latest?.beatsPerMinute
+            bpm: heartRateReceiver.latest?.beatsPerMinute,
+            currentLocation: locationProvider.current
         )
     }
 
@@ -389,13 +494,6 @@ final class TripSession {
         if let update = heartRateReceiver.latest, let bpm = update.beatsPerMinute {
             heartRateSamples.append(HeartRateSample(date: update.measuredAt, bpm: bpm))
         }
-    }
-
-    /// 安静時基準: 記録の最初の数サンプルの平均(なければ nil)
-    private var baselineBPM: Double? {
-        let head = heartRateSamples.prefix(5)
-        guard !head.isEmpty else { return nil }
-        return head.reduce(0) { $0 + $1.bpm } / Double(head.count)
     }
 
     /// 集中スコア: 心拍の移動平均からの平均偏差(サンプルが無ければ 0)

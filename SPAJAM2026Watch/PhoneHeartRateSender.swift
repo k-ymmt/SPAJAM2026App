@@ -20,6 +20,8 @@ final class PhoneHeartRateSender {
     private(set) var missionState: MissionState?
     /// 直近の達成イベント(達成演出のトリガー。UI が見たら nil に戻す)
     var achievedPulse = false
+    /// 直近の通知イベント文言(接近・心拍上昇・メンバー達成のバナー。UI が見たら nil に戻す)
+    var eventBanner: String?
 
     /// iPhone から計測の開始/停止を要求されたときに呼ばれる。
     var onCommand: (@MainActor (HeartRateMessage.Command) -> Void)?
@@ -44,9 +46,9 @@ final class PhoneHeartRateSender {
                 guard let self else { return }
                 Task { @MainActor in self.missionState = state }
             },
-            onEvent: { [weak self] kind in
+            onEvent: { [weak self] event in
                 guard let self else { return }
-                Task { @MainActor in self.handleEvent(kind) }
+                Task { @MainActor in self.handleEvent(event) }
             }
         )
         self.delegate = delegate
@@ -59,14 +61,21 @@ final class PhoneHeartRateSender {
         }
     }
 
-    /// 触覚フィードバック: 達成は成功ハプティクス、接近は通知ハプティクス
-    private func handleEvent(_ kind: WatchEventKind) {
-        switch kind {
+    /// 触覚フィードバック: 達成は成功、接近・メンバー達成は通知、心拍上昇は上方向ハプティクス
+    private func handleEvent(_ event: WatchEvent) {
+        switch event.kind {
         case .achieved:
             WKInterfaceDevice.current().play(.success)
             achievedPulse = true
         case .near:
             WKInterfaceDevice.current().play(.notification)
+            eventBanner = event.text ?? "目的地がもうすぐ!"
+        case .heartSpike:
+            WKInterfaceDevice.current().play(.directionUp)
+            eventBanner = event.text ?? "心が動いた! 写真を撮ろう"
+        case .memberAchieved:
+            WKInterfaceDevice.current().play(.notification)
+            eventBanner = event.text ?? "メンバーが達成!"
         }
     }
 
@@ -115,13 +124,13 @@ private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
     private let reachabilityChanged: @Sendable (Bool) -> Void
     private let commandReceived: @Sendable (HeartRateMessage.Command) -> Void
     private let onMissionState: @Sendable (MissionState) -> Void
-    private let onEvent: @Sendable (WatchEventKind) -> Void
+    private let onEvent: @Sendable (WatchEvent) -> Void
 
     init(
         reachabilityChanged: @escaping @Sendable (Bool) -> Void,
         commandReceived: @escaping @Sendable (HeartRateMessage.Command) -> Void,
         onMissionState: @escaping @Sendable (MissionState) -> Void,
-        onEvent: @escaping @Sendable (WatchEventKind) -> Void
+        onEvent: @escaping @Sendable (WatchEvent) -> Void
     ) {
         self.reachabilityChanged = reachabilityChanged
         self.commandReceived = commandReceived
@@ -153,6 +162,6 @@ private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
             commandReceived(command)
         }
         if let state = MissionState(payload: message) { onMissionState(state) }
-        if let kind = WatchEventKind(payload: message) { onEvent(kind) }
+        if let event = WatchEvent(payload: message) { onEvent(event) }
     }
 }

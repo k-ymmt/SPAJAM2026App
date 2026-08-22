@@ -21,10 +21,12 @@ struct ScreenHeader<Accessory: View>: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text(title)
                     .font(.handLargeTitle)
                     .foregroundStyle(Color.inkMain)
+                    // こよみゆるは太字面がないため、同色シャドウで線を太らせる
+                    .shadow(color: Color.inkMain.opacity(0.65), radius: 0.5)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 if let subtitle {

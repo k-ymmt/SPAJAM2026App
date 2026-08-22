@@ -37,10 +37,19 @@ enum TripMood: String, CaseIterable, Identifiable {
 }
 
 struct PlanGenerator {
-    enum GenError: Error { case noKey, noArea, noSpots, badLLMOutput }
+    enum GenError: Error { case noKey, noArea, noSpots, badLLMOutput, timeout }
+
+    /// 生成全体のハードタイムアウト(秒)。電波不良でスピナーが回り続けるのを防ぐ
+    static let overallTimeout: TimeInterval = 45
 
     /// ピン座標から主要エリアを推定してプランを生成する
     func generate(at coordinate: CLLocationCoordinate2D, partySize: Int, mood: TripMood) async throws -> TravelPlan {
+        try await Self.withTimeout(seconds: Self.overallTimeout) {
+            try await generateBody(at: coordinate, partySize: partySize, mood: mood)
+        }
+    }
+
+    private func generateBody(at coordinate: CLLocationCoordinate2D, partySize: Int, mood: TripMood) async throws -> TravelPlan {
         guard let mapsKey = Secrets.googleCloudAPIKey else { throw GenError.noKey }
 
         // ② 事実: エリア名(逆ジオコーディング)+ 主要スポット(注目度順)
@@ -49,12 +58,30 @@ struct PlanGenerator {
         let (areaHint, spots) = try await (areaTask, spotsTask)
         guard !spots.isEmpty else { throw GenError.noSpots }
 
-        // ③ 味付け: Gemini がスポットを選び、お題文言を書く(タイムアウト等に備えて 1 回だけ自動リトライ)
+        // ③ 味付け: Gemini がスポットを選び、お題文言を書く(一時エラーに備えて 1 回だけ自動リトライ)
         do {
             return try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
         } catch {
             NSLog("[PlanGen] compose retrying after: \(error)")
+            try Task.checkCancellation()
             return try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
+        }
+    }
+
+    /// work が seconds 以内に終わらなければ GenError.timeout を投げ、実行中の通信もキャンセルする
+    private static func withTimeout<T: Sendable>(
+        seconds: TimeInterval,
+        _ work: @escaping @Sendable () async throws -> T
+    ) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask { try await work() }
+            group.addTask {
+                try await Task.sleep(for: .seconds(seconds))
+                throw GenError.timeout
+            }
+            guard let result = try await group.next() else { throw GenError.timeout }
+            group.cancelAll()
+            return result
         }
     }
 
@@ -71,7 +98,7 @@ struct PlanGenerator {
             struct R: Decodable { let formatted_address: String }
             let results: [R]
         }
-        let (data, _) = try await URLSession.shared.data(from: comp.url!)
+        let (data, _) = try await URLSession.shared.data(for: URLRequest(url: comp.url!, timeoutInterval: 10))
         let res = try JSONDecoder().decode(Res.self, from: data)
         return res.results.first?.formatted_address ?? "この周辺"
     }
@@ -100,7 +127,7 @@ struct PlanGenerator {
                 }
                 let results: [R]
             }
-            let (data, _) = try await URLSession.shared.data(from: comp.url!)
+            let (data, _) = try await URLSession.shared.data(for: URLRequest(url: comp.url!, timeoutInterval: 10))
             let res = try JSONDecoder().decode(Res.self, from: data)
             let spots = res.results.prefix(10).map {
                 NearbySpot(name: $0.name, latitude: $0.geometry.location.lat, longitude: $0.geometry.location.lng, rating: $0.rating)
@@ -141,6 +168,7 @@ struct PlanGenerator {
             - 判定基準: aiPrompt に「\(partySize)人程度(またはそれ以上)の人が写っていること」を含める
             - face / pose は「写っている全員が条件を満たしているか」を aiPrompt に書く
             - 通行人の写り込みで落とさないよう「〜人以上」の表現にする
+            \(partySize >= 4 ? "- face は顔判定が 3 人までのため笑顔条件を入れない。「全員で写真におさまる」お題にし、aiPrompt は人数条件のみにする" : "")
             """
         }
 
@@ -156,9 +184,10 @@ struct PlanGenerator {
         ルール:
         - ミッションは 5 つ。category は順に go, do, eat, face, pose
         - go は必ずスポットへ行くミッション。spotIndex に上の一覧の index を入れる
-        - do は現地で写真を撮る系のお題(スポットに紐づくなら spotIndex も可)
-        - eat はこの地域の名物料理を食べるお題(店は指定しない。有名な名物がなければ「地元の何かを食べる」系)
-        - face は笑顔・表情系のお題、pose は「万歳する」など体のポーズ系のお題(お題は必ず万歳にする)
+        - do は現地で写真を撮る系のお題。必ずどれかのスポットに紐づけ、spotIndex を入れる
+        - eat はこの地域の名物料理を食べるお題(店は指定しない。有名な名物がなければ「地元の何かを食べる」系。spotIndex は入れない)
+        - face は笑顔・表情系、pose は「万歳する」など体のポーズ系のお題(お題は必ず万歳にする)。どちらも「◯◯の前で」「◯◯をバックに」のように必ずどれかのスポットに紐づけ、spotIndex を入れる
+        - go/do/face/pose の spotIndex はなるべく別々のスポットにする
         - title は日本語で 20 文字以内。aiPrompt は「この写真に◯◯が写っていますか?」の形で、写真 1 枚で Yes/No 判定できる内容にする
         - aiPrompt には上記の人数ルールに沿った人物条件を織り込むこと(1人なら人物条件なしでも可)
         - 気分に合わせて難易度・トーンを調整する
@@ -189,10 +218,13 @@ struct PlanGenerator {
         let missions: [Mission] = llm.missions.prefix(5).enumerated().compactMap { i, m in
             guard let category = MissionCategory(rawValue: m.category) else { return nil }
             let slot: SlotType = (category == .face || category == .pose) ? .variable : .fixed
+            // eat 以外は必ず座標を付ける(案内・接近振動・マップ用)。判定ゲートは go のみ。
+            // LLM が spotIndex を返し忘れたら先頭スポットにフォールバック
             var location: GeoTarget?
-            if category == .go, let idx = m.spotIndex, spots.indices.contains(idx) {
+            if category != .eat {
+                let idx = m.spotIndex.flatMap { spots.indices.contains($0) ? $0 : nil } ?? 0
                 let s = spots[idx]
-                location = GeoTarget(latitude: s.latitude, longitude: s.longitude, radiusMeters: 150)
+                location = GeoTarget(latitude: s.latitude, longitude: s.longitude, radiusMeters: 150, name: s.name)
             }
             return Mission(
                 id: "gen-m\(i + 1)",
@@ -202,11 +234,14 @@ struct PlanGenerator {
                 title: m.title,
                 judgment: MissionJudgment(
                     location: location,
+                    locationRequired: category == .go ? true : nil,
                     aiPrompt: m.aiPrompt
                 ),
                 points: slot == .fixed ? 10 : 15,
-                hapticOnNear: category == .go ? true : nil,
-                camera: category == .face ? .front : nil
+                hapticOnNear: location != nil ? true : nil,
+                camera: category == .face ? .front : nil,
+                // 複数人の旅では人が写る撮影系(face/pose)を全員いっしょの共通ミッションにする
+                isShared: (partySize >= 2 && (category == .face || category == .pose)) ? true : nil
             )
         }
         guard missions.count == 5 else { throw GenError.badLLMOutput }
@@ -215,7 +250,8 @@ struct PlanGenerator {
             planId: "gen-\(UUID().uuidString.prefix(8))",
             title: llm.title,
             area: llm.areaName,
-            missions: missions
+            missions: missions,
+            partySize: partySize
         )
     }
 }

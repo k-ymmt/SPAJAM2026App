@@ -50,11 +50,15 @@ final class WatchHeartRateReceiver {
         try? session.updateApplicationContext(payload)
     }
 
-    /// 触覚フィードバックのトリガー(達成・接近)を Watch へ送る。
-    func sendEvent(_ kind: WatchEventKind) {
+    /// 触覚フィードバックのトリガー(達成・接近・心拍上昇・メンバー達成)を Watch へ送る。
+    func sendEvent(_ event: WatchEvent) {
         guard WCSession.isSupported() else { return }
         let session = WCSession.default
         guard session.activationState == .activated, session.isReachable else { return }
-        session.sendMessage(kind.payload, replyHandler: nil)
+        session.sendMessage(event.payload, replyHandler: nil)
+    }
+
+    func sendEvent(_ kind: WatchEventKind) {
+        sendEvent(WatchEvent(kind: kind))
     }
 }

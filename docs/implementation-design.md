@@ -56,7 +56,7 @@ struct TravelPlan: Codable {
     let missions: [Mission]
 }
 
-enum MissionCategory: String, Codable { case go, do_, eat, face, pose, buy, find, quiz, thrill }
+enum MissionCategory: String, Codable { case go, do_, eat, face, pose, buy, find }
 enum SlotType: String, Codable { case fixed, variable }
 
 struct Mission: Codable, Identifiable {
@@ -74,8 +74,6 @@ struct Mission: Codable, Identifiable {
 struct Judgment: Codable {
     var location: GeoTarget?       // nil なら GPS 判定スキップ
     var aiPrompt: String?          // photo 判定用
-    var heartRateDelta: Int?       // thrill 用(+15 など)
-    var quizAnswer: String?        // quiz 用
 }
 
 struct MissionRecord: Codable {    // 達成ログ(= setlog のタイル1枚)
@@ -105,7 +103,6 @@ protocol MissionJudge {
 
 struct JudgmentEngine {
     // パイプライン: LocationJudge(条件があれば) → PhotoAIJudge(aiPromptがあれば)
-    // 例外: thrill → HeartRateJudge、quiz → QuizJudge(文字列一致)
     // face/pose → ARKit がリアルタイム判定し UIImage を自動生成して同パイプラインへ合流
 }
 ```
@@ -167,7 +164,7 @@ struct JudgmentEngine {
 | P1 | ShieldService(FamilyControls) | 検証済み(山本)。スコア 3 要素の「スクリーンタイム」にも必要 |
 | P1 | Firestore 同期 | Firebase 設定 |
 | P2 | JournalingImporter | 検証済み(山本)。entitlement+実機 |
-| P2 | POSE / QUIZ 判定 | — |
+| P2 | POSE 判定 | — |
 
 ※ 15:00 MTG 更新: スクリーンタイム API・Journaling・Live Activity・心拍はすべて山本さんの検証で実装可能を確認済み。スコアは「達成度 + 心拍の上がり幅 + スマホを見なかった時間」の 3 要素に決定したため、ShieldService(+非注視時間の計測)を P1 に昇格。
 
@@ -187,7 +184,7 @@ struct JudgmentEngine {
 - **デザイン**: Figma(docs/Figma)のデザインを全画面に反映済み。パレット=ティール #2A7D6C / 背景 #ECEEE7 / インク #2F3833、CTA は筆致画像(BrushButton)、ミッション行は手書きフレーム(HandFrameRow)、キャラは見ざる(ミザル)。手書きフォント: こよみゆる(日本語)+ Hetakawa(数字/英字)
 - **フロー**: Home(起動時)→ AreaSelect(3 スライド)→ Plan(リスト)→ Restriction(トグル)→ Trip(一覧⇄カメラ)→ Result。TripSession は永続化(キル後復元)対応済み(山本さん)
 - **判定**: Gemini 画像判定 Live で動作確認済み(モデルは flash-lite → flash のフォールバック連鎖)。Mock 切替は Plan 画面のトグル
-- **リザルト**: 05/07 を統合し「みんなの旅の記録」1 画面に(順位なし・共有体験重視、夜 MTG 方針)。メンバーは `MemberResult.demoParty` のデモデータ(同期実装が来たらここを差し替え)。心拍ハイライト×写真=Journaling 相当はアプリ内ログから生成
+- **リザルト**: 05/07 を統合し「みんなの旅の記録」1 画面に(順位なし・共有体験重視、夜 MTG 方針)。複数人の旅(招待コードあり)は各自の結果を `rooms/{code}/results/{uid}`(`TripMemberResult`: スコア・達成ミッション・心拍バー 6 値)に書き込み、リザルトで `TripRoomObserver` がリアルタイム購読。親+参加者の全員分が揃うまで「他の人の終わりを待っています...」表示でボタン無効。ひとり旅は `MemberResult.demoParty` のデモデータ。心拍ハイライト×写真=Journaling 相当はアプリ内ログから生成
 - **スコア**: QUEST(達成 pt)+ HEART(移動平均からの乖離)+ OFFLINE(非注視時間+制限ボーナス − 調整 5pt/回)
 - **残タスク**: アカウント/グループ画面(山本さん・WF は Pencil 00 系に用意)、キャラ・ミッション出現演出素材(広瀬さん)、100%達成のサプライズ演出動画(多田)、提出物(README・技術仕様書・フォーム)
 

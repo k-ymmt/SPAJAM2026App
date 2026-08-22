@@ -2,8 +2,9 @@
 //  PlanView.swift
 //  SPAJAM2026App
 //
-//  02 プラン(ミッションログ)。手書き風フレームのリスト行で 5 ミッションを表示し、旅をはじめる。
-//  デザイン: docs/mission-design.pen「02 プラン(ミッションログ)」/ docs/Figma 旅行開始前画面
+//  02 プラン(旅行開始直前)。タイトル+日付+メンバー+ミザルの吹き出しの下に、
+//  MISSION タブ付きの手書きフレームで 5 ミッションを表示し、旅をはじめる。
+//  デザイン: docs/Figma 旅行開始前画面(2 日目更新版)
 //
 
 import SwiftUI
@@ -17,73 +18,20 @@ struct PlanView: View {
     @State private var publishError: String?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                header
-                Text("\(session.plan.missions.count)ミッション")
-                    .font(.handCaption.bold())
-                    .foregroundStyle(Color.appAccent)
-                    .frame(maxWidth: .infinity)
-                ForEach(session.plan.missions) { mission in
-                    MissionListRow(mission: mission)
-                }
-                startButton
-            }
-            .padding(24)
+        MissionListScreen(
+            plan: session.plan,
+            ctaLabel: "いってきます",
+            ctaLoading: isPublishing,
+            errorText: publishError,
+            onCTA: start
+        ) { mission in
+            AnyView(MissionListRow(mission: mission))
         }
-        .background(Color.appBackground)
         .task(id: session.membership?.code) {
             if let membership = session.membership, membership.role == .host {
                 observer.start(code: membership.code)
             }
         }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ScreenHeader(session.plan.title, subtitle: session.plan.area)
-            if let membership = session.membership {
-                companions(membership)
-            }
-        }
-    }
-
-    /// いっしょに行く人(親: 参加者名、子: 参加中の名前)
-    private func companions(_ membership: RoomMembership) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "person.2.fill")
-                .foregroundStyle(.orange)
-            switch membership.role {
-            case .host:
-                let names = observer.members.map(\.name)
-                Text(names.isEmpty ? "参加者を待っています(コード \(membership.code))" : "いっしょに行く: " + names.joined(separator: "、"))
-            case .guest:
-                Text("\(membership.name ?? "") として参加中(コード \(membership.code))")
-            }
-        }
-        .font(.handCaption)
-        .foregroundStyle(Color.inkSub)
-    }
-
-    private var startButton: some View {
-        VStack(spacing: 10) {
-            BrushButton(label: "旅をはじめる", loading: isPublishing, disabled: isPublishing, action: start)
-
-            if let publishError {
-                Text(publishError)
-                    .font(.handCaption)
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity)
-            }
-
-            Text("はじめるとスマホはおやすみモードになります")
-                .font(.handCaption2)
-                .foregroundStyle(Color.inkSub)
-                .frame(maxWidth: .infinity)
-
-            judgeToggle
-        }
-        .padding(.top, 8)
     }
 
     /// 親ならプランをルームに公開してから(待機中の子も開始)次へ進む
@@ -101,51 +49,196 @@ struct PlanView: View {
             isPublishing = false
         }
     }
+}
 
-    /// デモ用: AI 判定の Mock/Live 切り替え(電波なし対策)
-    private var judgeToggle: some View {
-        @Bindable var session = session
-        return Toggle(isOn: $session.useMockJudge) {
-            Text("Mock 判定(電波なしデモ用)")
-                .font(.handCaption)
-                .foregroundStyle(Color.inkSub)
+/// プラン(いってきます)と旅行中(ただいま)で共通のミッション一覧画面。
+/// ヘッダ・行・フッターの設計と配置を完全に揃える
+struct MissionListScreen: View {
+    let plan: TravelPlan
+    var trailing: AnyView?
+    let ctaLabel: String
+    var ctaLoading = false
+    var errorText: String?
+    let onCTA: () -> Void
+    let row: (Mission) -> AnyView
+
+    var body: some View {
+        // スクロールなしで 1 画面に収める
+        VStack(alignment: .leading, spacing: 10) {
+            PlanHeaderView(plan: plan, trailing: trailing)
+            ForEach(plan.missions) { mission in
+                row(mission)
+            }
+            Spacer(minLength: 0)
+            VStack(spacing: 10) {
+                Divider()
+                    .overlay(Color.cardStroke)
+                    .padding(.top, 4)
+                BrushButton(label: ctaLabel, loading: ctaLoading, disabled: ctaLoading, action: onCTA)
+                if let errorText {
+                    Text(errorText)
+                        .font(.handCaption)
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity)
+                }
+            }
         }
-        .tint(.appAccent)
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color.appBackground)
     }
 }
 
-/// 手書き風フレームのミッション行(02 プラン/04b ミッション一覧 共通)
+/// プラン/旅行中一覧の共通ヘッダ: タイトル + 日付・人数 + メンバー + ミザルの吹き出し
+struct PlanHeaderView: View {
+    let plan: TravelPlan
+    /// ヘッダ右端に置く小さいボタン(旅行中の制限調整など)
+    var trailing: AnyView?
+
+    private static let avatarColors: [Color] = [
+        Color(red: 0.847, green: 0.694, blue: 0.549), // D8B18C
+        Color(red: 0.616, green: 0.722, blue: 0.627), // 9DB8A0
+        Color(red: 0.478, green: 0.620, blue: 0.576), // 7A9E93
+        Color(red: 0.769, green: 0.643, blue: 0.420), // C4A46B
+        Color(red: 0.561, green: 0.737, blue: 0.690), // appAccentSoft
+    ]
+
+    private var partyLabel: String {
+        switch plan.partySize ?? 1 {
+        case 1: "ひとり旅"
+        case 2: "ふたり旅"
+        case let n: "\(n)人旅"
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(plan.title)
+                    .font(.handLargeTitle)
+                    .foregroundStyle(Color.appAccent)
+                    .shadow(color: Color.appAccent.opacity(0.65), radius: 0.5)
+                Spacer()
+                if let trailing {
+                    trailing
+                }
+            }
+
+            HStack(spacing: 14) {
+                Text(Date.now.formatted(.dateTime.year().month().day().locale(Locale(identifier: "ja_JP"))))
+                Text(partyLabel)
+            }
+            .font(.handCaption)
+            .foregroundStyle(Color.inkSub)
+
+            HStack(spacing: 8) {
+                Text("メンバー")
+                    .font(.handCaption2)
+                    .foregroundStyle(Color.inkSub)
+                ForEach(0..<min(plan.partySize ?? 1, 5), id: \.self) { i in
+                    Circle()
+                        .fill(Self.avatarColors[i % Self.avatarColors.count])
+                        .frame(width: 34, height: 34)
+                }
+            }
+
+            // ミザルの吹き出し
+            HStack(spacing: 4) {
+                Text("今回のミッションは\nこれだよっ")
+                    .font(.handTitle)
+                    .foregroundStyle(Color.inkMain)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                Image("MizaruCharacter")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 88, height: 88)
+            }
+            .padding(.top, 2)
+        }
+    }
+}
+
+/// MISSION タブ付きの手書きフレーム行(02 プラン/04b ミッション一覧 共通)。
+/// 達成すると CLEAR バッジとポラロイド風の写真が付く。
 struct MissionListRow: View {
     let mission: Mission
     var achieved = false
-    var note: String?
     var photo: UIImage?
 
     var body: some View {
-        HandFrameRow {
-            HStack(spacing: 10) {
-                if let photo {
-                    Image(uiImage: photo)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 46, height: 46)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
+        ZStack(alignment: .topLeading) {
+            HandFrameRow(minHeight: 64) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("MISSION \(mission.order):\(mission.title)")
+                    Text(mission.title)
                         .font(.handBody.bold())
                         .foregroundStyle(Color.inkMain)
                         .multilineTextAlignment(.leading)
-                    if let note {
-                        Text(note)
+                    if mission.isShared == true {
+                        Text("-共通ミッション")
                             .font(.handCaption2)
                             .foregroundStyle(Color.appAccent)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                CategoryBadge(label: mission.category.label, achieved: achieved)
+                // 写真と重ならないように右を空ける
+                .padding(.trailing, achieved ? 140 : 0)
+            }
+            .padding(.top, 11)
+
+            // 枠の上辺にまたがる MISSION タブ
+            Text("MISSION \(mission.order)")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.inkMain)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 3)
+                .background(Color.appBackground)
+                .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.appAccent, lineWidth: 1.8))
+                .padding(.leading, 14)
+        }
+        .overlay(alignment: .trailing) {
+            if achieved {
+                PolaroidThumb(image: photo)
+                    .offset(x: 4)
             }
         }
+    }
+}
+
+/// 達成バッジ(枠線の CLEAR)
+struct ClearBadge: View {
+    var body: some View {
+        Text("CLEAR")
+            .font(.system(size: 14, weight: .bold))
+            .kerning(1)
+            .foregroundStyle(Color.appAccent)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .overlay(RoundedRectangle(cornerRadius: 3).stroke(Color.appAccent, lineWidth: 1.8))
+    }
+}
+
+/// ポラロイド風の写真サムネイル。中央に CLEAR バッジを重ねる
+struct PolaroidThumb: View {
+    let image: UIImage?
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Color(.systemGray4)
+            }
+        }
+        .frame(width: 148, height: 96)
+        .clipped()
+        .overlay { ClearBadge() }
+        .padding(6)
+        .background(.white)
+        .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
+        .rotationEffect(.degrees(3))
     }
 }

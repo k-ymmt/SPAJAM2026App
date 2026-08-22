@@ -3,11 +3,13 @@
 //  SPAJAM2026App
 //
 //  04 ミッション実施(判定)。横スワイプでミッションを切り替え、
-//  写真エリアをタップして撮影 → 判定パイプライン → 達成/リトライ。
+//  location 系はマップをメイン表示 → 撮影ボタン → 「判定しますか?」→ 判定。
+//  カメラ反転は標準カメラ UI 内のボタンを使う。
 //  デザイン: docs/mission-design.pen「04 ミッション実施(判定)」
 //
 
 import CoreLocation
+import MapKit
 import SwiftUI
 
 struct MissionCameraView: View {
@@ -18,6 +20,10 @@ struct MissionCameraView: View {
     @State private var useLibrary = false
     @State private var facing: CameraFacing = .back
     @State private var selectedMissionId: String = ""
+    /// 撮影/取り込み直後の「判定しますか?」確認
+    @State private var showJudgeConfirm = false
+    /// FACE / POSE の AR 判定 OK 直後の CLEAR 表示
+    @State private var showClear = false
 
     var body: some View {
         // 横スワイプでミッションを切り替えるページャー
@@ -31,22 +37,53 @@ struct MissionCameraView: View {
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .background(.black)
         .foregroundStyle(.white)
+        .overlay {
+            if showClear {
+                VStack(spacing: 10) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(Color.appAccent)
+                    Text("CLEAR!")
+                        .font(.handLargeTitle)
+                        .foregroundStyle(.white)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.black.opacity(0.75))
+                .transition(.opacity)
+            }
+        }
         .sheet(isPresented: $showCamera) {
             switch session.currentMission?.category {
-            case .face where FaceSmileCaptureView.isSupported:
+            // 顔判定(TrueDepth)は 3 人まで。4 人以上は通常カメラ+AI 判定(笑顔条件なし)にフォールバック
+            case .face where FaceSmileCaptureView.isSupported && (session.plan.partySize ?? 1) <= 3:
                 FaceSmileCaptureView { image in
-                    capturedImage = image
+                    // AR 判定で OK が出ているのでそのまま達成(確認ダイアログなし)
+                    clearMission(with: image)
                 }
             case .pose where BodyPoseCaptureView.isSupported:
                 BodyPoseCaptureView { image in
-                    capturedImage = image
+                    clearMission(with: image)
                 }
             default:
                 CameraPicker(facing: facing, useLibrary: useLibrary) { image in
                     capturedImage = image
+                    showJudgeConfirm = true
                 }
                 .ignoresSafeArea()
             }
+        }
+        .confirmationDialog(
+            "この写真で判定しますか?",
+            isPresented: $showJudgeConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("判定する") { judge() }
+            Button("撮り直す") {
+                capturedImage = nil
+                useLibrary = false
+                showCamera = true
+            }
+            Button("キャンセル", role: .cancel) {}
         }
         .onAppear {
             selectedMissionId = session.currentMission?.id ?? session.plan.missions.first?.id ?? ""
@@ -117,11 +154,33 @@ struct MissionCameraView: View {
             Text(mission.title)
                 .font(.handTitle)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text(subtitle(for: mission))
+                .font(.handCaption)
+                .foregroundStyle(.white.opacity(0.7))
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(20)
     }
 
-    /// 写真エリア。タップで撮影(撮り直しもタップ)
+    /// タイトル下の補足説明(カテゴリ別)
+    private func subtitle(for mission: Mission) -> String {
+        let place = mission.judgment.location?.name
+        return switch mission.category {
+        case .go: "\(place ?? "目的地")へ向かおう。着いたら写真を撮って判定!"
+        case .do: place.map { "\($0)でお題を見つけて撮影しよう" } ?? "現地でお題を見つけて撮影しよう"
+        case .eat: "食べる前にパシャリ。おいしさが伝わる一枚を"
+        case .face: (session.plan.partySize ?? 1) >= 4
+            ? "全員で写真におさまろう(笑顔チェックなし)"
+            : "インカメラで表情をつくって撮影しよう"
+        case .pose: (session.plan.partySize ?? 1) >= 2
+            ? "全員がおさまるように撮ろう(だれか1人が万歳すれば自動撮影)"
+            : "ポーズ全体が写るように撮ろう"
+        case .buy: "買ったものがわかるように撮影しよう"
+        case .find: "見つけたら逃さず撮影しよう"
+        }
+    }
+
+    /// メイン表示エリア。location 系はマップ、撮影後は写真プレビュー(タップで撮り直し)
     @ViewBuilder
     private func photoArea(_ mission: Mission, achieved: Bool, record: MissionRecord?) -> some View {
         Group {
@@ -136,32 +195,76 @@ struct MissionCameraView: View {
                 } else {
                     placeholder(icon: "checkmark.circle", text: "達成済みのミッションです")
                 }
+            } else if let image = capturedImage, mission.id == selectedMissionId {
+                Button {
+                    useLibrary = false
+                    showCamera = true
+                } label: {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 380)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .overlay(alignment: .bottomTrailing) {
+                            Label("タップで撮り直し", systemImage: "camera.fill")
+                                .font(.handCaption2)
+                                .padding(8)
+                                .background(.black.opacity(0.6), in: Capsule())
+                                .padding(8)
+                        }
+                }
+                .buttonStyle(.plain)
+            } else if let target = mission.judgment.location {
+                // location 系: 目的地マップをメイン表示
+                missionMap(target)
             } else {
                 Button {
                     useLibrary = false
                     showCamera = true
                 } label: {
-                    if let image = capturedImage, mission.id == selectedMissionId {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 380)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .overlay(alignment: .bottomTrailing) {
-                                Label("タップで撮り直し", systemImage: "camera.fill")
-                                    .font(.handCaption2)
-                                    .padding(8)
-                                    .background(.black.opacity(0.6), in: Capsule())
-                                    .padding(8)
-                            }
+                    if [.eat, .buy, .find].contains(mission.category) {
+                        mizaruPlaceholder(text: "下の撮影ボタンでスタート")
                     } else {
-                        placeholder(icon: "camera.fill", text: "タップして撮影しよう")
+                        placeholder(icon: "camera.fill", text: "下の撮影ボタンでスタート")
                     }
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 20)
+    }
+
+    /// EAT / BUY / FIND 用: ミザルが待っているプレースホルダ
+    private func mizaruPlaceholder(text: String) -> some View {
+        RoundedRectangle(cornerRadius: 20)
+            .fill(.white.opacity(0.08))
+            .frame(height: 380)
+            .overlay {
+                VStack(spacing: 14) {
+                    Image("MizaruCharacter")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 190, height: 190)
+                    Text(text)
+                        .font(.handBody)
+                        .foregroundStyle(.white.opacity(0.6))
+                }
+            }
+    }
+
+    /// 目的地ピン+現在地のマップ
+    private func missionMap(_ target: GeoTarget) -> some View {
+        let coordinate = CLLocationCoordinate2D(latitude: target.latitude, longitude: target.longitude)
+        return Map(initialPosition: .region(MKCoordinateRegion(
+            center: coordinate,
+            latitudinalMeters: 900, longitudinalMeters: 900
+        ))) {
+            Marker(target.name ?? "目的地", coordinate: coordinate)
+                .tint(Color.appAccent)
+            UserAnnotation()
+        }
+        .frame(height: 380)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
     private func placeholder(icon: String, text: String) -> some View {
@@ -195,17 +298,21 @@ struct MissionCameraView: View {
 
     private func controls(_ mission: Mission) -> some View {
         HStack(spacing: 12) {
-            // イン/アウトカメラ切り替え
+            // 撮影(メイン)
             Button {
-                facing = facing == .back ? .front : .back
+                useLibrary = false
+                showCamera = true
             } label: {
-                Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill")
-                    .padding(14)
+                Label("撮影する", systemImage: "camera.fill")
+                    .font(.handHeadline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
             }
-            .buttonStyle(.bordered)
-            .tint(.white)
+            .buttonStyle(.borderedProminent)
+            .tint(.appAccent)
+            .disabled(session.isJudging)
 
-            // フォトライブラリから取り込み
+            // 予備: カメラロールから取り込み(端に配置)
             Button {
                 useLibrary = true
                 showCamera = true
@@ -215,31 +322,37 @@ struct MissionCameraView: View {
             }
             .buttonStyle(.bordered)
             .tint(.white)
-
-            Button {
-                Task {
-                    let ok = await session.judgeCurrentMission(
-                        image: capturedImage,
-                        location: session.locationProvider.current
-                    )
-                    if ok {
-                        capturedImage = nil
-                        // 達成したらメイン(ミッション一覧)へ戻る
-                        dismiss()
-                    }
-                }
-            } label: {
-                Text("判定する")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.appAccent)
-            .disabled(capturedImage == nil || session.isJudging)
+            .disabled(session.isJudging)
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
-        .padding(.bottom, 36)
+        .padding(.bottom, 64) // 下のページドットと重ならないように
+    }
+
+    /// FACE / POSE: AR 判定済みの写真をそのまま達成にして CLEAR を出す
+    private func clearMission(with image: UIImage) {
+        session.recordARAchievement(image: image)
+        withAnimation { showClear = true }
+        Task {
+            try? await Task.sleep(for: .seconds(1.2))
+            withAnimation { showClear = false }
+            dismiss()
+        }
+    }
+
+    /// 判定を実行し、達成したら一覧へ戻る
+    private func judge() {
+        Task {
+            let ok = await session.judgeCurrentMission(
+                image: capturedImage,
+                location: session.locationProvider.current
+            )
+            if ok {
+                capturedImage = nil
+                // 達成したらメイン(ミッション一覧)へ戻る
+                dismiss()
+            }
+        }
     }
 
     private func achievedFooter(_ record: MissionRecord?) -> some View {
@@ -257,7 +370,7 @@ struct MissionCameraView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
-        .padding(.bottom, 36)
+        .padding(.bottom, 64) // 下のページドットと重ならないように
     }
 }
 

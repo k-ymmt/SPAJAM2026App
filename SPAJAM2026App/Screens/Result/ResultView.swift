@@ -5,7 +5,8 @@
 //  05 リザルト(みんなの旅の記録)。個人スコアと共有体験を 1 画面に統合:
 //  スコア強調ファーストビュー → 順位なしのメンバー発表 → 心拍のうごき →
 //  ミッションたっせい → 心拍ハイライト×写真(たのしかった瞬間)→ シェア。
-//  メンバーは事前読み込みのデモデータ(同期実装につなぐときは MemberResult の生成を差し替え)。
+//  複数人の旅(membership あり)は rooms/{code}/results をリアルタイム購読して本物のメンバーを表示し、
+//  全員が終わるまで待機表示にする。ひとり旅はデモ用の事前読み込みデータ。
 //  デザイン: docs/mission-design.pen「05 リザルト(みんなの旅の記録)」
 //
 
@@ -21,6 +22,39 @@ struct MemberResult: Identifiable {
     var achievedMissionIds: Set<String>
     /// 時間帯ごとの心拍変動量(グラフ用・正規化済み 0...1)
     var bpmBars: [Double]
+
+    /// 他のメンバーに順番に割り当てる色
+    static let memberColors: [Color] = [
+        .appAccentSoft,
+        Color(red: 0.769, green: 0.643, blue: 0.420),
+        Color(red: 0.45, green: 0.62, blue: 0.55),
+        Color(red: 0.55, green: 0.50, blue: 0.72),
+    ]
+
+    /// 実同期: 自分(ローカル)+ルームに届いた他メンバーの結果
+    static func party(for session: TripSession, results: [TripMemberResult], myUid: String?) -> [MemberResult] {
+        let me = MemberResult(
+            name: "あなた",
+            color: .appAccent,
+            isMe: true,
+            total: session.totalScore,
+            achievedMissionIds: Set(session.records.map(\.missionId)),
+            bpmBars: session.myBars
+        )
+        let others = results
+            .filter { $0.id != myUid }
+            .enumerated()
+            .map { index, result in
+                MemberResult(
+                    name: result.name,
+                    color: memberColors[index % memberColors.count],
+                    total: result.total,
+                    achievedMissionIds: Set(result.achievedMissionIds),
+                    bpmBars: result.bpmBars.count == 6 ? result.bpmBars : [0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
+                )
+            }
+        return [me] + others
+    }
 
     /// デモ用: 自分+事前読み込みの 2 人(実対戦はせず結果発表で見せる方針)
     static func demoParty(for session: TripSession) -> [MemberResult] {
@@ -63,7 +97,20 @@ struct ResultView: View {
     @Environment(TripSession.self) private var session
     var onRestart: () -> Void
 
-    private var party: [MemberResult] { MemberResult.demoParty(for: session) }
+    @State private var observer = TripRoomObserver()
+
+    private var isShared: Bool { session.membership != nil }
+
+    /// 複数人の旅で、まだ終わっていない人がいる
+    private var isWaitingForOthers: Bool { isShared && !observer.isAllFinished }
+
+    private var party: [MemberResult] {
+        if isShared {
+            MemberResult.party(for: session, results: observer.results, myUid: AuthService.shared.uid)
+        } else {
+            MemberResult.demoParty(for: session)
+        }
+    }
 
     var body: some View {
         let party = self.party
@@ -71,7 +118,11 @@ struct ResultView: View {
             VStack(alignment: .leading, spacing: 18) {
                 header
                 scoreCard
-                sharedBanner
+                if isWaitingForOthers {
+                    waitingBanner
+                } else {
+                    sharedBanner
+                }
                 memberCards(party)
                 heartSection(party)
                 missionSection(party)
@@ -81,6 +132,33 @@ struct ResultView: View {
             .padding(24)
         }
         .background(Color.appBackground)
+        .task(id: session.membership?.code) {
+            guard let code = session.membership?.code else { return }
+            observer.start(code: code)
+            await session.submitResultToRoomIfNeeded()
+        }
+    }
+
+    // MARK: - 待機(他の人がまだ旅の途中)
+
+    private var waitingBanner: some View {
+        HStack(spacing: 12) {
+            ProgressView()
+                .tint(.orange)
+                .frame(width: 44, height: 44)
+                .background(.white, in: Circle())
+            VStack(alignment: .leading, spacing: 2) {
+                Text("他の人の終わりを待っています...")
+                    .font(.handHeadline)
+                    .foregroundStyle(Color.inkMain)
+                Text("\(observer.results.count) / \(observer.partyCount) 人がゴール")
+                    .font(.handCaption2)
+                    .foregroundStyle(Color.inkSub)
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(Color.badgeBackground, in: RoundedRectangle(cornerRadius: 20))
     }
 
     private var header: some View {
@@ -321,8 +399,11 @@ struct ResultView: View {
                             .resizable(resizingMode: .stretch)
                     }
             }
+            .disabled(isWaitingForOthers)
             OutlineButton(label: "もう一回たびする", action: onRestart)
+                .disabled(isWaitingForOthers)
         }
+        .opacity(isWaitingForOthers ? 0.4 : 1)
         .padding(.top, 4)
     }
 }

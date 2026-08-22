@@ -25,6 +25,8 @@ struct BrushButton: View {
                 Text(label)
                     .font(.handHeadline)
                     .foregroundStyle(.white)
+                    // こよみゆるは太字面がないため、同色シャドウで線を太らせる
+                    .shadow(color: .white.opacity(0.8), radius: 0.5)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
@@ -61,13 +63,14 @@ struct OutlineButton: View {
 
 /// 手書き風フレームを背景にしたミッションリスト行
 struct HandFrameRow<Content: View>: View {
+    var minHeight: CGFloat = 84
     @ViewBuilder var content: () -> Content
 
     var body: some View {
         content()
             .padding(.horizontal, 22)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, minHeight: 84, alignment: .leading)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .leading)
             .background {
                 Image("HandFrame")
                     .resizable(
