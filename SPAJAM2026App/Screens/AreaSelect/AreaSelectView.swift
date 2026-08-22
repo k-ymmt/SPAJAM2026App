@@ -3,9 +3,9 @@
 //  SPAJAM2026App
 //
 //  01 エリア選択。3 ステップがスライドで切り替わる:
-//  Step1 どこへ(マップにピン) → Step2 だれと(1〜5人) → Step3 温度感(ゆったり/アクティブ/マニア)
+//  Step1 どこへ(マップにピン) → Step2 だれと(−/+で1〜5人) → Step3 温度感(ゆったり/アクティブ/マニア)
 //  中央のイラストはステップと選択に応じて変わる(手書きイラスト素材に差し替え予定)。
-//  ボタンは「つぎへ」のみ(戻るなし)。
+//  スワイプで前のステップに戻れる。
 //
 
 import CoreLocation
@@ -28,26 +28,28 @@ struct AreaSelectView: View {
     @State private var isGenerating = false
     @State private var errorMessage: String?
 
-    private let slide: AnyTransition = .asymmetric(
-        insertion: .move(edge: .trailing).combined(with: .opacity),
-        removal: .move(edge: .leading).combined(with: .opacity)
-    )
-
     var body: some View {
         VStack(spacing: 20) {
             stepIndicator
                 .padding(.top, 12)
+                .padding(.horizontal, 24)
 
-            ZStack {
-                switch step {
-                case 1: slideWhere.transition(slide)
-                case 2: slideWho.transition(slide)
-                default: slideMood.transition(slide)
-                }
+            // スワイプで前後のステップに移動できるページャー
+            TabView(selection: $step) {
+                slideWhere
+                    .padding(.horizontal, 24)
+                    .tag(1)
+                slideWho
+                    .padding(.horizontal, 24)
+                    .tag(2)
+                slideMood
+                    .padding(.horizontal, 24)
+                    .tag(3)
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.35), value: step)
         }
-        .padding(24)
+        .padding(.vertical, 24)
         .background(Color.appBackground)
     }
 
@@ -110,14 +112,37 @@ struct AreaSelectView: View {
             illustration(symbol: partySymbol, caption: partySize == 1 ? "ひとり旅" : "\(partySize)人旅")
             Spacer()
 
-            HStack(spacing: 8) {
-                ForEach(1...5, id: \.self) { n in
-                    selectChip("\(n)", selected: partySize == n) { partySize = n }
-                }
-            }
+            partyStepper
 
             nextButton("つぎへ") { step = 3 }
         }
+    }
+
+    /// −/+ で 1〜5 人を選ぶステッパー(Figma 人数選択のデザイン準拠)
+    private var partyStepper: some View {
+        HStack(spacing: 28) {
+            stepperButton("minus", disabled: partySize <= 1) { partySize -= 1 }
+            Text("\(partySize)人")
+                .font(.handTitle)
+                .foregroundStyle(Color.inkMain)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .animation(.default, value: partySize)
+            stepperButton("plus", disabled: partySize >= 5) { partySize += 1 }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 4)
+    }
+
+    private func stepperButton(_ symbol: String, disabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 38, height: 38)
+                .background(disabled ? Color(.systemGray4) : Color.appAccent, in: Circle())
+        }
+        .disabled(disabled)
     }
 
     private var partySymbol: String {
