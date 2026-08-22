@@ -201,12 +201,34 @@ struct MissionCameraView: View {
                     useLibrary = false
                     showCamera = true
                 } label: {
-                    placeholder(icon: "camera.fill", text: "下の撮影ボタンでスタート")
+                    if [.eat, .buy, .find].contains(mission.category) {
+                        mizaruPlaceholder(text: "下の撮影ボタンでスタート")
+                    } else {
+                        placeholder(icon: "camera.fill", text: "下の撮影ボタンでスタート")
+                    }
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 20)
+    }
+
+    /// EAT / BUY / FIND 用: ミザルが待っているプレースホルダ
+    private func mizaruPlaceholder(text: String) -> some View {
+        RoundedRectangle(cornerRadius: 20)
+            .fill(.white.opacity(0.08))
+            .frame(height: 380)
+            .overlay {
+                VStack(spacing: 14) {
+                    Image("MizaruCharacter")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 190, height: 190)
+                    Text(text)
+                        .font(.handBody)
+                        .foregroundStyle(.white.opacity(0.6))
+                }
+            }
     }
 
     /// 目的地ピン+現在地のマップ
