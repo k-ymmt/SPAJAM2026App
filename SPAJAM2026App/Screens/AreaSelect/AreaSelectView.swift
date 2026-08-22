@@ -41,10 +41,6 @@ struct AreaSelectView: View {
 
     // 招待コード入力(子)
     @State private var isJoinDialogPresented = false
-    @State private var joinName = ""
-    @State private var joinCode = ""
-    @State private var isJoining = false
-    @State private var joinError: String?
 
     private let slide: AnyTransition = .asymmetric(
         insertion: .move(edge: .trailing).combined(with: .opacity),
@@ -70,20 +66,19 @@ struct AreaSelectView: View {
         .onChange(of: partySize) { _, newValue in
             syncRoom(partySize: newValue)
         }
-        .alert("招待コードを入力", isPresented: $isJoinDialogPresented) {
-            TextField("ユーザー名", text: $joinName)
-            TextField("招待コード", text: $joinCode)
-                .textInputAutocapitalization(.characters)
-                .autocorrectionDisabled()
-            Button("参加する") { join() }
-            Button("キャンセル", role: .cancel) {}
-        } message: {
-            Text("プランを作る人に表示された 6 文字のコードを入力してください")
-        }
-        .alert("参加できませんでした", isPresented: Binding(get: { joinError != nil }, set: { if !$0 { joinError = nil } })) {
-            Button("OK") { joinError = nil }
-        } message: {
-            Text(joinError ?? "")
+        .sheet(isPresented: $isJoinDialogPresented) {
+            InviteCodeJoinView { name, code in
+                do {
+                    let membership = try await TripRoomService.shared.join(code: code, name: name)
+                    onJoinedRoom(membership)
+                    return nil
+                } catch {
+                    NSLog("[Room] join failed: \(error)")
+                    return error.localizedDescription
+                }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
     }
 
@@ -103,7 +98,6 @@ struct AreaSelectView: View {
     private var accountMenu: some View {
         Menu {
             Button {
-                joinError = nil
                 isJoinDialogPresented = true
             } label: {
                 Label("招待コードを入力", systemImage: "ticket")
@@ -115,7 +109,6 @@ struct AreaSelectView: View {
                 .frame(width: 44, height: 44)
                 .background(.white, in: Circle())
         }
-        .disabled(isJoining)
     }
 
     private func stepChip(_ n: Int, _ label: String) -> some View {
@@ -267,25 +260,6 @@ struct AreaSelectView: View {
                 roomError = "招待コードを発行できませんでした。通信環境を確認してください"
             }
             isCreatingRoom = false
-        }
-    }
-
-    /// 子として招待コードで参加する
-    private func join() {
-        guard let code = InviteCode.normalize(joinCode) else {
-            joinError = "招待コードは英数字 6 文字です"
-            return
-        }
-        isJoining = true
-        Task {
-            do {
-                let membership = try await TripRoomService.shared.join(code: code, name: joinName)
-                onJoinedRoom(membership)
-            } catch {
-                NSLog("[Room] join failed: \(error)")
-                joinError = error.localizedDescription
-            }
-            isJoining = false
         }
     }
 
