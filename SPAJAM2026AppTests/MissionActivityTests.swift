@@ -89,3 +89,52 @@ struct MissionLandmarkTests {
         #expect(distance > 300 && distance < 600)
     }
 }
+
+struct HeartRatePhotoTriggerTests {
+    @Test func showsAtThresholdAndHidesBelowRelease() {
+        let trigger = HeartRatePhotoTrigger(threshold: 120, hysteresis: 10)
+        #expect(!trigger.shouldShowPrompt(wasShowing: false, heartRate: 119))
+        #expect(trigger.shouldShowPrompt(wasShowing: false, heartRate: 120))
+        // Stays on while above the release threshold (hysteresis).
+        #expect(trigger.shouldShowPrompt(wasShowing: true, heartRate: 115))
+        #expect(trigger.shouldShowPrompt(wasShowing: true, heartRate: 111))
+        #expect(!trigger.shouldShowPrompt(wasShowing: true, heartRate: 110))
+    }
+
+    @Test func disabledOrMissingReadingNeverShows() {
+        let disabled = HeartRatePhotoTrigger(threshold: 100, isEnabled: false)
+        #expect(!disabled.shouldShowPrompt(wasShowing: true, heartRate: 180))
+        let enabled = HeartRatePhotoTrigger(threshold: 100)
+        #expect(!enabled.shouldShowPrompt(wasShowing: true, heartRate: nil))
+        #expect(!enabled.shouldShowPrompt(wasShowing: false, heartRate: .nan))
+    }
+
+    @Test func thresholdIsClamped() {
+        #expect(HeartRatePhotoTrigger(threshold: 10).threshold == HeartRatePhotoTrigger.thresholdRange.lowerBound)
+        #expect(HeartRatePhotoTrigger(threshold: 999).threshold == HeartRatePhotoTrigger.thresholdRange.upperBound)
+        #expect(HeartRatePhotoTrigger(hysteresis: -5).hysteresis == 0)
+    }
+}
+
+struct MissionContentStatePhotoPromptTests {
+    @Test func decodesWithoutPhotoPromptKey() throws {
+        let json = """
+        {"missionNumber":1,"missionTotal":3,"missionText":"x","landmarkName":"雷門",
+         "indicator":{"segmentCount":3,"completedCount":0,"highlightsActive":true},"updatedAt":0}
+        """
+        let state = try JSONDecoder().decode(MissionActivityAttributes.ContentState.self, from: Data(json.utf8))
+        #expect(state.showsPhotoPrompt == false)
+        #expect(state.heartRate == nil)
+    }
+
+    @Test func photoPromptRoundTrips() throws {
+        let state = MissionActivityAttributes.ContentState(
+            missionNumber: 1, missionTotal: 3, missionText: "x", landmarkName: "雷門",
+            distanceMeters: nil, heartRate: 130, indicator: MissionIndicator(), updatedAt: Date(timeIntervalSince1970: 0),
+            showsPhotoPrompt: true
+        )
+        let decoded = try JSONDecoder().decode(MissionActivityAttributes.ContentState.self,
+                                               from: JSONEncoder().encode(state))
+        #expect(decoded == state)
+    }
+}

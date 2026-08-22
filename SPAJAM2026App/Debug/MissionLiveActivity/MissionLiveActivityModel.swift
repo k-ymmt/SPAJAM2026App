@@ -40,7 +40,15 @@ final class MissionLiveActivityModel: NSObject {
     var indicatorCompleted = 1
     var indicatorHighlightsActive = true
     /// Manual heart rate used when no watch reading is available (nil = hide).
-    var manualHeartRate: Double?
+    var manualHeartRate: Double? {
+        didSet { evaluatePhotoPrompt(reason: "手動心拍") }
+    }
+    /// Heart rate threshold that shows the "写真を撮りませんか？" badge.
+    var photoTrigger = HeartRatePhotoTrigger() {
+        didSet { evaluatePhotoPrompt(reason: "閾値変更") }
+    }
+    /// Whether the "写真を撮りませんか？" badge is currently shown.
+    private(set) var showsPhotoPrompt = false
 
     // MARK: Runtime
     private(set) var activity: Activity<Attributes>?
@@ -133,6 +141,30 @@ final class MissionLiveActivityModel: NSObject {
 
     func clearLog() { log.removeAll() }
 
+    /// Hides the photo prompt until the heart rate crosses the threshold again.
+    func dismissPhotoPrompt() {
+        guard showsPhotoPrompt else { return }
+        showsPhotoPrompt = false
+        push(force: true, reason: "写真提案を非表示")
+    }
+
+    /// Current heart rate used for the prompt decision (sensor first, manual as fallback).
+    var effectiveHeartRate: Double? { lastHeartRate?.beatsPerMinute ?? manualHeartRate }
+
+    /// Re-evaluates the prompt against the latest heart rate and pushes if it changed.
+    /// Returns `true` when the prompt state changed (and an update was pushed).
+    @discardableResult
+    private func evaluatePhotoPrompt(reason: String) -> Bool {
+        let next = photoTrigger.shouldShowPrompt(wasShowing: showsPhotoPrompt, heartRate: effectiveHeartRate)
+        guard next != showsPhotoPrompt else { return false }
+        showsPhotoPrompt = next
+        let bpm = effectiveHeartRate.map { "\(Int($0.rounded())) bpm" } ?? "--"
+        push(force: true, reason: next
+             ? "写真提案を表示 (\(bpm) ≥ \(Int(photoTrigger.threshold)) bpm, \(reason))"
+             : "写真提案を解除 (\(bpm) ≤ \(Int(photoTrigger.releaseThreshold)) bpm, \(reason))")
+        return true
+    }
+
     // MARK: - Sensors
 
     private func attach(_ activity: Activity<Attributes>) {
@@ -172,10 +204,17 @@ final class MissionLiveActivityModel: NSObject {
         }
 
         feedSubscription = feed.subscribe { [weak self] sample in
-            self?.lastHeartRate = sample
-            self?.push(force: false, reason: "心拍 \(Int(sample.beatsPerMinute.rounded())) bpm (\(sample.source == .watch ? "Watch" : "HealthKit"))")
+            guard let self else { return }
+            lastHeartRate = sample
+            let reason = "心拍 \(Int(sample.beatsPerMinute.rounded())) bpm (\(sample.source == .watch ? "Watch" : "HealthKit"))"
+            // A prompt state change is pushed immediately; plain readings stay throttled.
+            if !evaluatePhotoPrompt(reason: reason) {
+                push(force: false, reason: reason)
+            }
         }
         if let latest = feed.latest { lastHeartRate = latest }
+        showsPhotoPrompt = activity.content.state.showsPhotoPrompt
+        evaluatePhotoPrompt(reason: "再接続")
         Task { await feed.startHealthKit() }
     }
 
@@ -198,11 +237,12 @@ final class MissionLiveActivityModel: NSObject {
             missionText: missionText,
             landmarkName: landmark.name,
             distanceMeters: currentDistance,
-            heartRate: lastHeartRate?.beatsPerMinute ?? manualHeartRate,
+            heartRate: effectiveHeartRate,
             indicator: MissionIndicator(segmentCount: indicatorSegments,
                                         completedCount: indicatorCompleted,
                                         highlightsActive: indicatorHighlightsActive),
-            updatedAt: .now
+            updatedAt: .now,
+            showsPhotoPrompt: showsPhotoPrompt
         )
     }
 
@@ -233,6 +273,7 @@ final class MissionLiveActivityModel: NSObject {
 
     private func hasVisibleChange(from old: Attributes.ContentState?, to new: Attributes.ContentState) -> Bool {
         guard let old else { return true }
+        if old.showsPhotoPrompt != new.showsPhotoPrompt { return true }
         if old.heartRate.map({ Int($0.rounded()) }) != new.heartRate.map({ Int($0.rounded()) }) { return true }
         switch (old.distanceMeters, new.distanceMeters) {
         case (nil, nil): return false
@@ -246,7 +287,7 @@ final class MissionLiveActivityModel: NSObject {
         await activity.update(ActivityContent(state: state, staleDate: Date.now.addingTimeInterval(300)))
         lastPushedState = state
         lastPushDate = .now
-        append("更新(\(reason)): \(state.distanceText) / \(state.heartRateText)")
+        append("更新(\(reason)): \(state.distanceText) / \(state.heartRateText)\(state.showsPhotoPrompt ? " / 📷" : "")")
     }
 
     private func append(_ message: String) {

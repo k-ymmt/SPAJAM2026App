@@ -17,6 +17,7 @@ struct MissionLiveActivityView: View {
             missionSection
             landmarkSection
             heartRateSection
+            photoPromptSection
             indicatorSection
             logSection
         }
@@ -126,6 +127,28 @@ struct MissionLiveActivityView: View {
             Text("心拍")
         } footer: {
             Text("Watch アプリのワークアウト中は sendMessage で iPhone アプリがバックグラウンドでも起こされ、Live Activity が更新されます。フォールバックとして HealthKit のバックグラウンド配信も有効化しています。")
+        }
+    }
+
+    private var photoPromptSection: some View {
+        Section {
+            Toggle("心拍で自動表示", isOn: $model.photoTrigger.isEnabled)
+            Stepper(value: $model.photoTrigger.threshold, in: HeartRatePhotoTrigger.thresholdRange, step: 5) {
+                LabeledContent("表示する心拍", value: "\(Int(model.photoTrigger.threshold)) bpm 以上")
+            }
+            .disabled(!model.photoTrigger.isEnabled)
+            Stepper(value: $model.photoTrigger.hysteresis, in: 0...60, step: 5) {
+                LabeledContent("解除する心拍", value: "\(Int(model.photoTrigger.releaseThreshold)) bpm 以下")
+            }
+            .disabled(!model.photoTrigger.isEnabled)
+            LabeledContent("現在の状態", value: model.showsPhotoPrompt ? "表示中" : "非表示")
+            if model.showsPhotoPrompt {
+                Button("手動で非表示にする") { model.dismissPhotoPrompt() }
+            }
+        } header: {
+            Text("写真の提案")
+        } footer: {
+            Text("心拍が「表示する心拍」以上になると Live Activity の右下に「\(MissionActivityAttributes.ContentState.photoPromptText)」を表示し、「解除する心拍」以下に下がると消えます。Watch 未接続時は上の手動の心拍でも動作確認できます。")
         }
     }
 
