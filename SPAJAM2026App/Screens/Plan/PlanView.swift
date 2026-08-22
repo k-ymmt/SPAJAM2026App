@@ -154,9 +154,12 @@ struct MissionListRow: View {
     var achieved = false
     var photo: UIImage?
 
+    private var frameNumber: Int { min(max(mission.order, 1), 5) }
+
     var body: some View {
-        // デザイン素材(枠+MISSION タブ+ミザル入り)を行の背景として使う
-        Image("MissionFrame\(min(max(mission.order, 1), 5))")
+        // デザイン素材(枠+MISSION タブ+ミザル入り)を行の背景として使う。
+        // 達成後はクリア版素材に切り替え、写真プレースホルダ位置に撮影写真をはめる
+        Image(achieved ? "MissionClearFrame\(frameNumber)" : "MissionFrame\(frameNumber)")
             .resizable()
             .scaledToFit()
             .overlay(alignment: .leading) {
@@ -177,9 +180,17 @@ struct MissionListRow: View {
                 .offset(y: 7)
             }
             .overlay(alignment: .trailing) {
-                if achieved {
-                    PolaroidThumb(image: photo)
-                        .offset(x: 4)
+                // 素材のプレースホルダ(約 104x69pt / 右 6pt / -3.6°)に写真をはめる
+                if achieved, let photo {
+                    Image(uiImage: photo)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 104, height: 69)
+                        .clipped()
+                        .overlay { ClearBadge() }
+                        .rotationEffect(.degrees(-3.6))
+                        .padding(.trailing, 6)
+                        .offset(y: 1.5)
                 }
             }
     }
@@ -198,26 +209,3 @@ struct ClearBadge: View {
     }
 }
 
-/// ポラロイド風の写真サムネイル。中央に CLEAR バッジを重ねる
-struct PolaroidThumb: View {
-    let image: UIImage?
-
-    var body: some View {
-        Group {
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Color(.systemGray4)
-            }
-        }
-        .frame(width: 148, height: 96)
-        .clipped()
-        .overlay { ClearBadge() }
-        .padding(6)
-        .background(.white)
-        .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
-        .rotationEffect(.degrees(3))
-    }
-}
