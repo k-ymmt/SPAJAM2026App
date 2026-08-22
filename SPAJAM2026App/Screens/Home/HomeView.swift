@@ -30,8 +30,9 @@ struct HomeView: View {
                 MizaruLoopView()
                     .padding(10)
                     .frame(width: 230, height: 230)
-                Text("ミザル")
-                    .font(.handLargeTitle)
+                // 英字は Hetakawa(手書きの数字/英字用フォント)
+                Text("MIZARU")
+                    .font(.handNumber(32))
                     .foregroundStyle(Color.appAccent)
             }
             .frame(maxWidth: .infinity)
