@@ -17,19 +17,21 @@ struct TripMissionListView: View {
     var onEndTrip: () -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                PlanHeaderView(
-                    plan: session.plan,
-                    trailing: AnyView(HeaderIconButton(systemName: "gearshape.fill", action: onOpenSettings))
-                )
-                ForEach(session.plan.missions) { mission in
-                    missionRow(mission)
-                }
-                footer
+        // スクロールなしで 1 画面に収める
+        VStack(alignment: .leading, spacing: 10) {
+            PlanHeaderView(
+                plan: session.plan,
+                trailing: AnyView(HeaderIconButton(systemName: "gearshape.fill", action: onOpenSettings))
+            )
+            ForEach(session.plan.missions) { mission in
+                missionRow(mission)
             }
-            .padding(24)
+            Spacer(minLength: 0)
+            footer
         }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.appBackground)
     }
 

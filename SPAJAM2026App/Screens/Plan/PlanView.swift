@@ -18,16 +18,18 @@ struct PlanView: View {
     @State private var publishError: String?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                PlanHeaderView(plan: session.plan)
-                ForEach(session.plan.missions) { mission in
-                    MissionListRow(mission: mission)
-                }
-                footer
+        // スクロールなしで 1 画面に収める
+        VStack(alignment: .leading, spacing: 10) {
+            PlanHeaderView(plan: session.plan)
+            ForEach(session.plan.missions) { mission in
+                MissionListRow(mission: mission)
             }
-            .padding(24)
+            Spacer(minLength: 0)
+            footer
         }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.appBackground)
         .task(id: session.membership?.code) {
             if let membership = session.membership, membership.role == .host {
@@ -130,9 +132,9 @@ struct PlanHeaderView: View {
                 Image("MizaruCharacter")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 110, height: 110)
+                    .frame(width: 88, height: 88)
             }
-            .padding(.top, 6)
+            .padding(.top, 2)
         }
     }
 }
@@ -146,7 +148,7 @@ struct MissionListRow: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            HandFrameRow {
+            HandFrameRow(minHeight: 64) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(mission.title)
                         .font(.handBody.bold())

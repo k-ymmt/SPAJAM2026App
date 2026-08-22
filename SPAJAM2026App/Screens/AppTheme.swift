@@ -61,13 +61,14 @@ struct OutlineButton: View {
 
 /// 手書き風フレームを背景にしたミッションリスト行
 struct HandFrameRow<Content: View>: View {
+    var minHeight: CGFloat = 84
     @ViewBuilder var content: () -> Content
 
     var body: some View {
         content()
             .padding(.horizontal, 22)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, minHeight: 84, alignment: .leading)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .leading)
             .background {
                 Image("HandFrame")
                     .resizable(
