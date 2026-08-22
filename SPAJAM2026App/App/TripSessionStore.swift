@@ -49,4 +49,11 @@ nonisolated enum TripSessionStore {
     static func clear() {
         defaults.removeObject(forKey: key)
     }
+
+    /// デバッグメニューなど外部から保存内容を書き換えたときに投げる通知。ルート画面はこれを受けてセッションを作り直す
+    static let didChange = Notification.Name("TripSessionStore.didChange")
+
+    static func notifyChanged() {
+        NotificationCenter.default.post(name: didChange, object: nil)
+    }
 }

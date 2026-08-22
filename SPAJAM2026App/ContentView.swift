@@ -46,6 +46,10 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, newPhase in
             session?.noteScenePhase(active: newPhase == .active)
         }
+        // デバッグメニューで保存セッションを書き換え/クリアしたら、その内容でセッションを作り直す
+        .onReceive(NotificationCenter.default.publisher(for: TripSessionStore.didChange)) { _ in
+            session = TripSession.restore()
+        }
         .onShake {
             isDebugMenuPresented = true
         }

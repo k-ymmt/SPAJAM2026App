@@ -13,6 +13,17 @@ struct DebugMenuView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("アプリ状態") {
+                    NavigationLink {
+                        SavedSessionEditorView()
+                    } label: {
+                        TrialRow(
+                            title: "保存セッション",
+                            subtitle: "キル後に復元される旅の状態を表示・編集・クリアします。保存すると即座に反映されます。",
+                            systemImage: "externaldrive.badge.timemachine"
+                        )
+                    }
+                }
                 Section("フレームワークお試し") {
                     NavigationLink {
                         JournalingSuggestionsView()
