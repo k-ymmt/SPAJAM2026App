@@ -34,6 +34,8 @@ struct ContentView: View {
             }
         }
         .animation(.default, value: session == nil)
+        // デザインはライト(クリーム背景)前提のため、ダークモードでも表示を固定する
+        .preferredColorScheme(.light)
         .onChange(of: scenePhase) { _, newPhase in
             session?.noteScenePhase(active: newPhase == .active)
         }

@@ -103,9 +103,9 @@ final class TripSession {
     var heartScore: Int { focusScore }
 
     /// OFFLINE SCORE: どれだけスマホを見ずに過ごしたか
-    /// = 見なかった分数 + 制限したアプリ数ボーナス
+    /// = 見なかった分数 + 制限数ボーナス − 旅行中の制限調整ペナルティ
     var offlineScore: Int {
-        notLookingMinutes + shieldBonus
+        max(0, notLookingMinutes + shieldBonus - adjustPenalty)
     }
 
     var totalScore: Int { questScore + heartScore + offlineScore }
@@ -123,6 +123,21 @@ final class TripSession {
     /// 制限数ボーナス: シールドしたアプリ/カテゴリ 1 つにつき +2pt(上限 10pt)
     private var shieldBonus: Int {
         min(10, shield.selectionCount * 2)
+    }
+
+    // MARK: - 旅行中の制限調整(ペナルティつき)
+
+    /// 旅行中に制限を調整した回数。1 回につき OFFLINE SCORE -5pt
+    private(set) var restrictionAdjustments = 0
+
+    var adjustPenalty: Int { restrictionAdjustments * 5 }
+
+    /// 旅行中に制限設定を変更したときに呼ぶ。新しい選択でシールドを再適用し、ペナルティを加算
+    func applyShieldAdjustment() {
+        guard phase == .traveling else { return }
+        restrictionAdjustments += 1
+        shield.stop()
+        shield.start()
     }
 
     // MARK: - 判定

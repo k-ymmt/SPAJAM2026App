@@ -16,6 +16,8 @@ struct MissionCameraView: View {
     @State private var achievedComment: String?
     @State private var locationProvider = LocationProvider()
     @State private var facing: CameraFacing = .back
+    @State private var showMissionList = false
+    @State private var showRestrictionAdjust = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -48,6 +50,17 @@ struct MissionCameraView: View {
                 .ignoresSafeArea()
             }
         }
+        .sheet(isPresented: $showMissionList) {
+            TripMissionListView {
+                showRestrictionAdjust = true
+            }
+            .environment(session)
+        }
+        .sheet(isPresented: $showRestrictionAdjust) {
+            RestrictionAdjustView()
+                .environment(session)
+                .presentationDetents([.medium, .large])
+        }
         .onAppear {
             locationProvider.start()
             facing = session.currentMission?.camera ?? .back
@@ -56,11 +69,24 @@ struct MissionCameraView: View {
 
     private func missionHeader(_ mission: Mission) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("MISSION \(mission.order)/\(session.plan.missions.count)")
-                .font(.caption2.bold())
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(.orange, in: Capsule())
+            HStack {
+                Text("MISSION \(mission.order)/\(session.plan.missions.count)")
+                    .font(.caption2.bold())
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(.orange, in: Capsule())
+                Spacer()
+                // ミッション一覧へ(一覧から設定=制限調整も開ける)
+                Button {
+                    showMissionList = true
+                } label: {
+                    Image(systemName: "square.grid.2x2.fill")
+                        .font(.body)
+                        .foregroundStyle(.white)
+                        .padding(8)
+                        .background(.white.opacity(0.2), in: Circle())
+                }
+            }
             Text(mission.title)
                 .font(.title3.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
