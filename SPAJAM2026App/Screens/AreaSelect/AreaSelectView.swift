@@ -347,7 +347,6 @@ struct AreaSelectView: View {
                 .scaledToFit()
                 .padding(16)
                 .frame(width: 210, height: 210)
-                .background(.white, in: RoundedRectangle(cornerRadius: 24))
             Text(caption)
                 .font(.handHeadline)
                 .foregroundStyle(Color.appAccent)

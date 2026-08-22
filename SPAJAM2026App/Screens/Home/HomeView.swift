@@ -38,7 +38,6 @@ struct HomeView: View {
                     .scaledToFit()
                     .padding(20)
                     .frame(width: 230, height: 230)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 28))
                 Text("ミザル")
                     .font(.handLargeTitle)
                     .foregroundStyle(Color.appAccent)
