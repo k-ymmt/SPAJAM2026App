@@ -16,12 +16,17 @@ struct CameraPicker: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
+        #if targetEnvironment(simulator)
+        // シミュレータの疑似カメラは撮影できないためライブラリで代用
+        picker.sourceType = .photoLibrary
+        #else
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
             picker.sourceType = .camera
             picker.cameraDevice = facing == .front ? .front : .rear
         } else {
             picker.sourceType = .photoLibrary
         }
+        #endif
         picker.delegate = context.coordinator
         return picker
     }

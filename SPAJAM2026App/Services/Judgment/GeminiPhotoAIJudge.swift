@@ -10,7 +10,7 @@ import Foundation
 
 struct GeminiPhotoAIJudge: PhotoAIJudging {
     let apiKey: String
-    var model = "gemini-2.5-flash"
+    var model = "gemini-3.6-flash"
 
     /// Secrets.plist にキーが無ければ nil(AI Studio キー優先、無ければ Google Cloud キー)
     static func fromSecrets() -> GeminiPhotoAIJudge? {
@@ -20,7 +20,7 @@ struct GeminiPhotoAIJudge: PhotoAIJudging {
 
     func judge(imageJPEG: Data, prompt: String) async throws -> (ok: Bool, reason: String) {
         let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
-        var request = URLRequest(url: url, timeoutInterval: 12)
+        var request = URLRequest(url: url, timeoutInterval: 25)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
@@ -45,6 +45,8 @@ struct GeminiPhotoAIJudge: PhotoAIJudging {
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+            NSLog("[Judge] gemini HTTP \(code): \(String(data: data.prefix(300), encoding: .utf8) ?? "")")
             throw URLError(.badServerResponse)
         }
 

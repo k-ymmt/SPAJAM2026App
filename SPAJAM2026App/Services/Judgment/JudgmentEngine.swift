@@ -80,6 +80,7 @@ struct JudgmentEngine {
                     ? .achieved(comment: result.reason)
                     : .failed(reason: result.reason)
             } catch {
+                NSLog("[Judge] photo judge failed: \(error)")
                 return .failed(reason: "判定に失敗しました(通信エラー)。リトライしてください")
             }
         }
