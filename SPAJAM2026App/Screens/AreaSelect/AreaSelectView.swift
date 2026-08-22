@@ -2,9 +2,10 @@
 //  AreaSelectView.swift
 //  SPAJAM2026App
 //
-//  01 エリア選択。3 ステップでプランを作る:
+//  01 エリア選択。3 ステップがスライドで切り替わる:
 //  Step1 どこへ(マップにピン) → Step2 だれと(1〜5人) → Step3 温度感(ゆったり/アクティブ/マニア)
-//  デザイン: docs/mission-design.pen「01 エリア選択」
+//  中央のイラストはステップと選択に応じて変わる(手書きイラスト素材に差し替え予定)。
+//  ボタンは「つぎへ」のみ(戻るなし)。
 //
 
 import CoreLocation
@@ -27,68 +28,30 @@ struct AreaSelectView: View {
     @State private var isGenerating = false
     @State private var errorMessage: String?
 
+    private let slide: AnyTransition = .asymmetric(
+        insertion: .move(edge: .trailing).combined(with: .opacity),
+        removal: .move(edge: .leading).combined(with: .opacity)
+    )
+
     var body: some View {
-        VStack(spacing: 0) {
-            mapArea
-            sheet
+        VStack(spacing: 20) {
+            stepIndicator
+                .padding(.top, 12)
+
+            ZStack {
+                switch step {
+                case 1: slideWhere.transition(slide)
+                case 2: slideWho.transition(slide)
+                default: slideMood.transition(slide)
+                }
+            }
+            .animation(.easeInOut(duration: 0.35), value: step)
         }
+        .padding(24)
         .background(Color(red: 0.98, green: 0.965, blue: 0.94))
     }
 
-    // MARK: - マップ
-
-    private var mapArea: some View {
-        MapReader { proxy in
-            Map(position: $camera) {
-                if let pin {
-                    Marker("旅先", coordinate: pin)
-                        .tint(.orange)
-                }
-            }
-            .onTapGesture { point in
-                guard step == 1 else { return }
-                if let coordinate = proxy.convert(point, from: .local) {
-                    pin = coordinate
-                }
-            }
-            .overlay(alignment: .top) {
-                Text(mapHint)
-                    .font(.footnote.weight(.semibold))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(.white, in: Capsule())
-                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
-                    .padding(.top, 12)
-            }
-        }
-    }
-
-    private var mapHint: String {
-        switch step {
-        case 1: pin == nil ? "ピンを置いて旅先を決めよう" : "この辺りの主要スポットで旅をつくります"
-        case 2: "だれと行くかを選ぼう"
-        default: "旅の温度感を選ぼう"
-        }
-    }
-
-    // MARK: - 3 ステップシート
-
-    private var sheet: some View {
-        VStack(spacing: 16) {
-            Capsule().fill(Color(.systemGray4)).frame(width: 44, height: 5)
-
-            stepIndicator
-
-            switch step {
-            case 1: stepWhere
-            case 2: stepWho
-            default: stepMood
-            }
-        }
-        .padding(24)
-        .background(.white, in: UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28))
-        .animation(.default, value: step)
-    }
+    // MARK: - ステップインジケータ
 
     private var stepIndicator: some View {
         HStack(spacing: 8) {
@@ -112,13 +75,28 @@ struct AreaSelectView: View {
         }
     }
 
-    // MARK: Step1 どこへ
+    // MARK: - Step1 どこへ(マップが主役)
 
-    private var stepWhere: some View {
-        VStack(spacing: 14) {
+    private var slideWhere: some View {
+        VStack(spacing: 16) {
             title("どこへ行く?", sub: "マップにピンを置くと、周辺の主要スポットから旅をつくります")
 
-            primaryButton("つぎへ(だれと行く?)", disabled: pin == nil) { step = 2 }
+            MapReader { proxy in
+                Map(position: $camera) {
+                    if let pin {
+                        Marker("旅先", coordinate: pin)
+                            .tint(.orange)
+                    }
+                }
+                .onTapGesture { point in
+                    if let coordinate = proxy.convert(point, from: .local) {
+                        pin = coordinate
+                    }
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+
+            nextButton("つぎへ", disabled: pin == nil) { step = 2 }
 
             Button {
                 onPlanReady(.bundledDemoPlan())
@@ -130,58 +108,47 @@ struct AreaSelectView: View {
         }
     }
 
-    // MARK: Step2 だれと
+    // MARK: - Step2 だれと(イラストが人数で変わる)
 
-    private var stepWho: some View {
-        VStack(spacing: 14) {
+    private var slideWho: some View {
+        VStack(spacing: 16) {
             title("だれと行く?", sub: "いっしょに旅する人数を選んでください")
+
+            Spacer()
+            illustration(symbol: partySymbol, caption: partySize == 1 ? "ひとり旅" : "\(partySize)人旅")
+            Spacer()
 
             HStack(spacing: 8) {
                 ForEach(1...5, id: \.self) { n in
-                    Button {
-                        partySize = n
-                    } label: {
-                        VStack(spacing: 2) {
-                            Text("\(n)")
-                                .font(.headline)
-                            Text(n == 1 ? "ひとり" : "人")
-                                .font(.system(size: 9))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(partySize == n ? Color.orange : .white, in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(partySize == n ? .white : .secondary)
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(.systemGray4), lineWidth: partySize == n ? 0 : 1))
-                    }
+                    selectChip("\(n)", selected: partySize == n) { partySize = n }
                 }
             }
 
-            HStack(spacing: 10) {
-                backButton { step = 1 }
-                primaryButton("つぎへ(温度感)") { step = 3 }
-            }
+            nextButton("つぎへ") { step = 3 }
         }
     }
 
-    // MARK: Step3 温度感
+    private var partySymbol: String {
+        switch partySize {
+        case 1: "figure.walk"
+        case 2: "figure.2"
+        default: "figure.2.and.child.holdinghands"
+        }
+    }
 
-    private var stepMood: some View {
-        VStack(spacing: 14) {
+    // MARK: - Step3 温度感(イラストが温度感で変わる)
+
+    private var slideMood: some View {
+        VStack(spacing: 16) {
             title("旅の温度感は?", sub: "お題の難易度とテイストが変わります")
+
+            Spacer()
+            illustration(symbol: moodSymbol, caption: mood.rawValue)
+            Spacer()
 
             HStack(spacing: 8) {
                 ForEach(TripMood.allCases) { m in
-                    Button {
-                        mood = m
-                    } label: {
-                        Text(m.rawValue)
-                            .font(.footnote.weight(.semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(mood == m ? Color.orange : .white, in: Capsule())
-                            .foregroundStyle(mood == m ? .white : .secondary)
-                            .overlay(Capsule().stroke(Color(.systemGray4), lineWidth: mood == m ? 0 : 1))
-                    }
+                    selectChip(m.rawValue, selected: mood == m) { mood = m }
                 }
             }
 
@@ -191,16 +158,40 @@ struct AreaSelectView: View {
                     .foregroundStyle(.red)
             }
 
-            HStack(spacing: 10) {
-                backButton { step = 2 }
-                primaryButton(isGenerating ? "プランを生成中…" : "この旅先でプランをつくる", loading: isGenerating, disabled: isGenerating) {
-                    generate()
-                }
+            nextButton(isGenerating ? "プランを生成中…" : "この旅先でプランをつくる", loading: isGenerating, disabled: isGenerating) {
+                generate()
             }
         }
     }
 
+    private var moodSymbol: String {
+        switch mood {
+        case .relaxed: "cup.and.saucer.fill"
+        case .active: "figure.run"
+        case .mania: "binoculars.fill"
+        }
+    }
+
     // MARK: - 部品
+
+    /// 中央イラスト。広瀬さんの手書きイラスト素材に差し替える前提のプレースホルダ
+    private func illustration(symbol: String, caption: String) -> some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(0.12))
+                    .frame(width: 200, height: 200)
+                Image(systemName: symbol)
+                    .font(.system(size: 80))
+                    .foregroundStyle(.orange)
+            }
+            .contentTransition(.symbolEffect(.replace))
+            Text(caption)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+        .animation(.default, value: symbol)
+    }
 
     private func title(_ main: String, sub: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -210,7 +201,19 @@ struct AreaSelectView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func primaryButton(_ label: String, loading: Bool = false, disabled: Bool = false, action: @escaping () -> Void) -> some View {
+    private func selectChip(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.footnote.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(selected ? Color.orange : .white, in: Capsule())
+                .foregroundStyle(selected ? .white : .secondary)
+                .overlay(Capsule().stroke(Color(.systemGray4), lineWidth: selected ? 0 : 1))
+        }
+    }
+
+    private func nextButton(_ label: String, loading: Bool = false, disabled: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 8) {
                 if loading { ProgressView().tint(.white) }
@@ -223,17 +226,6 @@ struct AreaSelectView: View {
         .buttonStyle(.borderedProminent)
         .tint(.orange)
         .disabled(disabled)
-    }
-
-    private func backButton(_ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: "chevron.left")
-                .font(.headline)
-                .padding(.vertical, 15)
-                .padding(.horizontal, 18)
-        }
-        .buttonStyle(.bordered)
-        .disabled(isGenerating)
     }
 
     private func generate() {
