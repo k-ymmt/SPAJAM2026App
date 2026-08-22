@@ -40,6 +40,15 @@ struct ContentView: View {
                             systemImage: "hourglass"
                         )
                     }
+                    NavigationLink {
+                        HeartRateView()
+                    } label: {
+                        TrialRow(
+                            title: "リアルタイム心拍",
+                            subtitle: "Apple Watch で計測した心拍をリアルタイムに表示します。",
+                            systemImage: "heart.fill"
+                        )
+                    }
                 }
             }
             .navigationTitle("SPAJAM2026")
