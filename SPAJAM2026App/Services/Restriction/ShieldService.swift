@@ -79,6 +79,16 @@ final class ShieldService {
         #endif
     }
 
+    /// OS 側にシールドが残っているか(アプリ or カテゴリのどちらかが設定されていれば true)
+    static var isShieldApplied: Bool {
+        #if canImport(FamilyControls)
+        let store = ManagedSettingsStore()
+        return store.shield.applications != nil || store.shield.applicationCategories != nil
+        #else
+        return false
+        #endif
+    }
+
     /// デバッグ用: セッションの状態に関係なく、OS に残っているシールドと全制限を強制解除する
     static func forceClearAll() {
         #if canImport(FamilyControls)

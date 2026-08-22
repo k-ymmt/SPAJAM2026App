@@ -13,21 +13,10 @@ struct SavedSessionEditorView: View {
     @State private var confirmClear = false
     @State private var savedBanner = false
     @State private var shieldClearedBanner = false
+    @State private var isShieldApplied = ShieldService.isShieldApplied
 
     var body: some View {
         List {
-            Section("シールド") {
-                Button("シールドを今すぐ解除", role: .destructive) {
-                    ShieldService.forceClearAll()
-                    withAnimation { shieldClearedBanner = true }
-                    Task {
-                        try? await Task.sleep(for: .seconds(1.5))
-                        withAnimation { shieldClearedBanner = false }
-                    }
-                }
-                Text("保存セッションとは無関係に、OS に残っている ManagedSettings の制限をすべて消します。旅行中にキルされて解除できなくなったときの逃げ道です。")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
             if let binding = Binding($snapshot) {
                 editor(binding)
             } else {
@@ -68,7 +57,10 @@ struct SavedSessionEditorView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .onAppear { snapshot = TripSessionStore.load() }
+        .onAppear {
+            snapshot = TripSessionStore.load()
+            isShieldApplied = ShieldService.isShieldApplied
+        }
     }
 
     // MARK: - 編集フォーム
@@ -136,12 +128,8 @@ struct SavedSessionEditorView: View {
         }
 
         Section("その他") {
-            LabeledContent(
-                "シールド選択",
-                value: s.wrappedValue.shieldSelectionData.map { "あり(\($0.count) bytes)" } ?? "なし"
-            )
-            Button("シールド選択を消す", role: .destructive) { s.wrappedValue.shieldSelectionData = nil }
-                .disabled(s.wrappedValue.shieldSelectionData == nil)
+            Button("シールドを今すぐ解除", role: .destructive) { clearShield() }
+                .disabled(!isShieldApplied)
             LabeledContent("最終保存", value: s.wrappedValue.savedAt.formatted(date: .numeric, time: .standard))
         }
     }
@@ -191,6 +179,16 @@ struct SavedSessionEditorView: View {
         Task {
             try? await Task.sleep(for: .seconds(1.5))
             withAnimation { savedBanner = false }
+        }
+    }
+
+    private func clearShield() {
+        ShieldService.forceClearAll()
+        isShieldApplied = ShieldService.isShieldApplied
+        withAnimation { shieldClearedBanner = true }
+        Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            withAnimation { shieldClearedBanner = false }
         }
     }
 
