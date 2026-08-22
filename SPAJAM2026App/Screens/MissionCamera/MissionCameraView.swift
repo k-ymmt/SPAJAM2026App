@@ -15,6 +15,7 @@ struct MissionCameraView: View {
     @State private var showCamera = false
     @State private var achievedComment: String?
     @State private var locationProvider = LocationProvider()
+    @State private var facing: CameraFacing = .back
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,19 +30,28 @@ struct MissionCameraView: View {
         .background(.black)
         .foregroundStyle(.white)
         .sheet(isPresented: $showCamera) {
-            // FACE ミッションは AR 笑顔キャプチャ(対応実機のみ)、それ以外は通常カメラ
-            if session.currentMission?.category == .face, FaceSmileCaptureView.isSupported {
+            switch session.currentMission?.category {
+            case .face where FaceSmileCaptureView.isSupported:
+                // FACE: AR 笑顔キャプチャ(口角トラッキング可視化つき・対応実機のみ)
                 FaceSmileCaptureView { image in
                     capturedImage = image
                 }
-            } else {
-                CameraPicker(facing: session.currentMission?.camera ?? .back) { image in
+            case .pose where BodyPoseCaptureView.isSupported:
+                // POSE: AR ボディトラッキング(骨格可視化つき・対応実機のみ)
+                BodyPoseCaptureView { image in
+                    capturedImage = image
+                }
+            default:
+                CameraPicker(facing: facing) { image in
                     capturedImage = image
                 }
                 .ignoresSafeArea()
             }
         }
-        .onAppear { locationProvider.start() }
+        .onAppear {
+            locationProvider.start()
+            facing = session.currentMission?.camera ?? .back
+        }
     }
 
     private func missionHeader(_ mission: Mission) -> some View {
@@ -100,10 +110,20 @@ struct MissionCameraView: View {
 
     private func controls(_ mission: Mission) -> some View {
         HStack(spacing: 12) {
+            // イン/アウトカメラ切り替え
+            Button {
+                facing = facing == .back ? .front : .back
+            } label: {
+                Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90.camera.fill")
+                    .padding(14)
+            }
+            .buttonStyle(.bordered)
+            .tint(.white)
+
             Button {
                 showCamera = true
             } label: {
-                Label(capturedImage == nil ? "撮影する" : "撮り直す", systemImage: "camera.fill")
+                Label(capturedImage == nil ? "撮影する" : "撮り直す", systemImage: facing == .front ? "person.crop.square.badge.camera" : "camera.fill")
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
             }

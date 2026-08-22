@@ -53,12 +53,11 @@
     {
       "id": "m5",
       "order": 5,
-      "category": "thrill",
+      "category": "pose",
       "slot": "variable",
-      "title": "おみくじを引いてドキドキする",
+      "title": "雷門の前で万歳する",
       "judgment": {
-        "aiPrompt": "この写真におみくじが写っていますか?",
-        "heartRateDelta": 15
+        "aiPrompt": "この写真に万歳(両手を上げるポーズ)をしている人が写っていますか?"
       },
       "points": 15
     }

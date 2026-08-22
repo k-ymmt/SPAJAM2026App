@@ -114,11 +114,11 @@ struct PlanGenerator {
         \(spotList)
 
         ルール:
-        - ミッションは 5 つ。category は順に go, do, eat, face, thrill
+        - ミッションは 5 つ。category は順に go, do, eat, face, pose
         - go は必ずスポットへ行くミッション。spotIndex に上の一覧の index を入れる
         - do は現地で写真を撮る系のお題(スポットに紐づくなら spotIndex も可)
         - eat はこの地域の名物料理を食べるお題(店は指定しない。有名な名物がなければ「地元の何かを食べる」系)
-        - face は笑顔・表情系のお題、thrill はドキドキする体験のお題
+        - face は笑顔・表情系のお題、pose は「万歳する」など体のポーズ系のお題(お題は必ず万歳にする)
         - title は日本語で 20 文字以内。aiPrompt は「この写真に◯◯が写っていますか?」の形で、写真 1 枚で Yes/No 判定できる内容にする
         - 気分に合わせて難易度・トーンを調整する
         - areaName はエリアの短い呼び名(例: 新宿、浅草)
@@ -147,7 +147,7 @@ struct PlanGenerator {
         // ① 構造 + ②座標はコード側で確定(AI に座標を書かせない)
         let missions: [Mission] = llm.missions.prefix(5).enumerated().compactMap { i, m in
             guard let category = MissionCategory(rawValue: m.category) else { return nil }
-            let slot: SlotType = (category == .face || category == .thrill) ? .variable : .fixed
+            let slot: SlotType = (category == .face || category == .pose) ? .variable : .fixed
             var location: GeoTarget?
             if category == .go, let idx = m.spotIndex, spots.indices.contains(idx) {
                 let s = spots[idx]
@@ -161,8 +161,7 @@ struct PlanGenerator {
                 title: m.title,
                 judgment: MissionJudgment(
                     location: location,
-                    aiPrompt: m.aiPrompt,
-                    heartRateDelta: category == .thrill ? 15 : nil
+                    aiPrompt: m.aiPrompt
                 ),
                 points: slot == .fixed ? 10 : 15,
                 hapticOnNear: category == .go ? true : nil,
