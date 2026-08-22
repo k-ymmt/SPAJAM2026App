@@ -334,18 +334,14 @@ final class TripSession {
 
     var totalScore: Int { questScore + heartScore + offlineScore }
 
-    /// 旅行時間のうちスマホ(このアプリ)を見ていなかった時間(リザルトの主役)
-    var offlineDuration: TimeInterval {
+    /// 旅行時間のうちスマホ(このアプリ)を見ていなかった分数
+    private var notLookingMinutes: Int {
         guard let start = tripStartedAt else { return 0 }
         let end = tripEndedAt ?? Date()
         var active = foregroundSeconds
         if let since = becameActiveAt { active += end.timeIntervalSince(since) }
-        return max(0, end.timeIntervalSince(start) - active)
-    }
-
-    /// 旅行時間のうちスマホ(このアプリ)を見ていなかった分数
-    private var notLookingMinutes: Int {
-        Int(offlineDuration / 60)
+        let notLooking = max(0, end.timeIntervalSince(start) - active)
+        return Int(notLooking / 60)
     }
 
     /// 制限数ボーナス: シールドしたアプリ/カテゴリ 1 つにつき +2pt(上限 10pt)
