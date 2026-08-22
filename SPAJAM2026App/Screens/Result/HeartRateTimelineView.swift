@@ -5,7 +5,7 @@
 //  リザルトの「ミッション写真 ↔ 心拍バー」同期ビュー。
 //  上段: 選択中ミッションの写真(中央・大)と前後のミッション(左右・小)
 //  中段: 旅の時間軸。ミッション達成時刻にピンを置く(選択中は大きいピン)
-//  下段: ドキドキ ログ。時間帯ごとの心拍バー。選択ミッションの区間を強調し、ピークにラベルを出す
+//  下段: ドキドキ ログ。時間帯ごとの心拍バー。選択ミッションの区間とピークを強調する
 //  バーをタップすると最寄りのミッションを選択し、写真も切り替わる(心拍は自分の分だけ)。
 //
 
@@ -123,17 +123,9 @@ struct HeartRateTimelineView: View {
 
     private var heartLog: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("ドキドキ ログ")
-                    .font(.handHeadline)
-                    .foregroundStyle(Color.inkMain)
-                Spacer()
-                if let delta = timeline.peakDelta, timeline.hasSamples {
-                    Text("ピーク +\(max(0, delta))bpm")
-                        .font(.handCaption2.bold())
-                        .foregroundStyle(Color(red: 0.93, green: 0.33, blue: 0.22))
-                }
-            }
+            Text("ドキドキ ログ")
+                .font(.handHeadline)
+                .foregroundStyle(Color.inkMain)
             bars
                 .frame(height: 70)
             if let marker = selectedMarker {

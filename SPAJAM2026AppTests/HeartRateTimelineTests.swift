@@ -37,8 +37,6 @@ struct HeartRateTimelineTests {
         #expect(timeline.bars[3].level == 1)
         #expect(timeline.bars[0].level == 0.2)
         #expect(timeline.maximumBpm == 120)
-        // 最高心拍 120 − 平均 86.67 ≒ +33
-        #expect(timeline.peakDelta == 33)
     }
 
     @Test func emptySlotsAreInterpolated() {
@@ -69,7 +67,6 @@ struct HeartRateTimelineTests {
         #expect(timeline.marker(nearestTo: 0)?.missionId == "a")
         #expect(timeline.marker(nearestTo: 3)?.missionId == "b")
         #expect(!timeline.hasSamples)
-        #expect(timeline.peakDelta == nil)
     }
 
     @Test func markerOutsideIntervalIsClamped() {

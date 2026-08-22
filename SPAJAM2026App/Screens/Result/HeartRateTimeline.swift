@@ -48,12 +48,6 @@ nonisolated struct HeartRateTimeline: Sendable, Equatable {
     /// 最も心拍が高い区間
     var peakBar: Bar? { bars.max { $0.bpm < $1.bpm } }
 
-    /// 最高心拍の平均からの上がり幅(bpm)
-    var peakDelta: Int? {
-        guard let maximumBpm, let averageBpm else { return nil }
-        return Int((maximumBpm - averageBpm).rounded())
-    }
-
     var hasSamples: Bool { bars.contains(where: \.hasSamples) }
 
     /// `barIndex` に最も近いマーカー
