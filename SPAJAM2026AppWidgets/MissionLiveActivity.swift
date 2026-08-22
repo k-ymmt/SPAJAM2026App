@@ -87,14 +87,30 @@ struct MissionLiveActivity: Widget {
     }
 }
 
-/// ロック画面カード(Pencil 03 コントロール画面)
+/// ロック画面カード(Pencil 03 コントロール画面)。
+/// ミザルは右下固定。location 指定ミッションはお題と距離の間に正方形マップ。
 private struct MissionCard: View {
     let attributes: MissionActivityAttributes
     let state: MissionActivityAttributes.ContentState
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            VStack(alignment: .leading, spacing: 8) {
+        ZStack(alignment: .bottomTrailing) {
+            // 右下のミザル + プラン名(コンテンツの後ろに敷く)
+            VStack(alignment: .trailing, spacing: 0) {
+                Image("Mizaru")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 76, height: 76)
+                    .opacity(0.9)
+                if let planTitle = attributes.planTitle {
+                    Text(planTitle)
+                        .font(.caption2)
+                        .foregroundStyle(MissionPalette.inkSub)
+                }
+            }
+            .padding(.bottom, 12)
+
+            VStack(alignment: .leading, spacing: 4) {
                 Text("NEXT")
                     .font(.caption2.weight(.bold))
                     .tracking(1.5)
@@ -108,53 +124,34 @@ private struct MissionCard: View {
                         .lineLimit(2)
                         .minimumScaleFactor(0.8)
                 }
+                .padding(.trailing, 80) // ミザルと重ならないように
 
-                MissionMetrics(state: state, onDark: false)
-
-                if state.showsPhotoPrompt {
-                    PhotoPromptBadge()
+                if let map = mapImage {
+                    Image(uiImage: map)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 62, height: 62)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .padding(.vertical, 2)
                 }
 
-                Spacer(minLength: 0)
+                HStack(spacing: 10) {
+                    MissionMetrics(state: state, onDark: false)
+                    if state.showsPhotoPrompt {
+                        PhotoPromptBadge()
+                    }
+                }
 
                 IndicatorBar(indicator: state.indicator)
-
-                if let planTitle = attributes.planTitle {
-                    Text(planTitle)
-                        .font(.caption2)
-                        .foregroundStyle(MissionPalette.inkSub)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                }
             }
-
-            SideVisual(mapFileName: state.mapImageFileName)
         }
         .padding(14)
     }
-}
 
-/// 右側のビジュアル: location 指定ミッションは案内マップ、なければミザル
-private struct SideVisual: View {
-    let mapFileName: String?
-
-    var body: some View {
-        Group {
-            if let mapFileName,
-               let url = MapSnapshotStore.url(for: mapFileName),
-               let image = UIImage(contentsOfFile: url.path) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Image("Mizaru")
-                    .resizable()
-                    .scaledToFit()
-                    .padding(6)
-                    .opacity(0.9)
-            }
-        }
-        .frame(width: 108, height: 96)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    private var mapImage: UIImage? {
+        guard let fileName = state.mapImageFileName,
+              let url = MapSnapshotStore.url(for: fileName) else { return nil }
+        return UIImage(contentsOfFile: url.path)
     }
 }
 
