@@ -2,9 +2,10 @@
 //  TripMissionListView.swift
 //  SPAJAM2026App
 //
-//  旅行中のメイン画面。プラン画面と同じ手書き風リストで全ミッションと達成状況を一覧し、
-//  タップで挑戦(カメラ)へ。達成行は写真サムネ+済バッジに変わる。
-//  右上の設定から制限調整(調整すると OFFLINE SCORE が減る)。
+//  旅行中のメイン画面。プラン画面と同じヘッダ+MISSION タブ付きリストで達成状況を一覧し、
+//  タップで挑戦(カメラ)へ。達成行は CLEAR バッジ+ポラロイド写真に変わる。
+//  ヘッダ右の設定から制限調整(調整すると OFFLINE SCORE が減る)。
+//  デザイン: docs/Figma 旅行開始前画面(2 日目更新版)と共通
 //
 
 import SwiftUI
@@ -17,18 +18,15 @@ struct TripMissionListView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                header
+            VStack(alignment: .leading, spacing: 14) {
+                PlanHeaderView(
+                    plan: session.plan,
+                    trailing: AnyView(HeaderIconButton(systemName: "gearshape.fill", action: onOpenSettings))
+                )
                 ForEach(session.plan.missions) { mission in
                     missionRow(mission)
                 }
-                Text("ミッションは好きな順番で OK。タップして挑戦しよう")
-                    .font(.handCaption2)
-                    .foregroundStyle(Color.inkSub)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 4)
-
-                OutlineButton(label: "旅をおわる", tint: .appAccent, action: onEndTrip)
+                footer
             }
             .padding(24)
         }
@@ -46,24 +44,18 @@ struct TripMissionListView: View {
             MissionListRow(
                 mission: mission,
                 achieved: achieved,
-                note: achieved ? "達成! タップで写真をみる" : (mission.isShared == true ? "共通ミッション" : nil),
                 photo: record.flatMap { session.photo(for: $0) }
             )
         }
         .buttonStyle(.plain)
     }
 
-    private var header: some View {
-        ScreenHeader(session.plan.title, subtitle: subtitleText) {
-            HeaderIconButton(systemName: "gearshape.fill", action: onOpenSettings)
+    private var footer: some View {
+        VStack(spacing: 10) {
+            Divider()
+                .overlay(Color.cardStroke)
+                .padding(.top, 4)
+            BrushButton(label: "旅を終える", action: onEndTrip)
         }
-    }
-
-    private var subtitleText: String {
-        var text = "達成 \(session.records.count)/\(session.plan.missions.count)"
-        if let bpm = session.heartRateReceiver.latest?.beatsPerMinute {
-            text += " ・ ♥ \(Int(bpm))bpm"
-        }
-        return text
     }
 }
