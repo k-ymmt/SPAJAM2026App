@@ -2,7 +2,7 @@
 //  PhoneHeartRateSender.swift
 //  SPAJAM2026Watch
 //
-//  WatchConnectivity で iPhone に心拍を送る。
+//  WatchConnectivity で iPhone に心拍を送り、iPhone からの開始/停止コマンドを受け取る。
 //
 
 import Foundation
@@ -16,6 +16,9 @@ nonisolated private let logger = Logger(subsystem: "app.kymmt.SPAJAM2026App.watc
 final class PhoneHeartRateSender {
     private(set) var isPhoneReachable = false
 
+    /// iPhone から計測の開始/停止を要求されたときに呼ばれる。
+    var onCommand: (@MainActor (HeartRateMessage.Command) -> Void)?
+
     private let session: WCSession?
     private var delegate: SessionDelegate?
 
@@ -23,10 +26,16 @@ final class PhoneHeartRateSender {
         session = WCSession.isSupported() ? WCSession.default : nil
         guard let session else { return }
 
-        let delegate = SessionDelegate { [weak self] reachable in
-            guard let self else { return }
-            Task { @MainActor in self.isPhoneReachable = reachable }
-        }
+        let delegate = SessionDelegate(
+            reachabilityChanged: { [weak self] reachable in
+                guard let self else { return }
+                Task { @MainActor in self.isPhoneReachable = reachable }
+            },
+            commandReceived: { [weak self] command in
+                guard let self else { return }
+                Task { @MainActor in self.onCommand?(command) }
+            }
+        )
         self.delegate = delegate
         session.delegate = delegate
         session.activate()
@@ -37,16 +46,20 @@ final class PhoneHeartRateSender {
     /// - iPhone アプリが前面にいる (reachable) 間は `sendMessage` で即時配信する。
     /// - それとは別に `updateApplicationContext` も常に更新しておき、iPhone 側が後から起動しても
     ///   最後の値を受け取れるようにする (古い未送信分はシステムが自動で置き換える)。
+    ///
+    /// ペイロードには `HeartRateUpdate`(旅行フロー用)と `HeartRateMessage`(心拍フィード用)の
+    /// 両形式を同居させ、iPhone 側のどちらの受信経路でも解釈できるようにする。
     func send(_ update: HeartRateUpdate) {
         guard let session, session.activationState == .activated else { return }
 
-        let payload: [String: Any]
+        var payload: [String: Any]
         do {
             payload = try update.payload()
         } catch {
             logger.error("payload のエンコードに失敗: \(error.localizedDescription, privacy: .public)")
             return
         }
+        payload.merge(Self.feedMessage(for: update).dictionary) { current, _ in current }
 
         if session.isReachable {
             session.sendMessage(payload, replyHandler: nil) { error in
@@ -60,13 +73,25 @@ final class PhoneHeartRateSender {
             logger.debug("updateApplicationContext 失敗: \(error.localizedDescription, privacy: .public)")
         }
     }
+
+    private static func feedMessage(for update: HeartRateUpdate) -> HeartRateMessage {
+        if update.isMeasuring, let bpm = update.beatsPerMinute {
+            return .heartRate(beatsPerMinute: bpm, timestamp: update.measuredAt)
+        }
+        return .streamingState(isActive: update.isMeasuring)
+    }
 }
 
 private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
     private let reachabilityChanged: @Sendable (Bool) -> Void
+    private let commandReceived: @Sendable (HeartRateMessage.Command) -> Void
 
-    init(reachabilityChanged: @escaping @Sendable (Bool) -> Void) {
+    init(
+        reachabilityChanged: @escaping @Sendable (Bool) -> Void,
+        commandReceived: @escaping @Sendable (HeartRateMessage.Command) -> Void
+    ) {
         self.reachabilityChanged = reachabilityChanged
+        self.commandReceived = commandReceived
     }
 
     func session(
@@ -82,5 +107,10 @@ private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
 
     func sessionReachabilityDidChange(_ session: WCSession) {
         reachabilityChanged(session.isReachable)
+    }
+
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        guard case let .command(command)? = HeartRateMessage(dictionary: message) else { return }
+        commandReceived(command)
     }
 }
