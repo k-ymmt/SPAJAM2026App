@@ -72,7 +72,7 @@ struct RestrictionSetupView: View {
                     .font(.handHeadline)
                 Text(session.shield.isAuthorized
                      ? "旅行を開始すると選んだアプリがおやすみになります"
-                     : "スクリーンタイムの許可が必要です(実機のみ)")
+                     : "スクリーンタイムの許可が必要です")
                     .font(.handCaption2)
                     .foregroundStyle(Color.inkSub)
             }

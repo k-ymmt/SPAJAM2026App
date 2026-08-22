@@ -5,6 +5,7 @@
 
 import CoreLocation
 import SwiftUI
+import UserNotifications
 
 /// Settings screen for the "TABI MISSION" Live Activity.
 struct MissionLiveActivityView: View {
@@ -17,6 +18,7 @@ struct MissionLiveActivityView: View {
             missionSection
             landmarkSection
             heartRateSection
+            photoPromptSection
             indicatorSection
             logSection
         }
@@ -129,6 +131,41 @@ struct MissionLiveActivityView: View {
         }
     }
 
+    private var photoPromptSection: some View {
+        Section {
+            Toggle("心拍で自動表示", isOn: $model.photoTrigger.isEnabled)
+            Stepper(value: $model.photoTrigger.threshold, in: HeartRatePhotoTrigger.thresholdRange, step: 5) {
+                LabeledContent("表示する心拍", value: "\(Int(model.photoTrigger.threshold)) bpm 以上")
+            }
+            .disabled(!model.photoTrigger.isEnabled)
+            Stepper(value: $model.photoTrigger.hysteresis, in: 0...60, step: 5) {
+                LabeledContent("解除する心拍", value: "\(Int(model.photoTrigger.releaseThreshold)) bpm 以下")
+            }
+            .disabled(!model.photoTrigger.isEnabled)
+            LabeledContent("現在の状態", value: model.showsPhotoPrompt ? "表示中" : "非表示")
+            if model.showsPhotoPrompt {
+                Button("手動で非表示にする") { model.dismissPhotoPrompt() }
+            }
+            Toggle("ローカル通知も送る", isOn: $model.notificationPolicy.isEnabled)
+            Stepper(value: $model.notificationPolicy.minimumInterval,
+                    in: PhotoPromptNotificationPolicy.intervalRange, step: 60) {
+                LabeledContent("再通知間隔", value: "\(Int(model.notificationPolicy.minimumInterval / 60)) 分")
+            }
+            .disabled(!model.notificationPolicy.isEnabled)
+            LabeledContent("通知の許可", value: model.notifier.authorizationStatus.label)
+            if model.notifier.authorizationStatus == .notDetermined {
+                Button("通知を許可する") { Task { await model.notifier.requestAuthorization() } }
+            }
+            if let error = model.notifier.lastError {
+                Text(error).font(.caption).foregroundStyle(.red)
+            }
+        } header: {
+            Text("写真の提案")
+        } footer: {
+            Text("心拍が「表示する心拍」以上になると Live Activity の右下に「\(MissionActivityAttributes.ContentState.photoPromptText)」を表示し、「解除する心拍」以下に下がると消えます。表示と同時にローカル通知も送ります(再通知間隔内は送りません)。Watch 未接続時は上の手動の心拍でも動作確認できます。")
+        }
+    }
+
     private var indicatorSection: some View {
         Section("インジケータ") {
             Stepper(value: $model.indicatorSegments, in: 1...12) {
@@ -185,6 +222,19 @@ private struct IndicatorPreview: View {
         case .completed: Color(red: 0.93, green: 0.30, blue: 0.24)
         case .active: Color(red: 0.55, green: 0.22, blue: 0.20)
         case .pending: Color.gray.opacity(0.3)
+        }
+    }
+}
+
+private extension UNAuthorizationStatus {
+    var label: String {
+        switch self {
+        case .notDetermined: "未決定"
+        case .denied: "拒否"
+        case .authorized: "許可"
+        case .provisional: "仮許可"
+        case .ephemeral: "一時的"
+        @unknown default: "不明"
         }
     }
 }
