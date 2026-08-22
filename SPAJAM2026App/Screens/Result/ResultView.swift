@@ -243,10 +243,10 @@ struct ResultView: View {
 
     // MARK: - たのしかった瞬間(心拍ハイライト × 写真)
 
-    /// 達成時 bpm が高かった順に上位 2 件(写真があるものだけ)
+    /// 達成時 bpm が高かった順に上位 2 件(写真があるものだけ。bpm なしは後ろに回す)
     private var highlights: [MissionRecord] {
         session.records
-            .filter { $0.bpmAtAchieve != nil && session.photo(for: $0) != nil }
+            .filter { session.photo(for: $0) != nil }
             .sorted { ($0.bpmAtAchieve ?? 0) > ($1.bpmAtAchieve ?? 0) }
             .prefix(2)
             .map { $0 }
@@ -292,7 +292,7 @@ struct ResultView: View {
             .clipped()
 
             VStack(alignment: .leading, spacing: 1) {
-                Text("\(record.achievedAt.formatted(date: .omitted, time: .shortened)) ・ \(record.bpmAtAchieve.map { "\($0)bpm ↑" } ?? "")")
+                Text("\(record.achievedAt.formatted(date: .omitted, time: .shortened))\(record.bpmAtAchieve.map { " ・ \($0)bpm ↑" } ?? "")")
                     .font(.handCaption2.bold())
                     .foregroundStyle(Color.inkMain)
                 Text(mission?.title ?? "")
