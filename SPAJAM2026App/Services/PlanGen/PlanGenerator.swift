@@ -217,9 +217,11 @@ struct PlanGenerator {
         let missions: [Mission] = llm.missions.prefix(5).enumerated().compactMap { i, m in
             guard let category = MissionCategory(rawValue: m.category) else { return nil }
             let slot: SlotType = (category == .face || category == .pose) ? .variable : .fixed
-            // spotIndex があれば全カテゴリで座標を付ける(案内・接近振動用)。判定ゲートは go のみ
+            // eat 以外は必ず座標を付ける(案内・接近振動・マップ用)。判定ゲートは go のみ。
+            // LLM が spotIndex を返し忘れたら先頭スポットにフォールバック
             var location: GeoTarget?
-            if let idx = m.spotIndex, spots.indices.contains(idx) {
+            if category != .eat {
+                let idx = m.spotIndex.flatMap { spots.indices.contains($0) ? $0 : nil } ?? 0
                 let s = spots[idx]
                 location = GeoTarget(latitude: s.latitude, longitude: s.longitude, radiusMeters: 150, name: s.name)
             }

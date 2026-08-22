@@ -29,9 +29,16 @@
       "slot": "fixed",
       "title": "仲見世で いちばん赤いものを撮る",
       "judgment": {
-        "aiPrompt": "この写真は赤い色のものが主役として写っていますか?"
+        "aiPrompt": "この写真は赤い色のものが主役として写っていますか?",
+        "location": {
+          "latitude": 35.712463,
+          "longitude": 139.796203,
+          "radiusMeters": 150,
+          "name": "仲見世通り"
+        }
       },
-      "points": 10
+      "points": 10,
+      "hapticOnNear": true
     },
     {
       "id": "m3",
@@ -51,10 +58,17 @@
       "slot": "variable",
       "title": "五重塔をバックに最高の笑顔",
       "judgment": {
-        "aiPrompt": "この写真に笑顔の人が写っていますか?"
+        "aiPrompt": "この写真に笑顔の人が写っていますか?",
+        "location": {
+          "latitude": 35.714233,
+          "longitude": 139.795347,
+          "radiusMeters": 150,
+          "name": "五重塔"
+        }
       },
       "camera": "front",
-      "points": 15
+      "points": 15,
+      "hapticOnNear": true
     },
     {
       "id": "m5",
@@ -63,9 +77,16 @@
       "slot": "variable",
       "title": "雷門の前で万歳する",
       "judgment": {
-        "aiPrompt": "この写真に万歳(両手を上げるポーズ)をしている人が写っていますか?"
+        "aiPrompt": "この写真に万歳(両手を上げるポーズ)をしている人が写っていますか?",
+        "location": {
+          "latitude": 35.711018,
+          "longitude": 139.796301,
+          "radiusMeters": 150,
+          "name": "雷門"
+        }
       },
-      "points": 15
+      "points": 15,
+      "hapticOnNear": true
     }
   ]
 }
