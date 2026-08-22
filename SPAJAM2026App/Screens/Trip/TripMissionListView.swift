@@ -84,28 +84,16 @@ struct TripMissionListView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(session.plan.title)
-                    .font(.handTitle)
-                HStack(spacing: 8) {
-                    Text("達成 \(session.records.count)/\(session.plan.missions.count)")
-                    if let bpm = session.heartRateReceiver.latest?.beatsPerMinute {
-                        Label("\(Int(bpm))", systemImage: "heart.fill")
-                            .foregroundStyle(.orange)
-                    }
-                }
-                .font(.handCaption)
-                .foregroundStyle(Color.inkSub)
-            }
-            Spacer()
-            Button(action: onOpenSettings) {
-                Image(systemName: "gearshape.fill")
-                    .font(.handTitle)
-                    .foregroundStyle(Color.inkSub)
-                    .padding(10)
-                    .background(.white, in: Circle())
-            }
+        ScreenHeader(session.plan.title, subtitle: subtitleText) {
+            HeaderIconButton(systemName: "gearshape.fill", action: onOpenSettings)
         }
+    }
+
+    private var subtitleText: String {
+        var text = "達成 \(session.records.count)/\(session.plan.missions.count)"
+        if let bpm = session.heartRateReceiver.latest?.beatsPerMinute {
+            text += " ・ ♥ \(Int(bpm))bpm"
+        }
+        return text
     }
 }

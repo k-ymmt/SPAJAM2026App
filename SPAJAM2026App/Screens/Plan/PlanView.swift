@@ -31,13 +31,7 @@ struct PlanView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(session.plan.title)
-                .font(.handLargeTitle)
-            Text("\(session.plan.missions.count)ミッション・\(session.plan.area)")
-                .font(.handCaption)
-                .foregroundStyle(Color.inkSub)
-        }
+        ScreenHeader(session.plan.title, subtitle: "\(session.plan.missions.count)ミッション・\(session.plan.area)")
     }
 
     private var startButton: some View {

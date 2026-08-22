@@ -45,13 +45,7 @@ struct ResultView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("旅のリザルト")
-                .font(.handLargeTitle)
-            Text(session.plan.title)
-                .font(.handCaption)
-                .foregroundStyle(Color.inkSub)
-        }
+        ScreenHeader("旅のリザルト", subtitle: session.plan.title)
     }
 
     private var scoreCard: some View {

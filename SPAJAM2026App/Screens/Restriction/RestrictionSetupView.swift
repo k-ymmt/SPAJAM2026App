@@ -19,13 +19,7 @@ struct RestrictionSetupView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("おやすみにするアプリ")
-                    .font(.handLargeTitle)
-                Text("旅行中にシールドするアプリを選べます。ミッションのカメラはいつでも使えます")
-                    .font(.handCaption)
-                    .foregroundStyle(Color.inkSub)
-            }
+            ScreenHeader("おやすみにするアプリ", subtitle: "旅行中にシールドするアプリを選べます。ミッションのカメラはいつでも使えます")
 
             statusCard
 

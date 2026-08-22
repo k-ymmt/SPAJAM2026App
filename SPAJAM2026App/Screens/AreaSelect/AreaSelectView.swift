@@ -194,11 +194,7 @@ struct AreaSelectView: View {
     }
 
     private func title(_ main: String, sub: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(main).font(.handTitle)
-            Text(sub).font(.handCaption).foregroundStyle(Color.inkSub)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        ScreenHeader(main, subtitle: sub)
     }
 
     private func selectChip(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {

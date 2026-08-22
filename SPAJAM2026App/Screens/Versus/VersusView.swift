@@ -65,13 +65,7 @@ struct VersusView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("ふたりの旅くらべ")
-                .font(.handLargeTitle)
-            Text(session.plan.title)
-                .font(.handCaption)
-                .foregroundStyle(Color.inkSub)
-        }
+        ScreenHeader("ふたりの旅くらべ", subtitle: session.plan.title)
     }
 
     private func winnerCard(iWin: Bool, myTotal: Int, opTotal: Int) -> some View {
