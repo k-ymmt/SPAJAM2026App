@@ -128,14 +128,12 @@ final class TripSession {
         }
     }
 
-    /// LA 用の距離表示(GPS 条件のあるミッションのみ)
-    private var distanceText: String? {
+    /// LA 用の目的地までの距離(GPS 条件のあるミッションのみ)
+    private var distanceMeters: Double? {
         guard let mission = currentMission,
               let target = mission.judgment.location,
               let location = locationProvider.current else { return nil }
-        let distance = location.distance(from: CLLocation(latitude: target.latitude, longitude: target.longitude))
-        if distance >= 1000 { return String(format: "あと %.1fkm", distance / 1000) }
-        return "あと \(Int(distance))m"
+        return location.distance(from: CLLocation(latitude: target.latitude, longitude: target.longitude))
     }
 
     // MARK: - Watch 連携
@@ -275,8 +273,9 @@ final class TripSession {
         activityController.update(
             mission: mission,
             total: plan.missions.count,
-            distanceText: distanceText,
-            bpm: heartRateReceiver.latest?.beatsPerMinute.map(Int.init)
+            achievedCount: records.count,
+            distanceMeters: distanceMeters,
+            bpm: heartRateReceiver.latest?.beatsPerMinute
         )
     }
 
