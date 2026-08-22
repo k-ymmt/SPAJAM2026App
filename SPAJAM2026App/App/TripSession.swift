@@ -20,6 +20,8 @@ final class TripSession {
     }
 
     let plan: TravelPlan
+    /// 複数人の旅なら自分のルームと役割。ひとり旅は nil
+    let membership: RoomMembership?
     private(set) var phase: Phase = .planning
     /// いま挑戦中のミッション(順不同で選択可能)
     private(set) var currentMissionId: String?
@@ -46,8 +48,9 @@ final class TripSession {
     private var foregroundSeconds: TimeInterval = 0
     private var becameActiveAt: Date?
 
-    init(plan: TravelPlan = .bundledDemoPlan()) {
+    init(plan: TravelPlan = .bundledDemoPlan(), membership: RoomMembership? = nil) {
         self.plan = plan
+        self.membership = membership
         // Secrets にキーが無ければ Mock
         self.useMockJudge = GeminiPhotoAIJudge.fromSecrets() == nil
     }
@@ -57,6 +60,7 @@ final class TripSession {
     /// 保存済みスナップショットから復元する。phase が traveling ならシールド・Live Activity も再接続する
     init(snapshot: TripSessionSnapshot) {
         self.plan = snapshot.plan
+        self.membership = snapshot.membership
         self.useMockJudge = snapshot.useMockJudge
         self.phase = switch snapshot.phase {
         case .planning: .planning
@@ -117,7 +121,8 @@ final class TripSession {
             becameActiveAt: becameActiveAt,
             restrictionAdjustments: restrictionAdjustments,
             shieldSelectionData: shield.selectionData,
-            savedAt: Date()
+            savedAt: Date(),
+            membership: membership
         )
     }
 
@@ -158,6 +163,13 @@ final class TripSession {
     func proceedToRestrictionSetup() {
         phase = .restrictionSetup
         persist()
+    }
+
+    /// 親が「旅をはじめる」を押したとき: プランをルームに公開し、待機中の子を開始させる。
+    /// ひとり旅・子の場合は何もしない
+    func publishPlanToRoomIfHost() async throws {
+        guard let membership, membership.role == .host else { return }
+        try await TripRoomService.shared.publishPlan(code: membership.code, plan: plan)
     }
 
     func startTrip() {
