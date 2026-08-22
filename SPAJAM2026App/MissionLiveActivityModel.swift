@@ -46,7 +46,7 @@ final class MissionLiveActivityModel: NSObject {
     private(set) var activity: Activity<Attributes>?
     private(set) var authorizationStatus: CLAuthorizationStatus
     private(set) var lastLocation: CLLocation?
-    private(set) var lastHeartRate: HeartRateSample?
+    private(set) var lastHeartRate: HeartRateReading?
     private(set) var log: [LogEntry] = []
     private(set) var areActivitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
 

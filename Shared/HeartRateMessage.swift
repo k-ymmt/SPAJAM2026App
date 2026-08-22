@@ -10,7 +10,7 @@
 import Foundation
 
 /// One heart rate reading.
-nonisolated struct HeartRateSample: Sendable, Hashable, Identifiable {
+nonisolated struct HeartRateReading: Sendable, Hashable, Identifiable {
     enum Source: String, Sendable, Hashable {
         /// Streamed live from the watch app's workout session.
         case watch

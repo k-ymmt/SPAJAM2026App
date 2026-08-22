@@ -19,7 +19,7 @@ final class HeartRateMonitor {
     var healthAuthorization: HealthKitHeartRateSource.Authorization { feed.healthAuthorization }
     var lastCommandError: String? { feed.lastCommandError }
 
-    var latest: HeartRateSample? { history.latest }
+    var latest: HeartRateReading? { history.latest }
 
     /// Seconds since the latest reading, refreshed by the view's timer.
     func age(at now: Date = .now) -> TimeInterval? {
@@ -56,7 +56,7 @@ final class HeartRateMonitor {
         history.trim(now: now)
     }
 
-    private func append(_ sample: HeartRateSample) {
+    private func append(_ sample: HeartRateReading) {
         history.insert(sample)
     }
 }

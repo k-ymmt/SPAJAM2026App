@@ -11,13 +11,13 @@ import Foundation
 nonisolated struct HeartRateHistory: Sendable, Equatable {
     /// How far back (in seconds) samples are retained.
     let window: TimeInterval
-    private(set) var samples: [HeartRateSample] = []
+    private(set) var samples: [HeartRateReading] = []
 
     init(window: TimeInterval = 120) {
         self.window = window
     }
 
-    var latest: HeartRateSample? { samples.last }
+    var latest: HeartRateReading? { samples.last }
     var isEmpty: Bool { samples.isEmpty }
 
     var minimum: Double? { samples.map(\.beatsPerMinute).min() }
@@ -32,7 +32,7 @@ nonisolated struct HeartRateHistory: Sendable, Equatable {
     /// duplicates and anything older than `window` seconds before `now`.
     /// Returns `true` if the sample was added.
     @discardableResult
-    mutating func insert(_ sample: HeartRateSample, now: Date = .now) -> Bool {
+    mutating func insert(_ sample: HeartRateReading, now: Date = .now) -> Bool {
         guard sample.beatsPerMinute.isFinite, sample.beatsPerMinute > 0 else { return false }
         if sample.timestamp < now.addingTimeInterval(-window) {
             trim(now: now)

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		C49BE1F430396E17001745AC /* SPAJAM2026WatchApp Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = C49BE1D430396E11001745AC /* SPAJAM2026WatchApp Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D0DA0000000000000000000C /* SPAJAM2026Watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D0DA00000000000000000002 /* SPAJAM2026Watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D0DA0000000000000000001C /* TripActivityWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D0DA00000000000000000012 /* TripActivityWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		LA0000000000000000000E /* SPAJAM2026AppWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -47,6 +49,20 @@
 			remoteGlobalIDString = C49BE1D330396E11001745AC;
 			remoteInfo = "SPAJAM2026WatchApp Watch App";
 		};
+		D0DA0000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4692622303883090067188C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D0DA00000000000000000001;
+			remoteInfo = SPAJAM2026Watch;
+		};
+		D0DA0000000000000000001D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4692622303883090067188C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D0DA00000000000000000011;
+			remoteInfo = TripActivityWidget;
+		};
 		LA0000000000000000000B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C4692622303883090067188C /* Project object */;
@@ -66,6 +82,28 @@
 				C49BE1F430396E17001745AC /* SPAJAM2026WatchApp Watch App.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DA0000000000000000000B /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				D0DA0000000000000000000C /* SPAJAM2026Watch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DA0000000000000000001B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D0DA0000000000000000001C /* TripActivityWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		LA0000000000000000000D /* Embed Foundation Extensions */ = {
@@ -88,6 +126,8 @@
 		C49BE1D430396E11001745AC /* SPAJAM2026WatchApp Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SPAJAM2026WatchApp Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C49BE1E030396E17001745AC /* SPAJAM2026WatchApp Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SPAJAM2026WatchApp Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C49BE1EA30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SPAJAM2026WatchApp Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0DA00000000000000000002 /* SPAJAM2026Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SPAJAM2026Watch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0DA00000000000000000012 /* TripActivityWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TripActivityWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SPAJAM2026AppWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -105,6 +145,20 @@
 				Info.plist,
 			);
 			target = C49BE1D330396E11001745AC /* SPAJAM2026WatchApp Watch App */;
+		};
+		D0DA00000000000000000004 /* Exceptions for "SPAJAM2026Watch" folder in "SPAJAM2026Watch" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D0DA00000000000000000001 /* SPAJAM2026Watch */;
+		};
+		D0DA00000000000000000014 /* Exceptions for "TripActivityWidget" folder in "TripActivityWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D0DA00000000000000000011 /* TripActivityWidget */;
 		};
 		LA0000000000000000000F /* Exceptions for "SPAJAM2026AppWidgets" folder in "SPAJAM2026AppWidgets" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -152,7 +206,23 @@
 			path = "SPAJAM2026WatchApp Watch AppUITests";
 			sourceTree = "<group>";
 		};
-		C4A1B2C3D4E5F60718293A4B /* Shared */ = {
+		D0DA00000000000000000003 /* SPAJAM2026Watch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D0DA00000000000000000004 /* Exceptions for "SPAJAM2026Watch" folder in "SPAJAM2026Watch" target */,
+			);
+			path = SPAJAM2026Watch;
+			sourceTree = "<group>";
+		};
+		D0DA00000000000000000013 /* TripActivityWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D0DA00000000000000000014 /* Exceptions for "TripActivityWidget" folder in "TripActivityWidget" target */,
+			);
+			path = TripActivityWidget;
+			sourceTree = "<group>";
+		};
+		D0DA00000000000000000020 /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Shared;
 			sourceTree = "<group>";
@@ -215,6 +285,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D0DA00000000000000000009 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DA00000000000000000019 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		LA00000000000000000006 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -229,6 +313,9 @@
 			isa = PBXGroup;
 			children = (
 				C469262C303883090067188C /* SPAJAM2026App */,
+				D0DA00000000000000000020 /* Shared */,
+				D0DA00000000000000000003 /* SPAJAM2026Watch */,
+				D0DA00000000000000000013 /* TripActivityWidget */,
 				C469263A3038830A0067188C /* SPAJAM2026AppTests */,
 				C46926443038830A0067188C /* SPAJAM2026AppUITests */,
 				LA00000000000000000003 /* SPAJAM2026AppShared */,
@@ -236,7 +323,7 @@
 				C49BE1D530396E11001745AC /* SPAJAM2026WatchApp Watch App */,
 				C49BE1E330396E17001745AC /* SPAJAM2026WatchApp Watch AppTests */,
 				C49BE1ED30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests */,
-				C4A1B2C3D4E5F60718293A4B /* Shared */,
+				D0DA00000000000000000020 /* Shared */,
 				C469262B303883090067188C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -245,6 +332,8 @@
 			isa = PBXGroup;
 			children = (
 				C469262A303883090067188C /* SPAJAM2026App.app */,
+				D0DA00000000000000000002 /* SPAJAM2026Watch.app */,
+				D0DA00000000000000000012 /* TripActivityWidget.appex */,
 				C46926373038830A0067188C /* SPAJAM2026AppTests.xctest */,
 				C46926413038830A0067188C /* SPAJAM2026AppUITests.xctest */,
 				LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */,
@@ -265,18 +354,22 @@
 				C4692626303883090067188C /* Sources */,
 				C4692627303883090067188C /* Frameworks */,
 				C4692628303883090067188C /* Resources */,
+				D0DA0000000000000000000B /* Embed Watch Content */,
+				D0DA0000000000000000001B /* Embed Foundation Extensions */,
 				LA0000000000000000000D /* Embed Foundation Extensions */,
 				C49BE1F530396E17001745AC /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D0DA0000000000000000000E /* PBXTargetDependency */,
+				D0DA0000000000000000001E /* PBXTargetDependency */,
 				LA0000000000000000000C /* PBXTargetDependency */,
 				C49BE1F330396E17001745AC /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C469262C303883090067188C /* SPAJAM2026App */,
-				C4A1B2C3D4E5F60718293A4B /* Shared */,
+				D0DA00000000000000000020 /* Shared */,
 				LA00000000000000000003 /* SPAJAM2026AppShared */,
 			);
 			name = SPAJAM2026App;
@@ -346,7 +439,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C49BE1D530396E11001745AC /* SPAJAM2026WatchApp Watch App */,
-				C4A1B2C3D4E5F60718293A4B /* Shared */,
+				D0DA00000000000000000020 /* Shared */,
 			);
 			name = "SPAJAM2026WatchApp Watch App";
 			packageProductDependencies = (
@@ -400,6 +493,52 @@
 			productName = "SPAJAM2026WatchApp Watch AppUITests";
 			productReference = C49BE1EA30396E17001745AC /* SPAJAM2026WatchApp Watch AppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		D0DA00000000000000000001 /* SPAJAM2026Watch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0DA00000000000000000005 /* Build configuration list for PBXNativeTarget "SPAJAM2026Watch" */;
+			buildPhases = (
+				D0DA00000000000000000008 /* Sources */,
+				D0DA00000000000000000009 /* Frameworks */,
+				D0DA0000000000000000000A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D0DA00000000000000000003 /* SPAJAM2026Watch */,
+				D0DA00000000000000000020 /* Shared */,
+			);
+			name = SPAJAM2026Watch;
+			packageProductDependencies = (
+			);
+			productName = SPAJAM2026Watch;
+			productReference = D0DA00000000000000000002 /* SPAJAM2026Watch.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D0DA00000000000000000011 /* TripActivityWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0DA00000000000000000015 /* Build configuration list for PBXNativeTarget "TripActivityWidget" */;
+			buildPhases = (
+				D0DA00000000000000000018 /* Sources */,
+				D0DA00000000000000000019 /* Frameworks */,
+				D0DA0000000000000000001A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D0DA00000000000000000013 /* TripActivityWidget */,
+				D0DA00000000000000000020 /* Shared */,
+			);
+			name = TripActivityWidget;
+			packageProductDependencies = (
+			);
+			productName = TripActivityWidget;
+			productReference = D0DA00000000000000000012 /* TripActivityWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		LA00000000000000000004 /* SPAJAM2026AppWidgets */ = {
 			isa = PBXNativeTarget;
@@ -459,6 +598,12 @@
 					LA00000000000000000004 = {
 						CreatedOnToolsVersion = 26.6;
 					};
+					D0DA00000000000000000001 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					D0DA00000000000000000011 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = C4692625303883090067188C /* Build configuration list for PBXProject "SPAJAM2026App" */;
@@ -476,6 +621,8 @@
 			projectRoot = "";
 			targets = (
 				C4692629303883090067188C /* SPAJAM2026App */,
+				D0DA00000000000000000001 /* SPAJAM2026Watch */,
+				D0DA00000000000000000011 /* TripActivityWidget */,
 				C46926363038830A0067188C /* SPAJAM2026AppTests */,
 				C46926403038830A0067188C /* SPAJAM2026AppUITests */,
 				LA00000000000000000004 /* SPAJAM2026AppWidgets */,
@@ -523,6 +670,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C49BE1E830396E17001745AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DA0000000000000000000A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DA0000000000000000001A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -581,6 +742,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D0DA00000000000000000008 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0DA00000000000000000018 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		LA00000000000000000005 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -615,6 +790,16 @@
 			isa = PBXTargetDependency;
 			target = C49BE1D330396E11001745AC /* SPAJAM2026WatchApp Watch App */;
 			targetProxy = C49BE1F230396E17001745AC /* PBXContainerItemProxy */;
+		};
+		D0DA0000000000000000000E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D0DA00000000000000000001 /* SPAJAM2026Watch */;
+			targetProxy = D0DA0000000000000000000D /* PBXContainerItemProxy */;
+		};
+		D0DA0000000000000000001E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D0DA00000000000000000011 /* TripActivityWidget */;
+			targetProxy = D0DA0000000000000000001D /* PBXContainerItemProxy */;
 		};
 		LA0000000000000000000C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -751,11 +936,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SPAJAM2026App/SPAJAM2026App.entitlements;
+				CODE_SIGN_ENTITLEMENTS = SPAJAM2026App/SPAJAM2026App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "ミッションの達成判定のために写真を撮影します";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "目的地への到着判定のために現在地を使用します";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_FILE = SPAJAM2026App/Info.plist;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "心拍数をリアルタイムに表示するために使用します。";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "現在地の地図を Live Activity にバックグラウンドで更新し続けるために使用します。";
@@ -791,11 +980,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SPAJAM2026App/SPAJAM2026App.entitlements;
+				CODE_SIGN_ENTITLEMENTS = SPAJAM2026App/SPAJAM2026App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "ミッションの達成判定のために写真を撮影します";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "目的地への到着判定のために現在地を使用します";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_FILE = SPAJAM2026App/Info.plist;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "心拍数をリアルタイムに表示するために使用します。";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "現在地の地図を Live Activity にバックグラウンドで更新し続けるために使用します。";
@@ -1075,6 +1268,134 @@
 			};
 			name = Release;
 		};
+		D0DA00000000000000000006 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SPAJAM2026Watch/SPAJAM2026Watch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SPAJAM2026Watch/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SPAJAM2026;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = app.kymmt.SPAJAM2026App;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		D0DA00000000000000000007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SPAJAM2026Watch/SPAJAM2026Watch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SPAJAM2026Watch/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SPAJAM2026;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = app.kymmt.SPAJAM2026App;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		D0DA00000000000000000016 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TripActivityWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TripActivityWidget;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App.TripActivityWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D0DA00000000000000000017 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TripActivityWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TripActivityWidget;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.kymmt.SPAJAM2026App.TripActivityWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		LA00000000000000000009 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1199,6 +1520,24 @@
 			buildConfigurations = (
 				C49BE1FA30396E17001745AC /* Debug */,
 				C49BE1FB30396E17001745AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D0DA00000000000000000005 /* Build configuration list for PBXNativeTarget "SPAJAM2026Watch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0DA00000000000000000006 /* Debug */,
+				D0DA00000000000000000007 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D0DA00000000000000000015 /* Build configuration list for PBXNativeTarget "TripActivityWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0DA00000000000000000016 /* Debug */,
+				D0DA00000000000000000017 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

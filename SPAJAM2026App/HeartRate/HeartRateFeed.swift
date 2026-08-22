@@ -23,7 +23,7 @@ import Observation
 final class HeartRateFeed {
     static let shared = HeartRateFeed()
 
-    private(set) var latest: HeartRateSample?
+    private(set) var latest: HeartRateReading?
     private(set) var watchStatus = WatchStatus()
     private(set) var isWatchStreaming = false
     private(set) var healthAuthorization: HealthKitHeartRateSource.Authorization = .notDetermined
@@ -33,7 +33,7 @@ final class HeartRateFeed {
     private let healthSource = HealthKitHeartRateSource()
     private var isSessionActivated = false
     private var isHealthRunning = false
-    private var subscribers: [UUID: @MainActor (HeartRateSample) -> Void] = [:]
+    private var subscribers: [UUID: @MainActor (HeartRateReading) -> Void] = [:]
 
     private init() {}
 
@@ -78,7 +78,7 @@ final class HeartRateFeed {
     }
 
     @discardableResult
-    func subscribe(_ handler: @escaping @MainActor (HeartRateSample) -> Void) -> UUID {
+    func subscribe(_ handler: @escaping @MainActor (HeartRateReading) -> Void) -> UUID {
         let id = UUID()
         subscribers[id] = handler
         return id
@@ -92,7 +92,7 @@ final class HeartRateFeed {
         switch message {
         case let .heartRate(bpm, timestamp):
             isWatchStreaming = true
-            publish(HeartRateSample(timestamp: timestamp, beatsPerMinute: bpm, source: .watch))
+            publish(HeartRateReading(timestamp: timestamp, beatsPerMinute: bpm, source: .watch))
         case let .streamingState(isActive):
             isWatchStreaming = isActive
         case .command:
@@ -100,7 +100,7 @@ final class HeartRateFeed {
         }
     }
 
-    private func publish(_ sample: HeartRateSample) {
+    private func publish(_ sample: HeartRateReading) {
         guard sample.beatsPerMinute.isFinite, sample.beatsPerMinute > 0 else { return }
         if let latest, latest.timestamp > sample.timestamp { return }
         latest = sample

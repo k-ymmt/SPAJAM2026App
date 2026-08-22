@@ -51,8 +51,8 @@ struct HeartRateMessageTests {
 struct HeartRateHistoryTests {
     private let now = Date(timeIntervalSince1970: 1_750_000_000)
 
-    private func sample(_ offset: TimeInterval, bpm: Double = 70, source: HeartRateSample.Source = .watch) -> HeartRateSample {
-        HeartRateSample(timestamp: now.addingTimeInterval(offset), beatsPerMinute: bpm, source: source)
+    private func sample(_ offset: TimeInterval, bpm: Double = 70, source: HeartRateReading.Source = .watch) -> HeartRateReading {
+        HeartRateReading(timestamp: now.addingTimeInterval(offset), beatsPerMinute: bpm, source: source)
     }
 
     @Test func insertKeepsChronologicalOrder() {

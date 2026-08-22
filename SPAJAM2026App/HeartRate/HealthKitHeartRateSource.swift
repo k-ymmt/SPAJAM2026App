@@ -17,7 +17,7 @@ nonisolated final class HealthKitHeartRateSource {
         case authorized
     }
 
-    var onSample: (@Sendable (HeartRateSample) -> Void)?
+    var onSample: (@Sendable (HeartRateReading) -> Void)?
 
     private let store = HKHealthStore()
     private let heartRateType = HKQuantityType(.heartRate)
@@ -46,7 +46,7 @@ nonisolated final class HealthKitHeartRateSource {
         let handler: @Sendable (HKAnchoredObjectQuery, [HKSample]?, [HKDeletedObject]?, HKQueryAnchor?, (any Error)?) -> Void = { [weak self] _, samples, _, _, _ in
             guard let self, let quantities = samples as? [HKQuantitySample] else { return }
             for quantity in quantities {
-                let sample = HeartRateSample(
+                let sample = HeartRateReading(
                     timestamp: quantity.endDate,
                     beatsPerMinute: quantity.quantity.doubleValue(for: self.unit),
                     source: .health
