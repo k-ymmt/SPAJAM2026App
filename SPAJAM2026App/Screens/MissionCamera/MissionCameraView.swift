@@ -12,11 +12,11 @@ import SwiftUI
 
 struct MissionCameraView: View {
     @Environment(TripSession.self) private var session
+    @Environment(\.dismiss) private var dismiss
     @State private var capturedImage: UIImage?
     @State private var showCamera = false
+    @State private var useLibrary = false
     @State private var facing: CameraFacing = .back
-    @State private var showMissionList = false
-    @State private var showRestrictionAdjust = false
     @State private var selectedMissionId: String = ""
 
     var body: some View {
@@ -42,22 +42,11 @@ struct MissionCameraView: View {
                     capturedImage = image
                 }
             default:
-                CameraPicker(facing: facing) { image in
+                CameraPicker(facing: facing, useLibrary: useLibrary) { image in
                     capturedImage = image
                 }
                 .ignoresSafeArea()
             }
-        }
-        .sheet(isPresented: $showMissionList) {
-            TripMissionListView {
-                showRestrictionAdjust = true
-            }
-            .environment(session)
-        }
-        .sheet(isPresented: $showRestrictionAdjust) {
-            RestrictionAdjustView()
-                .environment(session)
-                .presentationDetents([.medium, .large])
         }
         .onAppear {
             selectedMissionId = session.currentMission?.id ?? session.plan.missions.first?.id ?? ""
@@ -114,11 +103,12 @@ struct MissionCameraView: View {
                         .foregroundStyle(.teal)
                 }
                 Spacer()
+                // ミッション一覧(メイン画面)へ戻る
                 Button {
-                    showMissionList = true
+                    dismiss()
                 } label: {
-                    Image(systemName: "square.grid.2x2.fill")
-                        .font(.body)
+                    Image(systemName: "xmark")
+                        .font(.body.bold())
                         .foregroundStyle(.white)
                         .padding(8)
                         .background(.white.opacity(0.2), in: Circle())
@@ -148,6 +138,7 @@ struct MissionCameraView: View {
                 }
             } else {
                 Button {
+                    useLibrary = false
                     showCamera = true
                 } label: {
                     if let image = capturedImage, mission.id == selectedMissionId {
@@ -214,13 +205,28 @@ struct MissionCameraView: View {
             .buttonStyle(.bordered)
             .tint(.white)
 
+            // フォトライブラリから取り込み
+            Button {
+                useLibrary = true
+                showCamera = true
+            } label: {
+                Image(systemName: "photo.on.rectangle")
+                    .padding(14)
+            }
+            .buttonStyle(.bordered)
+            .tint(.white)
+
             Button {
                 Task {
                     let ok = await session.judgeCurrentMission(
                         image: capturedImage,
                         location: session.locationProvider.current
                     )
-                    if ok { capturedImage = nil }
+                    if ok {
+                        capturedImage = nil
+                        // 達成したらメイン(ミッション一覧)へ戻る
+                        dismiss()
+                    }
                 }
             } label: {
                 Text("判定する")

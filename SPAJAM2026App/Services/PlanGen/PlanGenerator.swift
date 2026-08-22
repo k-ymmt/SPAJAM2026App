@@ -20,18 +20,27 @@ struct NearbySpot: Sendable {
 }
 
 enum TripMood: String, CaseIterable, Identifiable {
-    case relaxed = "まったり"
+    case relaxed = "ゆったり"
     case active = "アクティブ"
-    case gourmet = "グルメ多め"
+    case mania = "マニア"
 
     var id: String { rawValue }
+
+    /// 生成プロンプトに渡す温度感の説明
+    var promptHint: String {
+        switch self {
+        case .relaxed: "ゆったり: のんびり歩いて楽しめる、難易度低めのお題にする"
+        case .active: "アクティブ: よく歩き体を動かす、少し挑戦的なお題にする"
+        case .mania: "マニア: 定番を外したニッチでディープなスポットや観察系のお題にする"
+        }
+    }
 }
 
 struct PlanGenerator {
     enum GenError: Error { case noKey, noArea, noSpots, badLLMOutput }
 
     /// ピン座標から主要エリアを推定してプランを生成する
-    func generate(at coordinate: CLLocationCoordinate2D, mood: TripMood) async throws -> TravelPlan {
+    func generate(at coordinate: CLLocationCoordinate2D, partySize: Int, mood: TripMood) async throws -> TravelPlan {
         guard let mapsKey = Secrets.googleCloudAPIKey else { throw GenError.noKey }
 
         // ② 事実: エリア名(逆ジオコーディング)+ 主要スポット(注目度順)
@@ -41,7 +50,7 @@ struct PlanGenerator {
         guard !spots.isEmpty else { throw GenError.noSpots }
 
         // ③ 味付け: Gemini がスポットを選び、お題文言を書く
-        let plan = try await composePlan(areaHint: areaHint, spots: spots, mood: mood)
+        let plan = try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
         return plan
     }
 
@@ -99,7 +108,7 @@ struct PlanGenerator {
 
     // MARK: - Gemini でミッション文言を生成
 
-    private func composePlan(areaHint: String, spots: [NearbySpot], mood: TripMood) async throws -> TravelPlan {
+    private func composePlan(areaHint: String, spots: [NearbySpot], partySize: Int, mood: TripMood) async throws -> TravelPlan {
         guard let judge = GeminiPhotoAIJudge.fromSecrets() else { throw GenError.noKey }
         let spotList = spots.enumerated()
             .map { i, s in "\(i): \(s.name)\(s.rating.map { "(評価\($0))" } ?? "")" }
@@ -109,7 +118,8 @@ struct PlanGenerator {
         あなたは旅行ゲームのプランナーです。以下の実在スポットだけを使って、日帰り旅のミッションを作ってください。
 
         エリア: \(areaHint)
-        気分: \(mood.rawValue)
+        人数: \(partySize)人(\(partySize == 1 ? "ひとり旅" : "みんなで楽しめるお題も混ぜる"))
+        温度感: \(mood.promptHint)
         スポット一覧(index: 名前):
         \(spotList)
 

@@ -11,6 +11,8 @@ import UIKit
 
 struct CameraPicker: UIViewControllerRepresentable {
     var facing: CameraFacing
+    /// true ならフォトライブラリから取り込む(18:00 MTG 方針)
+    var useLibrary = false
     var onImage: (UIImage) -> Void
     @Environment(\.dismiss) private var dismiss
 
@@ -20,7 +22,7 @@ struct CameraPicker: UIViewControllerRepresentable {
         // シミュレータの疑似カメラは撮影できないためライブラリで代用
         picker.sourceType = .photoLibrary
         #else
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+        if !useLibrary, UIImagePickerController.isSourceTypeAvailable(.camera) {
             picker.sourceType = .camera
             picker.cameraDevice = facing == .front ? .front : .rear
         } else {
