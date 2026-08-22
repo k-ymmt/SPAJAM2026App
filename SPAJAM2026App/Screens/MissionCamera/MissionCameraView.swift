@@ -14,7 +14,6 @@ struct MissionCameraView: View {
     @Environment(TripSession.self) private var session
     @State private var capturedImage: UIImage?
     @State private var showCamera = false
-    @State private var locationProvider = LocationProvider()
     @State private var facing: CameraFacing = .back
     @State private var showMissionList = false
     @State private var showRestrictionAdjust = false
@@ -61,7 +60,6 @@ struct MissionCameraView: View {
                 .presentationDetents([.medium, .large])
         }
         .onAppear {
-            locationProvider.start()
             selectedMissionId = session.currentMission?.id ?? session.plan.missions.first?.id ?? ""
             facing = session.currentMission?.camera ?? .back
         }
@@ -220,7 +218,7 @@ struct MissionCameraView: View {
                 Task {
                     let ok = await session.judgeCurrentMission(
                         image: capturedImage,
-                        location: locationProvider.current
+                        location: session.locationProvider.current
                     )
                     if ok { capturedImage = nil }
                 }
@@ -257,12 +255,13 @@ struct MissionCameraView: View {
     }
 }
 
-/// 現在地の簡易プロバイダ(P0: その場取得のみ。ジオフェンス接近通知は P1)
+/// 現在地の簡易プロバイダ。位置更新は onUpdate 経由で TripSession(接近判定・LA 更新)にも流す
 @MainActor
 @Observable
 final class LocationProvider: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private(set) var current: CLLocation?
+    var onUpdate: ((CLLocation) -> Void)?
 
     func start() {
         manager.delegate = self
@@ -270,8 +269,15 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         manager.startUpdatingLocation()
     }
 
+    func stop() {
+        manager.stopUpdatingLocation()
+    }
+
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        let latest = locations.last
-        Task { @MainActor in self.current = latest }
+        guard let latest = locations.last else { return }
+        Task { @MainActor in
+            self.current = latest
+            self.onUpdate?(latest)
+        }
     }
 }

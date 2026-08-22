@@ -53,6 +53,29 @@ final class WatchHeartRateReceiver {
         if let latest, update.measuredAt < latest.measuredAt { return }
         latest = update
     }
+
+    // MARK: - iPhone → Watch 送信
+
+    /// いまのミッション状態を Watch へ送る(W1 画面用)。
+    /// reachable なら即時 sendMessage、加えて applicationContext にも残す(Watch 側の後起動対策)。
+    func sendMissionState(_ state: MissionState) {
+        guard let session, session.activationState == .activated else { return }
+        guard let payload = try? state.payload() else { return }
+        if session.isReachable {
+            session.sendMessage(payload, replyHandler: nil) { error in
+                logger.debug("missionState sendMessage 失敗: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        try? session.updateApplicationContext(payload)
+    }
+
+    /// 触覚フィードバックのトリガー(達成・接近)を Watch へ送る。
+    func sendEvent(_ kind: WatchEventKind) {
+        guard let session, session.activationState == .activated, session.isReachable else { return }
+        session.sendMessage(kind.payload, replyHandler: nil) { error in
+            logger.debug("watchEvent sendMessage 失敗: \(error.localizedDescription, privacy: .public)")
+        }
+    }
 }
 
 private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
