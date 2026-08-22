@@ -40,14 +40,15 @@ struct LocationMapLiveActivity: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    VStack(spacing: 6) {
-                        SnapshotImage(fileName: context.state.imageFileName)
-                            .frame(height: context.state.progress == nil ? 100 : 84)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        if let progress = context.state.progress {
-                            ProgressView(value: progress).tint(.blue)
+                    SnapshotImage(fileName: context.state.imageFileName)
+                        .frame(height: 100)
+                        .overlay(alignment: .bottom) {
+                            if let progress = context.state.progress {
+                                OverlayProgressBar(progress: progress)
+                                    .padding(8)
+                            }
                         }
-                    }
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             } compactLeading: {
                 Image(systemName: "location.fill").foregroundStyle(.blue)
@@ -66,18 +67,6 @@ private struct LockScreenMapView: View {
     let context: ActivityViewContext<LocationMapActivityAttributes>
 
     var body: some View {
-        VStack(spacing: 0) {
-            mapArea
-            if let progress = context.state.progress {
-                ProgressView(value: progress)
-                    .tint(.blue)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-            }
-        }
-    }
-
-    private var mapArea: some View {
         ZStack(alignment: .bottomLeading) {
             SnapshotImage(fileName: context.state.imageFileName)
             LinearGradient(colors: [.clear, .black.opacity(0.6)], startPoint: .center, endPoint: .bottom)
@@ -110,9 +99,35 @@ private struct LockScreenMapView: View {
             }
             .foregroundStyle(.white)
             .padding(12)
+            .padding(.bottom, context.state.progress == nil ? 0 : 8)
+
+            if let progress = context.state.progress {
+                OverlayProgressBar(progress: progress)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
+            }
         }
-        .frame(height: context.state.progress == nil ? 150 : 130)
+        .frame(height: 150)
         .clipped()
+    }
+}
+
+/// Thin progress bar designed to sit on top of the map image.
+private struct OverlayProgressBar: View {
+    let progress: Double
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(.white.opacity(0.35))
+                Capsule()
+                    .fill(.blue)
+                    .frame(width: geometry.size.width * min(max(progress, 0), 1))
+            }
+        }
+        .frame(height: 6)
+        .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
     }
 }
 
