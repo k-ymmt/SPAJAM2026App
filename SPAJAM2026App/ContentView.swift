@@ -59,7 +59,7 @@ struct ContentView: View {
             isDebugMenuPresented = true
         }
         .sheet(isPresented: $isDebugMenuPresented) {
-            DebugMenuView()
+            DebugMenuView(activeSession: session)
         }
     }
 }

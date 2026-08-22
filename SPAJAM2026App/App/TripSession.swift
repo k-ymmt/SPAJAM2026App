@@ -411,7 +411,8 @@ final class TripSession {
             total: plan.missions.count,
             achievedCount: records.count,
             distanceMeters: distanceMeters,
-            bpm: heartRateReceiver.latest?.beatsPerMinute
+            bpm: heartRateReceiver.latest?.beatsPerMinute,
+            currentLocation: locationProvider.current
         )
     }
 

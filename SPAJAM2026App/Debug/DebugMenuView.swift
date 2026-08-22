@@ -9,10 +9,48 @@ import SwiftUI
 
 struct DebugMenuView: View {
     @Environment(\.dismiss) private var dismiss
+    /// いま進行中の旅(なければ nil)。デモ・検証セクションで使う
+    var activeSession: TripSession?
 
     var body: some View {
         NavigationStack {
             List {
+                Section("デモ・検証") {
+                    if let session = activeSession {
+                        @Bindable var session = session
+                        Toggle(isOn: $session.useMockJudge) {
+                            TrialRow(
+                                title: "Mock 判定",
+                                subtitle: "AI 画像判定をローカルの Mock に切り替えます(電波なしデモ用)。",
+                                systemImage: "wand.and.stars"
+                            )
+                        }
+                        Button {
+                            session.noteMemberAchieved(
+                                memberName: "ひろせ",
+                                missionTitle: session.currentMission?.title ?? "ミッション"
+                            )
+                        } label: {
+                            TrialRow(
+                                title: "メンバー達成をシミュレート",
+                                subtitle: "他メンバーの達成通知と Watch 触覚を発火させます(旅行中のみ)。",
+                                systemImage: "person.2.wave.2"
+                            )
+                        }
+                    }
+                    Button {
+                        let demo = TripSession(plan: .bundledDemoPlan())
+                        demo.persist()
+                        NotificationCenter.default.post(name: TripSessionStore.didChange, object: nil)
+                        dismiss()
+                    } label: {
+                        TrialRow(
+                            title: "デモプラン(浅草)で開始",
+                            subtitle: "保存セッションを浅草のデモプランで置き換えて、プラン画面から始めます。",
+                            systemImage: "figure.walk.motion"
+                        )
+                    }
+                }
                 Section("アプリ状態") {
                     NavigationLink {
                         SavedSessionEditorView()

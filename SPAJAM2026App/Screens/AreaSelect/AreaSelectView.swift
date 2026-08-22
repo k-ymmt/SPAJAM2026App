@@ -97,14 +97,6 @@ struct AreaSelectView: View {
             .clipShape(RoundedRectangle(cornerRadius: 24))
 
             nextButton("つぎへ", disabled: pin == nil) { step = 2 }
-
-            Button {
-                onPlanReady(.bundledDemoPlan())
-            } label: {
-                Text("デモプラン(浅草)で始める")
-                    .font(.handBody)
-                    .foregroundStyle(Color.inkSub)
-            }
         }
     }
 
@@ -220,7 +212,7 @@ struct AreaSelectView: View {
                 onPlanReady(plan)
             } catch {
                 NSLog("[PlanGen] failed: \(error)")
-                errorMessage = "生成に失敗しました。もう一度試すか、デモプランで始めてください"
+                errorMessage = "生成に失敗しました。もう一度お試しください"
             }
             isGenerating = false
         }
