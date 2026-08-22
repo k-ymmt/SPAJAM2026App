@@ -56,7 +56,7 @@ struct TravelPlan: Codable {
     let missions: [Mission]
 }
 
-enum MissionCategory: String, Codable { case go, do_, eat, face, pose, buy, find, quiz, thrill }
+enum MissionCategory: String, Codable { case go, do_, eat, face, pose, buy, find }
 enum SlotType: String, Codable { case fixed, variable }
 
 struct Mission: Codable, Identifiable {
@@ -74,8 +74,6 @@ struct Mission: Codable, Identifiable {
 struct Judgment: Codable {
     var location: GeoTarget?       // nil なら GPS 判定スキップ
     var aiPrompt: String?          // photo 判定用
-    var heartRateDelta: Int?       // thrill 用(+15 など)
-    var quizAnswer: String?        // quiz 用
 }
 
 struct MissionRecord: Codable {    // 達成ログ(= setlog のタイル1枚)
@@ -105,7 +103,6 @@ protocol MissionJudge {
 
 struct JudgmentEngine {
     // パイプライン: LocationJudge(条件があれば) → PhotoAIJudge(aiPromptがあれば)
-    // 例外: thrill → HeartRateJudge、quiz → QuizJudge(文字列一致)
     // face/pose → ARKit がリアルタイム判定し UIImage を自動生成して同パイプラインへ合流
 }
 ```
@@ -167,7 +164,7 @@ struct JudgmentEngine {
 | P1 | ShieldService(FamilyControls) | 検証済み(山本)。スコア 3 要素の「スクリーンタイム」にも必要 |
 | P1 | Firestore 同期 | Firebase 設定 |
 | P2 | JournalingImporter | 検証済み(山本)。entitlement+実機 |
-| P2 | POSE / QUIZ 判定 | — |
+| P2 | POSE 判定 | — |
 
 ※ 15:00 MTG 更新: スクリーンタイム API・Journaling・Live Activity・心拍はすべて山本さんの検証で実装可能を確認済み。スコアは「達成度 + 心拍の上がり幅 + スマホを見なかった時間」の 3 要素に決定したため、ShieldService(+非注視時間の計測)を P1 に昇格。
 

@@ -309,7 +309,7 @@ final class TripSession {
     }
 
     /// 撮影した写真で現在ミッションを判定する。達成なら true
-    func judgeCurrentMission(image: UIImage?, location: CLLocation?, answerText: String? = nil) async -> Bool {
+    func judgeCurrentMission(image: UIImage?, location: CLLocation?) async -> Bool {
         guard let mission = currentMission else { return false }
         isJudging = true
         lastFailReason = nil
@@ -320,10 +320,7 @@ final class TripSession {
 
         let input = JudgeInput(
             image: image,
-            location: location,
-            currentBPM: bpm,
-            baselineBPM: baselineBPM,
-            answerText: answerText
+            location: location
         )
 
         switch await engine.judge(mission: mission, input: input) {
@@ -377,13 +374,6 @@ final class TripSession {
         if let update = heartRateReceiver.latest, let bpm = update.beatsPerMinute {
             heartRateSamples.append(HeartRateSample(date: update.measuredAt, bpm: bpm))
         }
-    }
-
-    /// 安静時基準: 記録の最初の数サンプルの平均(なければ nil)
-    private var baselineBPM: Double? {
-        let head = heartRateSamples.prefix(5)
-        guard !head.isEmpty else { return nil }
-        return head.reduce(0) { $0 + $1.bpm } / Double(head.count)
     }
 
     /// 集中スコア: 心拍の移動平均からの平均偏差(サンプルが無ければ 0)

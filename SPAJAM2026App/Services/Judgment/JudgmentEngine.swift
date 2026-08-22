@@ -13,12 +13,6 @@ import UIKit
 struct JudgeInput {
     var image: UIImage?
     var location: CLLocation?
-    /// 直近の心拍 (bpm)
-    var currentBPM: Double?
-    /// 旅行開始からの安静時基準 (bpm)
-    var baselineBPM: Double?
-    /// QUIZ の回答
-    var answerText: String?
 }
 
 enum JudgeResult {
@@ -47,28 +41,7 @@ struct JudgmentEngine {
             }
         }
 
-        // 2. THRILL: 心拍上昇の確認(写真判定より優先して評価)
-        if let delta = mission.judgment.heartRateDelta {
-            if let current = input.currentBPM, let baseline = input.baselineBPM {
-                if current - baseline < Double(delta) {
-                    return .failed(reason: "まだドキドキが足りない(+\(Int(current - baseline))bpm / 目標 +\(delta)bpm)")
-                }
-            }
-            // Watch 未接続時は写真判定のみで通す(デモ用フォールバック)
-        }
-
-        // 3. QUIZ: 文字列一致
-        if let answer = mission.judgment.quizAnswer {
-            guard let text = input.answerText?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !text.isEmpty else {
-                return .failed(reason: "答えを入力してください")
-            }
-            return text == answer
-                ? .achieved(comment: "正解!")
-                : .failed(reason: "残念、もう一度観察してみよう")
-        }
-
-        // 4. AI 画像判定
+        // 2. AI 画像判定
         if let prompt = mission.judgment.aiPrompt {
             guard let image = input.image,
                   let jpeg = image.jpegData(compressionQuality: 0.5) else {

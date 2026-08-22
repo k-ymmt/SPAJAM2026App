@@ -8,7 +8,7 @@
 import Foundation
 
 nonisolated enum MissionCategory: String, Codable, Sendable {
-    case go, `do`, eat, face, pose, buy, find, quiz, thrill
+    case go, `do`, eat, face, pose, buy, find
 
     var label: String {
         switch self {
@@ -19,8 +19,6 @@ nonisolated enum MissionCategory: String, Codable, Sendable {
         case .pose: "POSE"
         case .buy: "BUY"
         case .find: "FIND"
-        case .quiz: "QUIZ"
-        case .thrill: "THRILL"
         }
     }
 
@@ -33,8 +31,6 @@ nonisolated enum MissionCategory: String, Codable, Sendable {
         case .pose: "figure.arms.open"
         case .buy: "bag"
         case .find: "magnifyingglass"
-        case .quiz: "questionmark.circle"
-        case .thrill: "heart.fill"
         }
     }
 }
@@ -64,10 +60,6 @@ nonisolated struct MissionJudgment: Codable, Sendable, Hashable {
     var locationRequired: Bool?
     /// 写真 AI 判定のお題プロンプト。nil なら写真判定はスキップ
     var aiPrompt: String?
-    /// THRILL 用: 安静時比の心拍上昇量 (bpm)
-    var heartRateDelta: Int?
-    /// QUIZ 用: 正解文字列
-    var quizAnswer: String?
 }
 
 nonisolated struct Mission: Codable, Sendable, Identifiable, Hashable {
