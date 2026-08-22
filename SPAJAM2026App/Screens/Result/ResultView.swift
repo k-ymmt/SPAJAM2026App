@@ -56,16 +56,13 @@ struct ResultView: View {
 
     private var scoreCard: some View {
         VStack(spacing: 14) {
-            Text("\(session.totalPoints + session.focusScore + session.notLookingScore) pt")
+            Text("\(session.totalScore) pt")
                 .font(.system(size: 44, weight: .bold))
-            HStack(spacing: 20) {
-                scoreItem(label: "ミッション", value: "\(session.totalPoints)pt")
-                scoreItem(label: "心拍のゆらぎ", value: "\(session.focusScore)pt")
-                scoreItem(label: "みない時間", value: "\(session.notLookingScore)pt")
+            HStack(spacing: 12) {
+                scoreItem(label: "QUEST", sub: "ミッション達成", value: session.questScore)
+                scoreItem(label: "HEART", sub: "心の動き", value: session.heartScore)
+                scoreItem(label: "OFFLINE", sub: "スマホみない", value: session.offlineScore)
             }
-            Text("みない時間 = 旅行中にスマホを見なかった分数")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(20)
@@ -73,11 +70,13 @@ struct ResultView: View {
         .shadow(color: .black.opacity(0.06), radius: 9, y: 6)
     }
 
-    private func scoreItem(label: String, value: String) -> some View {
+    private func scoreItem(label: String, sub: String, value: Int) -> some View {
         VStack(spacing: 2) {
-            Text(value).font(.headline)
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text("\(value)pt").font(.headline)
+            Text(label).font(.caption2.bold()).foregroundStyle(.orange)
+            Text(sub).font(.caption2).foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var missionLog: some View {

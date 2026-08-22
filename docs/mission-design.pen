@@ -696,7 +696,7 @@
               "gap": 12,
               "children": [
                 {
-                  "id": "j5H5D",
+                  "id": "wy5m2",
                   "type": "ref",
                   "ref": "tQgSa",
                   "width": "fill_container",
@@ -705,14 +705,14 @@
                       "fill": "#FFEDE8"
                     },
                     "6lOU8": {
-                      "content": "THRILL・変動",
+                      "content": "POSE・変動",
                       "fill": "#FF5A3C"
                     },
                     "XNt4q": {
-                      "iconFontName": "heart-pulse"
+                      "iconFontName": "person-standing"
                     },
                     "ugkvB": {
-                      "content": "おみくじを引いてドキドキする"
+                      "content": "雷門の前で万歳する"
                     }
                   }
                 },
@@ -3230,10 +3230,10 @@
                   "width": "fill_container",
                   "descendants": {
                     "eTgUr": {
-                      "content": "おみくじを引いてドキドキする"
+                      "content": "雷門の前で万歳する"
                     },
                     "QMHfk": {
-                      "content": "THRILL・変動"
+                      "content": "POSE・変動"
                     },
                     "1gCnI": {
                       "fill": "#EDE7DB"
@@ -3557,6 +3557,906 @@
               "fontFamily": "Inter",
               "fontSize": 11,
               "fontWeight": "700"
+            }
+          ]
+        },
+        {
+          "id": "exfKK",
+          "type": "ref",
+          "ref": "IxKKC",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 10
+        },
+        {
+          "id": "Gug4S",
+          "type": "ref",
+          "ref": "IxKKC",
+          "width": "fill_container",
+          "descendants": {
+            "fQom4": {
+              "content": "DO(する)"
+            },
+            "AyAgu": {
+              "content": "photo(+location)"
+            },
+            "gmoum": {
+              "content": "タワーを真下から撮る、鳥居をくぐる"
+            }
+          }
+        },
+        {
+          "id": "DeMfl",
+          "type": "ref",
+          "ref": "IxKKC",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 10,
+          "descendants": {
+            "fQom4": {
+              "content": "EAT(食べる)"
+            },
+            "AyAgu": {
+              "content": "photo"
+            },
+            "gmoum": {
+              "content": "かき氷を食べる(地域名物ベース・店指定なし)"
+            }
+          }
+        },
+        {
+          "id": "7UDK8",
+          "type": "ref",
+          "ref": "IxKKC",
+          "width": "fill_container",
+          "descendants": {
+            "fQom4": {
+              "content": "FACE(表情)"
+            },
+            "lr6ui": {
+              "content": "変動",
+              "fill": "#FF5A3C"
+            },
+            "AyAgu": {
+              "content": "face(Face Tracking)"
+            },
+            "gmoum": {
+              "content": "最高の笑顔(口角・顔メッシュを可視化 → 自動撮影)"
+            }
+          }
+        },
+        {
+          "id": "2lInn",
+          "type": "ref",
+          "ref": "IxKKC",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 10,
+          "descendants": {
+            "fQom4": {
+              "content": "POSE(ポーズ)"
+            },
+            "lr6ui": {
+              "content": "変動",
+              "fill": "#FF5A3C"
+            },
+            "AyAgu": {
+              "content": "body(Body Tracking)"
+            },
+            "gmoum": {
+              "content": "万歳する(骨格を可視化 → 自動撮影)"
+            }
+          }
+        },
+        {
+          "id": "kaX7Y",
+          "type": "ref",
+          "ref": "IxKKC",
+          "width": "fill_container",
+          "descendants": {
+            "fQom4": {
+              "content": "BUY(買う)"
+            },
+            "lr6ui": {
+              "content": "変動",
+              "fill": "#FF5A3C"
+            },
+            "AyAgu": {
+              "content": "photo"
+            },
+            "gmoum": {
+              "content": "500円以内で「いちばん良い」お土産を買う"
+            }
+          }
+        },
+        {
+          "id": "5aime",
+          "type": "ref",
+          "ref": "IxKKC",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 10,
+          "descendants": {
+            "fQom4": {
+              "content": "FIND(探す)"
+            },
+            "lr6ui": {
+              "content": "変動",
+              "fill": "#FF5A3C"
+            },
+            "AyAgu": {
+              "content": "photo"
+            },
+            "gmoum": {
+              "content": "「いちばん夏っぽいもの」を撮る"
+            }
+          }
+        },
+        {
+          "id": "1SvAI",
+          "type": "ref",
+          "ref": "IxKKC",
+          "width": "fill_container",
+          "descendants": {
+            "fQom4": {
+              "content": "QUIZ(答える)"
+            },
+            "lr6ui": {
+              "content": "変動",
+              "fill": "#FF5A3C"
+            },
+            "AyAgu": {
+              "content": "location + テキスト入力"
+            },
+            "gmoum": {
+              "content": "「狛犬は何体いる?」に現地で答える"
+            }
+          }
+        },
+        {
+          "type": "text",
+          "id": "O1MCS",
+          "fill": "#9A9184",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "※ 除外決定: STAMP=体験とズレる / CALM=そもそもスマホを使わせない / THRILL=リアルタイム心拍判定が難しいため除外(心拍は旅行全体で記録し、リザルトの「心拍のゆらぎ」スコアで活かす)",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "1CPEs",
+      "x": 1840,
+      "y": 1150,
+      "name": "SPEC 実装設計",
+      "width": 560,
+      "fill": "#FFFFFF",
+      "cornerRadius": 24,
+      "layout": "vertical",
+      "gap": 12,
+      "padding": 24,
+      "children": [
+        {
+          "type": "text",
+          "id": "k5dFg",
+          "fill": "#26221D",
+          "content": "SPEC / 実装設計(詳細: docs/implementation-design.md)",
+          "fontFamily": "Inter",
+          "fontSize": 18,
+          "fontWeight": "700"
+        },
+        {
+          "type": "frame",
+          "id": "egOAN",
+          "name": "d1",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "Q3j2Q",
+              "fill": "#26221D",
+              "content": "ターゲット構成",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "J8kIa",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "iOS 本体 + Widget Extension(Live Activity)+ watchOS(心拍・触覚 ※watch ブランチを移植)。共有コードは Shared/",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "8FhKy",
+          "name": "d2",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "hPS8q",
+              "fill": "#26221D",
+              "content": "設計方針",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "gs7fy",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "全サービスを protocol + Mock/Live の 2 実装。AI 判定は Mock 切替スイッチ常備(電波リスク対策)。画面ごとにフォルダ(Screens/ = この Pencil の画面番号と対応)",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zZPMb",
+          "name": "d3",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 6,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "qwZ4M",
+              "fill": "#26221D",
+              "content": "実装優先度",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "Lqjv4",
+              "name": "p0",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "iqSJF",
+                  "name": "p0c",
+                  "fill": "#FF5A3C",
+                  "cornerRadius": 10,
+                  "padding": [
+                    3,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "4H9Fn",
+                      "fill": "#FFFFFF",
+                      "content": "P0",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "802tQ",
+                  "fill": "#6E675C",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "デモプラン JSON → Plan/Camera/Result が Mock 判定で一周 → Gemini 判定 Live → Watch 心拍+触覚 → Live Activity",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J0ufk",
+              "name": "p1",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "h8fIJ",
+                  "name": "p1c",
+                  "fill": "#2AA187",
+                  "cornerRadius": 10,
+                  "padding": [
+                    3,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "NuDGI",
+                      "fill": "#FFFFFF",
+                      "content": "P1",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "nPGHB",
+                  "fill": "#6E675C",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "エリア選択(ピン→スナップ)+プラン生成 / Versus(Mock 対戦データ) / FACE 判定 / Firestore 同期",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xahRW",
+              "name": "p2",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cJJli",
+                  "name": "p2c",
+                  "fill": "#C9C0B2",
+                  "cornerRadius": 10,
+                  "padding": [
+                    3,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "YuhMd",
+                      "fill": "#FFFFFF",
+                      "content": "P2",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "XXqF9",
+                  "fill": "#6E675C",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "スクリーンタイム制限(FamilyControls) / Journaling 取り込み / POSE・QUIZ 判定",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "xeJoM",
+          "name": "d4",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "YFDmI",
+              "fill": "#26221D",
+              "content": "分担",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "Jaswj",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "多田 = モデル・デモプラン・プラン生成・判定エンジン / 山本 = Watch 移植・Live Activity・Journaling・Firebase / 広瀬・杉浦 = 画面実装(この Pencil 準拠)・アセット",
+              "lineHeight": 1.6,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Xv3gd",
+          "name": "d5",
+          "width": "fill_container",
+          "fill": "#FFEDE8",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "qy0sy",
+              "fill": "#FF5A3C",
+              "content": "デモ成立条件(最重要)",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "RWTcn",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "P0 だけで「プラン表示 → 撮影 → AI 判定 → Watch 触覚 → リザルト」が一周すること。P1 以降は上から順に積む。AVCapture と ARSession は同時不可 → 画面遷移で分離",
+              "lineHeight": 1.6,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "sNYCE",
+      "x": 830,
+      "y": 1150,
+      "name": "SPEC 判定ロジック",
+      "width": 470,
+      "fill": "#FFFFFF",
+      "cornerRadius": 24,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 24,
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "bLXs1",
+          "name": "tB",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "jHXz0",
+              "fill": "#26221D",
+              "content": "SPEC / 判定パイプライン",
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "V9VEn",
+              "fill": "#9A9184",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "全ミッション共通の 1 本のパイプラインで判定する",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "lH60o",
+          "name": "p1",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "arPgm",
+              "fill": "#26221D",
+              "content": "1. アプリ内カメラで撮影(イン/アウト切替可)",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "yOqhi",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "撮影の瞬間の GPS を取得。FACE/POSE は AR が口角・骨格をリアルタイム可視化しながら判定 → キープした瞬間を自動撮影してここに合流",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "icon_font",
+          "id": "2KES7",
+          "width": 18,
+          "height": 18,
+          "iconFontName": "arrow-down",
+          "iconFontFamily": "lucide",
+          "fill": "#C9C0B2"
+        },
+        {
+          "type": "frame",
+          "id": "CrQP0",
+          "name": "p2",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "LEz22",
+              "fill": "#26221D",
+              "content": "2. GPS 条件チェック",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "yJMxF",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "judgment.location がある場合のみ。目標座標から半径内か(半径 = 難易度パラメータ)",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "icon_font",
+          "id": "12FsS",
+          "width": 18,
+          "height": 18,
+          "iconFontName": "arrow-down",
+          "iconFontFamily": "lucide",
+          "fill": "#C9C0B2"
+        },
+        {
+          "type": "frame",
+          "id": "lZCu1",
+          "name": "p3",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "J34I9",
+              "fill": "#26221D",
+              "content": "3. AI 画像判定(Gemini)",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "3oHA6",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "aiPrompt「この写真に◯◯が写っていますか?」に JSON {ok, reason} で回答させる。Mock 切替スイッチあり(電波なしデモ用)",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "icon_font",
+          "id": "Ndt7F",
+          "width": 18,
+          "height": 18,
+          "iconFontName": "arrow-down",
+          "iconFontFamily": "lucide",
+          "fill": "#C9C0B2"
+        },
+        {
+          "type": "frame",
+          "id": "lNVJE",
+          "name": "br",
+          "width": "fill_container",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "OXXBb",
+              "name": "ok",
+              "width": "fill_container",
+              "fill": "#E8F4F0",
+              "cornerRadius": 14,
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "OQyts",
+                  "fill": "#2AA187",
+                  "content": "達成 ✓",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "ycFsd",
+                  "fill": "#6E675C",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Watch 触覚 FB・Live Activity 更新・写真をログ保存",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "pz6gp",
+              "name": "ng",
+              "width": "fill_container",
+              "fill": "#FFEDE8",
+              "cornerRadius": 14,
+              "layout": "vertical",
+              "gap": 3,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bolIR",
+                  "fill": "#FF5A3C",
+                  "content": "未達 ✗",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "1XNlp",
+                  "fill": "#6E675C",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "AI の失敗理由を一言表示 → その場でリトライ",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "jySLp",
+          "fill": "#9A9184",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "※ 例外: QUIZ = 文字列一致(写真なし)。FACE/POSE の可視化 = 口角%表示・顔メッシュ / 骨格ジョイント描画",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "IIJML",
+      "x": 1360,
+      "y": 1150,
+      "name": "SPEC スコアと生成",
+      "width": 430,
+      "fill": "#FFFFFF",
+      "cornerRadius": 24,
+      "layout": "vertical",
+      "gap": 12,
+      "padding": 24,
+      "children": [
+        {
+          "type": "text",
+          "id": "6G018",
+          "fill": "#26221D",
+          "content": "SPEC / スコア・勝敗・プラン生成",
+          "fontFamily": "Inter",
+          "fontSize": 18,
+          "fontWeight": "700"
+        },
+        {
+          "type": "frame",
+          "id": "ua8ZS",
+          "name": "f1",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "XeAjL",
+              "fill": "#26221D",
+              "content": "スコア = 3 要素の合計(15:00 MTG 決定)",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "Lqq20",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "① ミッション達成 pt ② 心拍のゆらぎ(移動平均からの偏差。上下が大きい = 楽しめている)③ みない時間(旅行中にスマホを見なかった分数)。競争より個人満足度優先、その上で比較",
+              "lineHeight": 1.6,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DZZxv",
+          "name": "f2",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "S1nji",
+              "fill": "#26221D",
+              "content": "対戦のなりたち",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "MeXA4",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "招待コードで同じプラン JSON に参加 → 達成状況と心拍を同期(Firebase 想定・現状は Mock)→「ふたりの旅くらべ」画面で比較",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "lISkN",
+          "name": "f3",
+          "width": "fill_container",
+          "fill": "#FAF6F0",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "0fExd",
+              "fill": "#26221D",
+              "content": "プラン生成 = 3層ハイブリッド(実装済み)",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "jwBd9",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "① 構造 = 固定3+変動2(コードで固定) ② 事実 = Google Places/Geocoding の実データ(座標・スポット) ③ 味付け = Gemini がお題文言と aiPrompt を生成。エリアはピン設置 → 主要地スナップ(初台→新宿)。生成は旅行開始前に 1 回のみ、デモ用プラン(浅草)を同梱",
+              "lineHeight": 1.6,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "JRXhl",
+          "name": "f4",
+          "width": "fill_container",
+          "fill": "#FFEDE8",
+          "cornerRadius": 14,
+          "layout": "vertical",
+          "gap": 3,
+          "padding": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "cxl7E",
+              "fill": "#FF5A3C",
+              "content": "注意事項",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "R8sIY",
+              "fill": "#6E675C",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Journaling Suggestions は読み取り専用(保存は不可、取り込みのみ)/ スクリーンタイム制限・AR(FACE/POSE)・Watch 心拍は実機必須 / ミッションのカメラはアプリ内なので制限の影響なし",
+              "lineHeight": 1.6,
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
             }
           ]
         }

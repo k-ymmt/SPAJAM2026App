@@ -31,8 +31,8 @@ struct OpponentData {
             name: "あいて",
             achievedMissionIds: achieved,
             points: points,
-            focusScore: max(0, session.focusScore * 7 / 10 + 3),
-            notLookingScore: max(0, session.notLookingScore * 8 / 10),
+            focusScore: max(0, session.heartScore * 7 / 10 + 3),
+            notLookingScore: max(0, session.offlineScore * 8 / 10),
             bpmBars: [0.3, 0.4, 0.5, 0.45, 0.35, 0.4]
         )
     }
@@ -47,7 +47,7 @@ struct VersusView: View {
 
     var body: some View {
         let opponent = self.opponent
-        let myTotal = session.totalPoints + session.focusScore + session.notLookingScore
+        let myTotal = session.totalScore
         let opTotal = opponent.total
         let iWin = myTotal >= opTotal
 
@@ -83,7 +83,7 @@ struct VersusView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(iWin ? "たのしみ勝ちは あなた!" : "たのしみ勝ちは あいて!")
                     .font(.subheadline.bold())
-                Text("あなた \(myTotal)pt ・ あいて \(opTotal)pt")
+                Text("あなた \(myTotal)pt ・ あいて \(opTotal)pt(QUEST+HEART+OFFLINE)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

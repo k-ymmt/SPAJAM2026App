@@ -94,14 +94,35 @@ final class TripSession {
         }
     }
 
-    /// みない時間スコア: 旅行時間のうちスマホ(このアプリ)を見ていなかった分数
-    var notLookingScore: Int {
+    // MARK: - スコア 3 要素(正式名称)
+
+    /// QUEST SCORE: ミッションをどれだけ達成したか
+    var questScore: Int { totalPoints }
+
+    /// HEART SCORE: どれだけ心が動いたか(心拍数の上下 = ワクワク・感動)
+    var heartScore: Int { focusScore }
+
+    /// OFFLINE SCORE: どれだけスマホを見ずに過ごしたか
+    /// = 見なかった分数 + 制限したアプリ数ボーナス
+    var offlineScore: Int {
+        notLookingMinutes + shieldBonus
+    }
+
+    var totalScore: Int { questScore + heartScore + offlineScore }
+
+    /// 旅行時間のうちスマホ(このアプリ)を見ていなかった分数
+    private var notLookingMinutes: Int {
         guard let start = tripStartedAt else { return 0 }
         let end = tripEndedAt ?? Date()
         var active = foregroundSeconds
         if let since = becameActiveAt { active += end.timeIntervalSince(since) }
         let notLooking = max(0, end.timeIntervalSince(start) - active)
         return Int(notLooking / 60)
+    }
+
+    /// 制限数ボーナス: シールドしたアプリ/カテゴリ 1 つにつき +2pt(上限 10pt)
+    private var shieldBonus: Int {
+        min(10, shield.selectionCount * 2)
     }
 
     // MARK: - 判定

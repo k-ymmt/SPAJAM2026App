@@ -24,11 +24,14 @@ final class ShieldService {
     #endif
 
     /// シールド対象を選んでいるか
-    var hasSelection: Bool {
+    var hasSelection: Bool { selectionCount > 0 }
+
+    /// シールド対象の数(OFFLINE SCORE の制限数ボーナスに使用)
+    var selectionCount: Int {
         #if canImport(FamilyControls)
-        return !selection.applicationTokens.isEmpty || !selection.categoryTokens.isEmpty
+        return selection.applicationTokens.count + selection.categoryTokens.count
         #else
-        return false
+        return 0
         #endif
     }
 
