@@ -98,6 +98,7 @@ struct PlanHeaderView: View {
                 Text(plan.title)
                     .font(.handLargeTitle)
                     .foregroundStyle(Color.appAccent)
+                    .shadow(color: Color.appAccent.opacity(0.65), radius: 0.5)
                 Spacer()
                 if let trailing {
                     trailing

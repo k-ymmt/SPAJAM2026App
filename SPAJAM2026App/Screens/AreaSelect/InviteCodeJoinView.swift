@@ -37,11 +37,11 @@ struct InviteCodeJoinView: View {
                     .submitLabel(.next)
                     .onSubmit { focus = .code }
 
-                field("招待コード", placeholder: "ABC234", text: $code)
+                field("招待コード", placeholder: "ABC234", text: $code,
+                      font: .system(size: 20, weight: .bold, design: .rounded).monospacedDigit())
                     .focused($focus, equals: .code)
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
-                    .font(.system(size: 22, weight: .bold, design: .rounded).monospacedDigit())
                     .submitLabel(.go)
                     .onSubmit { if canJoin { join() } }
             }
@@ -84,13 +84,15 @@ struct InviteCodeJoinView: View {
         .interactiveDismissDisabled(isJoining)
     }
 
-    private func field(_ label: String, placeholder: String, text: Binding<String>) -> some View {
+    // 入力文字は可読性優先でシステムフォント
+    private func field(_ label: String, placeholder: String, text: Binding<String>,
+                       font: Font = .system(size: 17)) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
                 .font(.handCaption)
                 .foregroundStyle(Color.inkSub)
             TextField(placeholder, text: text)
-                .font(.handBody)
+                .font(font)
                 .foregroundStyle(Color.inkMain)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)

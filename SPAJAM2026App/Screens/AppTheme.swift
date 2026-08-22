@@ -25,6 +25,8 @@ struct BrushButton: View {
                 Text(label)
                     .font(.handHeadline)
                     .foregroundStyle(.white)
+                    // こよみゆるは太字面がないため、同色シャドウで線を太らせる
+                    .shadow(color: .white.opacity(0.8), radius: 0.5)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
