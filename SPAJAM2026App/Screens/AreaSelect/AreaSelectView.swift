@@ -210,6 +210,11 @@ struct AreaSelectView: View {
             do {
                 let plan = try await PlanGenerator().generate(at: pin, partySize: partySize, mood: mood)
                 onPlanReady(plan)
+            } catch PlanGenerator.GenError.timeout {
+                NSLog("[PlanGen] timed out")
+                errorMessage = "生成がタイムアウトしました。電波の良い場所でもう一度お試しください"
+            } catch PlanGenerator.GenError.noKey {
+                errorMessage = "API キー(Secrets.plist)が設定されていません"
             } catch {
                 NSLog("[PlanGen] failed: \(error)")
                 errorMessage = "生成に失敗しました。もう一度お試しください"

@@ -37,10 +37,19 @@ enum TripMood: String, CaseIterable, Identifiable {
 }
 
 struct PlanGenerator {
-    enum GenError: Error { case noKey, noArea, noSpots, badLLMOutput }
+    enum GenError: Error { case noKey, noArea, noSpots, badLLMOutput, timeout }
+
+    /// 生成全体のハードタイムアウト(秒)。電波不良でスピナーが回り続けるのを防ぐ
+    static let overallTimeout: TimeInterval = 45
 
     /// ピン座標から主要エリアを推定してプランを生成する
     func generate(at coordinate: CLLocationCoordinate2D, partySize: Int, mood: TripMood) async throws -> TravelPlan {
+        try await Self.withTimeout(seconds: Self.overallTimeout) {
+            try await generateBody(at: coordinate, partySize: partySize, mood: mood)
+        }
+    }
+
+    private func generateBody(at coordinate: CLLocationCoordinate2D, partySize: Int, mood: TripMood) async throws -> TravelPlan {
         guard let mapsKey = Secrets.googleCloudAPIKey else { throw GenError.noKey }
 
         // ② 事実: エリア名(逆ジオコーディング)+ 主要スポット(注目度順)
@@ -49,12 +58,30 @@ struct PlanGenerator {
         let (areaHint, spots) = try await (areaTask, spotsTask)
         guard !spots.isEmpty else { throw GenError.noSpots }
 
-        // ③ 味付け: Gemini がスポットを選び、お題文言を書く(タイムアウト等に備えて 1 回だけ自動リトライ)
+        // ③ 味付け: Gemini がスポットを選び、お題文言を書く(一時エラーに備えて 1 回だけ自動リトライ)
         do {
             return try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
         } catch {
             NSLog("[PlanGen] compose retrying after: \(error)")
+            try Task.checkCancellation()
             return try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
+        }
+    }
+
+    /// work が seconds 以内に終わらなければ GenError.timeout を投げ、実行中の通信もキャンセルする
+    private static func withTimeout<T: Sendable>(
+        seconds: TimeInterval,
+        _ work: @escaping @Sendable () async throws -> T
+    ) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask { try await work() }
+            group.addTask {
+                try await Task.sleep(for: .seconds(seconds))
+                throw GenError.timeout
+            }
+            guard let result = try await group.next() else { throw GenError.timeout }
+            group.cancelAll()
+            return result
         }
     }
 
@@ -71,7 +98,7 @@ struct PlanGenerator {
             struct R: Decodable { let formatted_address: String }
             let results: [R]
         }
-        let (data, _) = try await URLSession.shared.data(from: comp.url!)
+        let (data, _) = try await URLSession.shared.data(for: URLRequest(url: comp.url!, timeoutInterval: 10))
         let res = try JSONDecoder().decode(Res.self, from: data)
         return res.results.first?.formatted_address ?? "この周辺"
     }
@@ -100,7 +127,7 @@ struct PlanGenerator {
                 }
                 let results: [R]
             }
-            let (data, _) = try await URLSession.shared.data(from: comp.url!)
+            let (data, _) = try await URLSession.shared.data(for: URLRequest(url: comp.url!, timeoutInterval: 10))
             let res = try JSONDecoder().decode(Res.self, from: data)
             let spots = res.results.prefix(10).map {
                 NearbySpot(name: $0.name, latitude: $0.geometry.location.lat, longitude: $0.geometry.location.lng, rating: $0.rating)
