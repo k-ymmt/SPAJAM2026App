@@ -33,7 +33,12 @@ final class TripSession {
 
     let heartRateReceiver = WatchHeartRateReceiver()
     let shield = ShieldService()
+    let locationProvider = LocationProvider()
     private let activityController = TripActivityController()
+    /// 接近振動を送ったミッション(1 ミッション 1 回だけ)
+    private var nearNotified: Set<String> = []
+    /// Live Activity の定期更新タスク
+    private var activityRefreshTask: Task<Void, Never>?
 
     // 「みない時間」計測: 旅行中にこのアプリを見ていた時間を積算する
     private var tripStartedAt: Date?
@@ -58,6 +63,7 @@ final class TripSession {
         currentMissionId = mission.id
         lastFailReason = nil
         updateActivity()
+        sendMissionStateToWatch()
     }
 
     var totalPoints: Int { records.reduce(0) { $0 + $1.points } }
@@ -82,6 +88,19 @@ final class TripSession {
         if let mission = currentMission {
             activityController.start(plan: plan, mission: mission)
         }
+        // 位置監視(接近振動 + LA の距離表示)
+        locationProvider.onUpdate = { [weak self] location in
+            self?.handleLocation(location)
+        }
+        locationProvider.start()
+        // Watch へ現在ミッションを送信 + LA を 15 秒ごとに更新(bpm・距離)
+        sendMissionStateToWatch()
+        activityRefreshTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(15))
+                self?.updateActivity()
+            }
+        }
     }
 
     func endTrip() {
@@ -90,6 +109,46 @@ final class TripSession {
         phase = .finished
         shield.stop()
         activityController.end()
+        activityRefreshTask?.cancel()
+        activityRefreshTask = nil
+        locationProvider.stop()
+    }
+
+    // MARK: - 位置更新(接近振動・LA 距離)
+
+    private func handleLocation(_ location: CLLocation) {
+        guard phase == .traveling, let mission = currentMission,
+              let target = mission.judgment.location else { return }
+        let distance = location.distance(from: CLLocation(latitude: target.latitude, longitude: target.longitude))
+        // 半径の 2 倍 or 200m 以内に入ったら Watch に接近振動(ミッションごとに 1 回)
+        let nearThreshold = max(200, target.radiusMeters * 2)
+        if distance <= nearThreshold, mission.hapticOnNear == true, !nearNotified.contains(mission.id) {
+            nearNotified.insert(mission.id)
+            heartRateReceiver.sendEvent(.near)
+        }
+    }
+
+    /// LA 用の目的地までの距離(GPS 条件のあるミッションのみ)
+    private var distanceMeters: Double? {
+        guard let mission = currentMission,
+              let target = mission.judgment.location,
+              let location = locationProvider.current else { return nil }
+        return location.distance(from: CLLocation(latitude: target.latitude, longitude: target.longitude))
+    }
+
+    // MARK: - Watch 連携
+
+    private func sendMissionStateToWatch() {
+        guard let mission = currentMission else { return }
+        heartRateReceiver.sendMissionState(
+            MissionState(
+                planTitle: plan.title,
+                missionTitle: mission.title,
+                order: mission.order,
+                total: plan.missions.count,
+                achievedCount: records.count
+            )
+        )
     }
 
     /// アプリの前面/背面切り替えを記録(旅行中のみ積算)
@@ -187,6 +246,7 @@ final class TripSession {
                 aiComment: comment
             )
             records.append(record)
+            heartRateReceiver.sendEvent(.achieved)
             advance()
             return true
         case .failed(let reason):
@@ -202,6 +262,7 @@ final class TripSession {
         if let next = remaining.first {
             currentMissionId = next.id
             updateActivity()
+            sendMissionStateToWatch()
         } else {
             endTrip()
         }
@@ -212,8 +273,9 @@ final class TripSession {
         activityController.update(
             mission: mission,
             total: plan.missions.count,
-            distanceText: nil,
-            bpm: heartRateReceiver.latest?.beatsPerMinute.map(Int.init)
+            achievedCount: records.count,
+            distanceMeters: distanceMeters,
+            bpm: heartRateReceiver.latest?.beatsPerMinute
         )
     }
 

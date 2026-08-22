@@ -2,8 +2,10 @@
 //  AreaSelectView.swift
 //  SPAJAM2026App
 //
-//  01 エリア選択。マップにピン → 主要地スナップ → プラン生成。
-//  デザイン: docs/mission-design.pen「01 エリア選択」
+//  01 エリア選択。3 ステップがスライドで切り替わる:
+//  Step1 どこへ(マップにピン) → Step2 だれと(1〜5人) → Step3 温度感(ゆったり/アクティブ/マニア)
+//  中央のイラストはステップと選択に応じて変わる(手書きイラスト素材に差し替え予定)。
+//  ボタンは「つぎへ」のみ(戻るなし)。
 //
 
 import CoreLocation
@@ -19,112 +21,207 @@ struct AreaSelectView: View {
             span: MKCoordinateSpan(latitudeDelta: 0.15, longitudeDelta: 0.15)
         )
     )
+    @State private var step = 1
     @State private var pin: CLLocationCoordinate2D?
+    @State private var partySize = 2
     @State private var mood: TripMood = .relaxed
     @State private var isGenerating = false
     @State private var errorMessage: String?
 
+    private let slide: AnyTransition = .asymmetric(
+        insertion: .move(edge: .trailing).combined(with: .opacity),
+        removal: .move(edge: .leading).combined(with: .opacity)
+    )
+
     var body: some View {
-        VStack(spacing: 0) {
-            mapArea
-            sheet
+        VStack(spacing: 20) {
+            stepIndicator
+                .padding(.top, 12)
+
+            ZStack {
+                switch step {
+                case 1: slideWhere.transition(slide)
+                case 2: slideWho.transition(slide)
+                default: slideMood.transition(slide)
+                }
+            }
+            .animation(.easeInOut(duration: 0.35), value: step)
         }
+        .padding(24)
         .background(Color(red: 0.98, green: 0.965, blue: 0.94))
     }
 
-    private var mapArea: some View {
-        MapReader { proxy in
-            Map(position: $camera) {
-                if let pin {
-                    Marker("旅先", coordinate: pin)
-                        .tint(.orange)
-                }
-            }
-            .onTapGesture { point in
-                if let coordinate = proxy.convert(point, from: .local) {
-                    pin = coordinate
-                }
-            }
-            .overlay(alignment: .top) {
-                Text(pin == nil ? "ピンを置いて旅先を決めよう" : "この辺りの主要スポットで旅をつくります")
-                    .font(.footnote.weight(.semibold))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(.white, in: Capsule())
-                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
-                    .padding(.top, 12)
-            }
+    // MARK: - ステップインジケータ
+
+    private var stepIndicator: some View {
+        HStack(spacing: 8) {
+            stepChip(1, "どこへ")
+            stepChip(2, "だれと")
+            stepChip(3, "温度感")
+            Spacer()
         }
     }
 
-    private var sheet: some View {
+    private func stepChip(_ n: Int, _ label: String) -> some View {
+        HStack(spacing: 5) {
+            Text("\(n)")
+                .font(.handCaption2)
+                .foregroundStyle(step >= n ? .white : .secondary)
+                .frame(width: 18, height: 18)
+                .background(step >= n ? Color.orange : Color(.systemGray5), in: Circle())
+            Text(label)
+                .font(.handCaption)
+                .foregroundStyle(step == n ? Color.inkMain : Color.inkSub)
+        }
+    }
+
+    // MARK: - Step1 どこへ(マップが主役)
+
+    private var slideWhere: some View {
         VStack(spacing: 16) {
-            Capsule().fill(Color(.systemGray4)).frame(width: 44, height: 5)
+            title("どこへ行く?", sub: "マップにピンを置くと、周辺の主要スポットから旅をつくります")
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("旅をつくる")
-                    .font(.title3.bold())
-                Text("ピンの位置から主要エリアを推定して、5つのミッションを自動生成します")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            HStack(spacing: 8) {
-                ForEach(TripMood.allCases) { m in
-                    Button {
-                        mood = m
-                    } label: {
-                        Text(m.rawValue)
-                            .font(.footnote.weight(.semibold))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(mood == m ? Color.orange : .white, in: Capsule())
-                            .foregroundStyle(mood == m ? .white : .secondary)
-                            .overlay(Capsule().stroke(Color(.systemGray4), lineWidth: mood == m ? 0 : 1))
+            MapReader { proxy in
+                Map(position: $camera) {
+                    if let pin {
+                        Marker("旅先", coordinate: pin)
+                            .tint(.orange)
                     }
                 }
-                Spacer()
-            }
-
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-
-            Button {
-                generate()
-            } label: {
-                Group {
-                    if isGenerating {
-                        HStack(spacing: 8) {
-                            ProgressView().tint(.white)
-                            Text("プランを生成中…")
-                        }
-                    } else {
-                        Text("この旅先でプランをつくる")
+                .onTapGesture { point in
+                    if let coordinate = proxy.convert(point, from: .local) {
+                        pin = coordinate
                     }
                 }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .disabled(pin == nil || isGenerating)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+
+            nextButton("つぎへ", disabled: pin == nil) { step = 2 }
 
             Button {
                 onPlanReady(.bundledDemoPlan())
             } label: {
                 Text("デモプラン(浅草)で始める")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(.handBody)
+                    .foregroundStyle(Color.inkSub)
             }
-            .disabled(isGenerating)
         }
-        .padding(24)
-        .background(.white, in: UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28))
+    }
+
+    // MARK: - Step2 だれと(イラストが人数で変わる)
+
+    private var slideWho: some View {
+        VStack(spacing: 16) {
+            title("だれと行く?", sub: "いっしょに旅する人数を選んでください")
+
+            Spacer()
+            illustration(symbol: partySymbol, caption: partySize == 1 ? "ひとり旅" : "\(partySize)人旅")
+            Spacer()
+
+            HStack(spacing: 8) {
+                ForEach(1...5, id: \.self) { n in
+                    selectChip("\(n)", selected: partySize == n) { partySize = n }
+                }
+            }
+
+            nextButton("つぎへ") { step = 3 }
+        }
+    }
+
+    private var partySymbol: String {
+        switch partySize {
+        case 1: "figure.walk"
+        case 2: "figure.2"
+        default: "figure.2.and.child.holdinghands"
+        }
+    }
+
+    // MARK: - Step3 温度感(イラストが温度感で変わる)
+
+    private var slideMood: some View {
+        VStack(spacing: 16) {
+            title("旅の温度感は?", sub: "ミッションの難易度とテイストが変わります")
+
+            Spacer()
+            illustration(symbol: moodSymbol, caption: mood.rawValue)
+            Spacer()
+
+            HStack(spacing: 8) {
+                ForEach(TripMood.allCases) { m in
+                    selectChip(m.rawValue, selected: mood == m) { mood = m }
+                }
+            }
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.handCaption)
+                    .foregroundStyle(.red)
+            }
+
+            nextButton(isGenerating ? "プランを生成中…" : "この旅先でプランをつくる", loading: isGenerating, disabled: isGenerating) {
+                generate()
+            }
+        }
+    }
+
+    private var moodSymbol: String {
+        switch mood {
+        case .relaxed: "cup.and.saucer.fill"
+        case .active: "figure.run"
+        case .mania: "binoculars.fill"
+        }
+    }
+
+    // MARK: - 部品
+
+    /// 中央イラスト。広瀬さんの手書きイラスト素材に差し替える前提のプレースホルダ
+    private func illustration(symbol: String, caption: String) -> some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(0.12))
+                    .frame(width: 200, height: 200)
+                Image(systemName: symbol)
+                    .font(.system(size: 80))
+                    .foregroundStyle(.orange)
+            }
+            .contentTransition(.symbolEffect(.replace))
+            Text(caption)
+                .font(.handHeadline)
+                .foregroundStyle(Color.inkSub)
+        }
+        .animation(.default, value: symbol)
+    }
+
+    private func title(_ main: String, sub: String) -> some View {
+        ScreenHeader(main, subtitle: sub)
+    }
+
+    private func selectChip(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.handBody)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(selected ? Color.orange : .white, in: Capsule())
+                .foregroundStyle(selected ? .white : Color.inkSub)
+                .overlay(Capsule().stroke(Color(.systemGray4), lineWidth: selected ? 0 : 1))
+        }
+    }
+
+    private func nextButton(_ label: String, loading: Bool = false, disabled: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                if loading { ProgressView().tint(.white) }
+                Text(label)
+            }
+            .font(.handHeadline)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 15)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.orange)
+        .disabled(disabled)
     }
 
     private func generate() {
@@ -133,7 +230,7 @@ struct AreaSelectView: View {
         errorMessage = nil
         Task {
             do {
-                let plan = try await PlanGenerator().generate(at: pin, mood: mood)
+                let plan = try await PlanGenerator().generate(at: pin, partySize: partySize, mood: mood)
                 onPlanReady(plan)
             } catch {
                 NSLog("[PlanGen] failed: \(error)")

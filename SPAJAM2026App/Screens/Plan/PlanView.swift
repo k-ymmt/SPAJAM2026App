@@ -31,20 +31,14 @@ struct PlanView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(session.plan.title)
-                .font(.title2.bold())
-            Text("\(session.plan.missions.count)ミッション・\(session.plan.area)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
+        ScreenHeader(session.plan.title, subtitle: "\(session.plan.missions.count)ミッション・\(session.plan.area)")
     }
 
     private var startButton: some View {
         VStack(spacing: 10) {
             Button(action: onStart) {
                 Text("旅をはじめる")
-                    .font(.headline)
+                    .font(.handHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
             }
@@ -52,8 +46,8 @@ struct PlanView: View {
             .tint(.orange)
 
             Text("はじめるとスマホはおやすみモードになります")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(.handCaption2)
+                .foregroundStyle(Color.inkSub)
                 .frame(maxWidth: .infinity)
 
             judgeToggle
@@ -66,8 +60,8 @@ struct PlanView: View {
         @Bindable var session = session
         return Toggle(isOn: $session.useMockJudge) {
             Text("Mock 判定(電波なしデモ用)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.handCaption)
+                .foregroundStyle(Color.inkSub)
         }
         .tint(.orange)
         .padding(.horizontal, 4)
@@ -82,7 +76,7 @@ struct MissionTile: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(mission.category.label)
-                    .font(.caption2.bold())
+                    .font(.handCaption2)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(badgeBackground, in: Capsule())
@@ -94,15 +88,15 @@ struct MissionTile: View {
                 }
             }
             Image(systemName: mission.category.symbolName)
-                .font(.title3)
+                .font(.handTitle)
             Text(mission.title)
-                .font(.footnote.weight(.semibold))
+                .font(.handBody)
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Spacer(minLength: 0)
             Text(achieved ? "達成" : "未達成")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(.handCaption2)
+                .foregroundStyle(Color.inkSub)
         }
         .padding(14)
         .frame(height: 170)

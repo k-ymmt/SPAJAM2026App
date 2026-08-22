@@ -6,9 +6,11 @@
 //
 //  `WCSession` のデリゲートはアプリ内で 1 つしか持てないため、実際の受信は
 //  アプリ起動時に有効化される `HeartRateFeed` に集約し、ここではその値を読み替えるだけにする。
+//  ミッション同期(iPhone → Watch)の送信はデリゲート所有を必要としないため、ここから直接行う。
 //
 
 import Foundation
+import WatchConnectivity
 
 @MainActor
 @Observable
@@ -33,4 +35,26 @@ final class WatchHeartRateReceiver {
 
     var isWatchReachable: Bool { feed.watchStatus.isReachable }
     var isWatchAppInstalled: Bool { feed.watchStatus.isWatchAppInstalled }
+
+    // MARK: - iPhone → Watch 送信(ミッション同期・触覚)
+
+    /// いまのミッション状態を Watch へ送る(W1 画面用)。
+    /// reachable なら即時 sendMessage、加えて applicationContext にも残す(Watch 側の後起動対策)。
+    func sendMissionState(_ state: MissionState) {
+        guard WCSession.isSupported() else { return }
+        let session = WCSession.default
+        guard session.activationState == .activated, let payload = try? state.payload() else { return }
+        if session.isReachable {
+            session.sendMessage(payload, replyHandler: nil)
+        }
+        try? session.updateApplicationContext(payload)
+    }
+
+    /// 触覚フィードバックのトリガー(達成・接近)を Watch へ送る。
+    func sendEvent(_ kind: WatchEventKind) {
+        guard WCSession.isSupported() else { return }
+        let session = WCSession.default
+        guard session.activationState == .activated, session.isReachable else { return }
+        session.sendMessage(kind.payload, replyHandler: nil)
+    }
 }

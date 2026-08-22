@@ -55,7 +55,7 @@ struct BodyPoseCaptureView: View {
 
             VStack {
                 Text("両手を上げて 万歳!")
-                    .font(.title3.bold())
+                    .font(.handTitle)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
@@ -63,7 +63,7 @@ struct BodyPoseCaptureView: View {
                     .padding(.top, 24)
                 Spacer()
                 Text(statusText)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.handHeadline)
                     .foregroundStyle(.white)
                     .padding(14)
                     .background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
