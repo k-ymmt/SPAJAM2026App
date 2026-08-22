@@ -180,12 +180,16 @@ final class TripSession {
             self?.handleLocation(location)
         }
         locationProvider.start()
+        // 通知許可(接近・心拍上昇・メンバー達成をロック画面にも出す)
+        Task { await TripNotifier.shared.requestAuthorization() }
         // Watch へ現在ミッションを送信 + LA を 15 秒ごとに更新(bpm・距離)
         sendMissionStateToWatch()
         activityRefreshTask?.cancel()
         activityRefreshTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(15))
+                self?.recordHeartRateIfAvailable()
+                self?.checkHeartSpike()
                 self?.updateActivity()
             }
         }
@@ -213,8 +217,51 @@ final class TripSession {
         let nearThreshold = max(200, target.radiusMeters * 2)
         if distance <= nearThreshold, mission.hapticOnNear == true, !nearNotified.contains(mission.id) {
             nearNotified.insert(mission.id)
-            heartRateReceiver.sendEvent(.near)
+            let place = target.name ?? "目的地"
+            heartRateReceiver.sendEvent(WatchEvent(kind: .near, text: "\(place)がもうすぐ!"))
+            TripNotifier.shared.post(
+                kind: "near",
+                title: "🗺️ \(place)がもうすぐ!",
+                body: "ミッション「\(mission.title)」のチャンス"
+            )
         }
+    }
+
+    // MARK: - 心拍上昇(写真チャンス)
+
+    /// 直近サンプルが移動平均を大きく上回ったら「心が動いた」として Watch 触覚+通知
+    private var lastSpikeAt: Date?
+
+    private func checkHeartSpike() {
+        guard phase == .traveling,
+              let bpm = heartRateReceiver.latest?.beatsPerMinute else { return }
+        // 直近を除いた過去サンプルの平均を基準にする(最低 5 サンプル)
+        let history = heartRateSamples.dropLast().suffix(20).map(\.bpm)
+        guard history.count >= 5 else { return }
+        let average = history.reduce(0, +) / Double(history.count)
+        guard bpm - average >= 15 else { return }
+        // 3 分に 1 回まで
+        if let last = lastSpikeAt, Date().timeIntervalSince(last) < 180 { return }
+        lastSpikeAt = Date()
+        heartRateReceiver.sendEvent(WatchEvent(kind: .heartSpike, text: "心が動いた! 写真を撮ろう"))
+        TripNotifier.shared.post(
+            kind: "heartSpike",
+            title: "❤️ 心が動いた瞬間!",
+            body: "心拍が \(Int(bpm.rounded())) bpm に上がったよ。写真を撮って残そう"
+        )
+    }
+
+    // MARK: - メンバー達成(同期レイヤーから呼ぶ)
+
+    /// 自分以外のメンバーの達成を受け取ったときに呼ぶ(Watch 触覚+通知)
+    func noteMemberAchieved(memberName: String, missionTitle: String) {
+        guard phase == .traveling else { return }
+        heartRateReceiver.sendEvent(WatchEvent(kind: .memberAchieved, text: "\(memberName)が達成!"))
+        TripNotifier.shared.post(
+            kind: "memberAchieved",
+            title: "🎉 \(memberName)がミッション達成!",
+            body: "「\(missionTitle)」をクリアしたよ"
+        )
     }
 
     /// LA 用の目的地までの距離(GPS 条件のあるミッションのみ)

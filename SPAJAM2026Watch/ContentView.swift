@@ -12,6 +12,7 @@ struct ContentView: View {
     @Environment(HeartRateWorkoutManager.self) private var workoutManager
     @Environment(PhoneHeartRateSender.self) private var sender
     @State private var showAchieved = false
+    @State private var bannerText: String?
 
     var body: some View {
         ZStack {
@@ -19,6 +20,10 @@ struct ContentView: View {
                 missionView(mission)
             } else {
                 idleView
+            }
+
+            if let bannerText {
+                eventBanner(bannerText)
             }
 
             if showAchieved {
@@ -33,6 +38,15 @@ struct ContentView: View {
             Task {
                 try? await Task.sleep(for: .seconds(2))
                 withAnimation { showAchieved = false }
+            }
+        }
+        .onChange(of: sender.eventBanner) { _, text in
+            guard let text else { return }
+            sender.eventBanner = nil
+            withAnimation { bannerText = text }
+            Task {
+                try? await Task.sleep(for: .seconds(3))
+                withAnimation { bannerText = nil }
             }
         }
         // ミッションが届いたら自動で心拍計測を開始する(スマホを見ない体験のため)
@@ -126,6 +140,23 @@ struct ContentView: View {
             }
         }
         .padding()
+    }
+
+    // MARK: - イベントバナー(接近・心拍上昇・メンバー達成)
+
+    private func eventBanner(_ text: String) -> some View {
+        VStack {
+            Text(text)
+                .font(.system(size: 12, weight: .bold))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.teal.opacity(0.92), in: Capsule())
+            Spacer()
+        }
+        .padding(.top, 2)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     // MARK: - W2 達成演出
