@@ -22,6 +22,8 @@ struct MissionCameraView: View {
     @State private var selectedMissionId: String = ""
     /// 撮影/取り込み直後の「判定しますか?」確認
     @State private var showJudgeConfirm = false
+    /// FACE / POSE の AR 判定 OK 直後の CLEAR 表示
+    @State private var showClear = false
 
     var body: some View {
         // 横スワイプでミッションを切り替えるページャー
@@ -35,17 +37,31 @@ struct MissionCameraView: View {
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .background(.black)
         .foregroundStyle(.white)
+        .overlay {
+            if showClear {
+                VStack(spacing: 10) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(Color.appAccent)
+                    Text("CLEAR!")
+                        .font(.handLargeTitle)
+                        .foregroundStyle(.white)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.black.opacity(0.75))
+                .transition(.opacity)
+            }
+        }
         .sheet(isPresented: $showCamera) {
             switch session.currentMission?.category {
             case .face where FaceSmileCaptureView.isSupported:
                 FaceSmileCaptureView { image in
-                    capturedImage = image
-                    showJudgeConfirm = true
+                    // AR 判定で OK が出ているのでそのまま達成(確認ダイアログなし)
+                    clearMission(with: image)
                 }
             case .pose where BodyPoseCaptureView.isSupported:
                 BodyPoseCaptureView { image in
-                    capturedImage = image
-                    showJudgeConfirm = true
+                    clearMission(with: image)
                 }
             default:
                 CameraPicker(facing: facing, useLibrary: useLibrary) { image in
@@ -306,6 +322,17 @@ struct MissionCameraView: View {
         .padding(.horizontal, 20)
         .padding(.top, 12)
         .padding(.bottom, 36)
+    }
+
+    /// FACE / POSE: AR 判定済みの写真をそのまま達成にして CLEAR を出す
+    private func clearMission(with image: UIImage) {
+        session.recordARAchievement(image: image)
+        withAnimation { showClear = true }
+        Task {
+            try? await Task.sleep(for: .seconds(1.2))
+            withAnimation { showClear = false }
+            dismiss()
+        }
     }
 
     /// 判定を実行し、達成したら一覧へ戻る

@@ -391,6 +391,26 @@ final class TripSession {
         }
     }
 
+    /// FACE / POSE 用: AR 判定で既に OK が出た撮影を、AI 判定なしでそのまま達成として記録する
+    func recordARAchievement(image: UIImage) {
+        guard let mission = currentMission else { return }
+        let bpm = heartRateReceiver.latest?.beatsPerMinute
+        recordHeartRateIfAvailable()
+        let record = MissionRecord(
+            missionId: mission.id,
+            achievedAt: Date(),
+            photoFileName: saveImage(image, missionId: mission.id),
+            bpmAtAchieve: bpm.map(Int.init),
+            points: mission.points,
+            aiComment: mission.category == .face ? "最高の表情!" : "ナイスポーズ!"
+        )
+        records.append(record)
+        lastFailReason = nil
+        heartRateReceiver.sendEvent(.achieved)
+        advance()
+        persist()
+    }
+
     private func advance() {
         let achieved = Set(records.map(\.missionId))
         // 順序どおりの「次の未達成」を優先しつつ、無ければ先頭から探す(順不同対応)
