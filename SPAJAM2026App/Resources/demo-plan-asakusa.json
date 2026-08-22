@@ -1,0 +1,66 @@
+{
+  "planId": "demo-asakusa",
+  "title": "浅草 まったり旅",
+  "area": "浅草",
+  "missions": [
+    {
+      "id": "m1",
+      "order": 1,
+      "category": "go",
+      "slot": "fixed",
+      "title": "雷門へ行く",
+      "judgment": {
+        "location": { "latitude": 35.711018, "longitude": 139.796301, "radiusMeters": 150 },
+        "aiPrompt": "この写真に浅草の雷門(大きな赤い提灯のある門)が写っていますか?"
+      },
+      "hapticOnNear": true,
+      "points": 10
+    },
+    {
+      "id": "m2",
+      "order": 2,
+      "category": "do",
+      "slot": "fixed",
+      "title": "仲見世で いちばん赤いものを撮る",
+      "judgment": {
+        "aiPrompt": "この写真は赤い色のものが主役として写っていますか?"
+      },
+      "points": 10
+    },
+    {
+      "id": "m3",
+      "order": 3,
+      "category": "eat",
+      "slot": "fixed",
+      "title": "揚げまんじゅうを食べる",
+      "judgment": {
+        "aiPrompt": "この写真に揚げまんじゅう(揚げた和菓子・饅頭)が写っていますか?"
+      },
+      "points": 10
+    },
+    {
+      "id": "m4",
+      "order": 4,
+      "category": "face",
+      "slot": "variable",
+      "title": "五重塔をバックに最高の笑顔",
+      "judgment": {
+        "aiPrompt": "この写真に笑顔の人が写っていますか?"
+      },
+      "camera": "front",
+      "points": 15
+    },
+    {
+      "id": "m5",
+      "order": 5,
+      "category": "thrill",
+      "slot": "variable",
+      "title": "おみくじを引いてドキドキする",
+      "judgment": {
+        "aiPrompt": "この写真におみくじが写っていますか?",
+        "heartRateDelta": 15
+      },
+      "points": 15
+    }
+  ]
+}

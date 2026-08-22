@@ -600,6 +600,8 @@
 				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "ミッションの達成判定のために写真を撮影します";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "目的地への到着判定のために現在地を使用します";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -634,6 +636,8 @@
 				DEVELOPMENT_TEAM = 8HUWJ2ZRK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "ミッションの達成判定のために写真を撮影します";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "目的地への到着判定のために現在地を使用します";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

@@ -2,20 +2,27 @@
 //  ContentView.swift
 //  SPAJAM2026App
 //
-//  Created by Kazuki Yamamoto on 2026/08/21.
+//  ルートフロー: プラン確認 → 旅行中(ミッション実施) → リザルト
 //
 
 import SwiftUI
 
 struct ContentView: View {
+    @State private var session = TripSession()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            switch session.phase {
+            case .planning:
+                PlanView { session.startTrip() }
+            case .traveling:
+                MissionCameraView()
+            case .finished:
+                ResultView { session = TripSession() }
+            }
         }
-        .padding()
+        .environment(session)
+        .animation(.default, value: session.phase == .traveling)
     }
 }
 
