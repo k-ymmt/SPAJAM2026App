@@ -12,9 +12,22 @@ struct SavedSessionEditorView: View {
     @State private var snapshot: TripSessionSnapshot?
     @State private var confirmClear = false
     @State private var savedBanner = false
+    @State private var shieldClearedBanner = false
 
     var body: some View {
         List {
+            Section("シールド") {
+                Button("シールドを今すぐ解除", role: .destructive) {
+                    ShieldService.forceClearAll()
+                    withAnimation { shieldClearedBanner = true }
+                    Task {
+                        try? await Task.sleep(for: .seconds(1.5))
+                        withAnimation { shieldClearedBanner = false }
+                    }
+                }
+                Text("保存セッションとは無関係に、OS に残っている ManagedSettings の制限をすべて消します。旅行中にキルされて解除できなくなったときの逃げ道です。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             if let binding = Binding($snapshot) {
                 editor(binding)
             } else {
@@ -46,8 +59,8 @@ struct SavedSessionEditorView: View {
             Text("ルート画面はエリア選択に戻ります。")
         }
         .overlay(alignment: .bottom) {
-            if savedBanner {
-                Text("保存しました")
+            if savedBanner || shieldClearedBanner {
+                Text(shieldClearedBanner ? "シールドを解除しました" : "保存しました")
                     .font(.footnote.bold())
                     .padding(.horizontal, 14).padding(.vertical, 8)
                     .background(.thinMaterial, in: Capsule())

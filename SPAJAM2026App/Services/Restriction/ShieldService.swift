@@ -79,6 +79,13 @@ final class ShieldService {
         #endif
     }
 
+    /// デバッグ用: セッションの状態に関係なく、OS に残っているシールドと全制限を強制解除する
+    static func forceClearAll() {
+        #if canImport(FamilyControls)
+        ManagedSettingsStore().clearAllSettings()
+        #endif
+    }
+
     func stop() {
         #if canImport(FamilyControls)
         store.shield.applications = nil
