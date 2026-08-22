@@ -163,10 +163,12 @@ struct JudgmentEngine {
 | P1 | AreaSelect(ピン→スナップ)+ プラン生成 Live | Places/Geocoding |
 | P1 | Versus 画面(Mock 対戦データ) | Models |
 | P1 | FACE 判定(ARKit 笑顔) | 実機 |
+| P1 | ShieldService(FamilyControls) | 検証済み(山本)。スコア 3 要素の「スクリーンタイム」にも必要 |
 | P1 | Firestore 同期 | Firebase 設定 |
-| P2 | ShieldService(FamilyControls) | 実機+capability |
-| P2 | JournalingImporter | entitlement+実機 |
+| P2 | JournalingImporter | 検証済み(山本)。entitlement+実機 |
 | P2 | POSE / QUIZ 判定 | — |
+
+※ 15:00 MTG 更新: スクリーンタイム API・Journaling・Live Activity・心拍はすべて山本さんの検証で実装可能を確認済み。スコアは「達成度 + 心拍の上がり幅 + スマホを見なかった時間」の 3 要素に決定したため、ShieldService(+非注視時間の計測)を P1 に昇格。
 
 **デモの成立条件 = P0 だけで「プラン表示 → 撮影 → AI 判定 → Watch 触覚 → リザルト」が一周すること。** P1 以降は上から順に積む。
 
