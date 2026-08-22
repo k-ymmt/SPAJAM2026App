@@ -35,6 +35,26 @@ final class ShieldService {
         #endif
     }
 
+    /// 保存済みの選択を戻し、既に認可済みなら isAuthorized も復元する
+    func restore(selectionData: Data?) {
+        #if canImport(FamilyControls)
+        isAuthorized = AuthorizationCenter.shared.authorizationStatus == .approved
+        if let selectionData,
+           let restored = try? JSONDecoder().decode(FamilyActivitySelection.self, from: selectionData) {
+            selection = restored
+        }
+        #endif
+    }
+
+    /// 永続化用に選択を JSON にする
+    var selectionData: Data? {
+        #if canImport(FamilyControls)
+        return try? JSONEncoder().encode(selection)
+        #else
+        return nil
+        #endif
+    }
+
     func requestAuthorization() async {
         #if canImport(FamilyControls)
         do {

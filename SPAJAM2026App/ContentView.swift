@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var session: TripSession?
+    @State private var session: TripSession? = TripSession.restore()
     @State private var isDebugMenuPresented = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -25,13 +25,18 @@ struct ContentView: View {
                     case .traveling:
                         MissionCameraView()
                     case .finished:
-                        ResultView { self.session = nil }
+                        ResultView {
+                            session.discard()
+                            self.session = nil
+                        }
                     }
                 }
                 .environment(session)
             } else {
                 AreaSelectView { plan in
-                    session = TripSession(plan: plan)
+                    let new = TripSession(plan: plan)
+                    new.persist()
+                    session = new
                 }
             }
         }
