@@ -79,6 +79,23 @@ final class TripRoomService {
         try await roomRef(code).collection("members").document(uid).delete()
     }
 
+    // MARK: - 結果(リザルト共有)
+
+    /// 自分の結果を書き込む(冪等。再送しても上書きされるだけ)
+    func submitResult(code: String, result: TripMemberResult) async throws {
+        let uid = try await AuthService.shared.signInIfNeeded()
+        var result = result
+        result.id = uid
+        try roomRef(code).collection("results").document(uid).setData(from: result)
+    }
+
+    func observeResults(code: String, onChange: @escaping @MainActor ([TripMemberResult]) -> Void) -> ListenerRegistration? {
+        try? roomRef(code).collection("results").order(by: "finishedAt").addSnapshotListener { snapshot, _ in
+            let results = snapshot?.documents.compactMap { try? $0.data(as: TripMemberResult.self) } ?? []
+            MainActor.assumeIsolated { onChange(results) }
+        }
+    }
+
     // MARK: - 購読
 
     func observeRoom(code: String, onChange: @escaping @MainActor (TripRoom?) -> Void) -> ListenerRegistration? {
@@ -102,10 +119,21 @@ final class TripRoomService {
 final class TripRoomObserver {
     private(set) var room: TripRoom?
     private(set) var members: [RoomMember] = []
+    /// 旅を終えたメンバーの結果(finishedAt 順)
+    private(set) var results: [TripMemberResult] = []
     /// 購読中のコード
     private(set) var code: String?
     private var roomListener: ListenerRegistration?
     private var membersListener: ListenerRegistration?
+    private var resultsListener: ListenerRegistration?
+
+    /// 旅をしている人数(親 + 参加した子)
+    var partyCount: Int { members.count + 1 }
+
+    /// 全員の結果が揃ったか
+    var isAllFinished: Bool {
+        room != nil && results.count >= partyCount
+    }
 
     /// 子の参加人数が揃ったか(親を除いた定員に達したか)
     var isPartyComplete: Bool {
@@ -119,20 +147,25 @@ final class TripRoomObserver {
         self.code = code
         roomListener = TripRoomService.shared.observeRoom(code: code) { [weak self] in self?.room = $0 }
         membersListener = TripRoomService.shared.observeMembers(code: code) { [weak self] in self?.members = $0 }
+        resultsListener = TripRoomService.shared.observeResults(code: code) { [weak self] in self?.results = $0 }
     }
 
     func stop() {
         roomListener?.remove()
         membersListener?.remove()
+        resultsListener?.remove()
         roomListener = nil
         membersListener = nil
+        resultsListener = nil
         code = nil
         room = nil
         members = []
+        results = []
     }
 
     isolated deinit {
         roomListener?.remove()
         membersListener?.remove()
+        resultsListener?.remove()
     }
 }
