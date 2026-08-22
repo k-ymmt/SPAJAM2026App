@@ -10,7 +10,8 @@ import Foundation
 
 struct GeminiPhotoAIJudge: PhotoAIJudging {
     let apiKey: String
-    var model = "gemini-3.6-flash"
+    /// 軽量で速い flash-lite を優先し、クォータ超過(429)などの場合は次のモデルへフォールバック
+    var models = ["gemini-3.1-flash-lite", "gemini-3.6-flash"]
 
     /// Secrets.plist にキーが無ければ nil(AI Studio キー優先、無ければ Google Cloud キー)
     static func fromSecrets() -> GeminiPhotoAIJudge? {
@@ -18,47 +19,60 @@ struct GeminiPhotoAIJudge: PhotoAIJudging {
         return GeminiPhotoAIJudge(apiKey: key)
     }
 
-    /// テキストのみの生成呼び出し(JSON モード)。プラン生成などに使う
-    func generateText(prompt: String) async throws -> String {
-        let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
-        var request = URLRequest(url: url, timeoutInterval: 40)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
-        let body: [String: Any] = [
-            "contents": [["parts": [["text": prompt]]]],
-            "generationConfig": ["response_mime_type": "application/json"],
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-            NSLog("[PlanGen] gemini HTTP \((response as? HTTPURLResponse)?.statusCode ?? -1)")
-            throw URLError(.badServerResponse)
-        }
-        struct Res: Decodable {
-            struct C: Decodable {
-                struct Content: Decodable {
-                    struct P: Decodable { let text: String? }
-                    let parts: [P]?
-                }
-                let content: Content?
+    /// 各モデルを順に試して最初に成功したレスポンスを返す
+    private func generateContent(parts: [[String: Any]], timeout: TimeInterval) async throws -> Data {
+        var lastError: Error = URLError(.badServerResponse)
+        for model in models {
+            let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
+            var request = URLRequest(url: url, timeoutInterval: timeout)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+            let body: [String: Any] = [
+                "contents": [["parts": parts]],
+                "generationConfig": ["response_mime_type": "application/json"],
+            ]
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+                if code == 200 { return data }
+                NSLog("[Gemini] \(model) HTTP \(code) — 次のモデルへフォールバック")
+                lastError = URLError(.badServerResponse)
+            } catch {
+                NSLog("[Gemini] \(model) error: \(error.localizedDescription) — 次のモデルへフォールバック")
+                lastError = error
             }
-            let candidates: [C]?
         }
-        let decoded = try JSONDecoder().decode(Res.self, from: data)
+        throw lastError
+    }
+
+    private struct GenerateResponse: Decodable {
+        struct C: Decodable {
+            struct Content: Decodable {
+                struct P: Decodable { let text: String? }
+                let parts: [P]?
+            }
+            let content: Content?
+        }
+        let candidates: [C]?
+    }
+
+    private func extractText(_ data: Data) throws -> String {
+        let decoded = try JSONDecoder().decode(GenerateResponse.self, from: data)
         guard let text = decoded.candidates?.first?.content?.parts?.compactMap(\.text).joined(), !text.isEmpty else {
             throw URLError(.cannotParseResponse)
         }
         return text
     }
 
-    func judge(imageJPEG: Data, prompt: String) async throws -> (ok: Bool, reason: String) {
-        let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
-        var request = URLRequest(url: url, timeoutInterval: 25)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+    /// テキストのみの生成呼び出し(JSON モード)。プラン生成などに使う
+    func generateText(prompt: String) async throws -> String {
+        let data = try await generateContent(parts: [["text": prompt]], timeout: 60)
+        return try extractText(data)
+    }
 
+    func judge(imageJPEG: Data, prompt: String) async throws -> (ok: Bool, reason: String) {
         let instruction = """
         あなたは旅行ゲームのミッション判定員です。次の質問に写真だけを根拠に答えてください。
         質問: \(prompt)
@@ -66,43 +80,20 @@ struct GeminiPhotoAIJudge: PhotoAIJudging {
         reason は ok=true なら達成を褒める一言、false なら何が足りないかの一言にしてください。
         """
 
-        let body: [String: Any] = [
-            "contents": [[
-                "parts": [
-                    ["text": instruction],
-                    ["inline_data": ["mime_type": "image/jpeg", "data": imageJPEG.base64EncodedString()]],
-                ]
-            ]],
-            "generationConfig": ["response_mime_type": "application/json"],
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let data = try await generateContent(
+            parts: [
+                ["text": instruction],
+                ["inline_data": ["mime_type": "image/jpeg", "data": imageJPEG.base64EncodedString()]],
+            ],
+            timeout: 30
+        )
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            let code = (response as? HTTPURLResponse)?.statusCode ?? -1
-            NSLog("[Judge] gemini HTTP \(code): \(String(data: data.prefix(300), encoding: .utf8) ?? "")")
-            throw URLError(.badServerResponse)
-        }
-
-        // candidates[0].content.parts[0].text に JSON 文字列が入る
-        struct GenerateResponse: Decodable {
-            struct Candidate: Decodable {
-                struct Content: Decodable {
-                    struct Part: Decodable { let text: String? }
-                    let parts: [Part]?
-                }
-                let content: Content?
-            }
-            let candidates: [Candidate]?
-        }
         struct Verdict: Decodable {
             let ok: Bool
             let reason: String?
         }
-
-        let decoded = try JSONDecoder().decode(GenerateResponse.self, from: data)
-        guard let text = decoded.candidates?.first?.content?.parts?.first?.text,
-              let verdictData = text.data(using: .utf8),
+        let text = try extractText(data)
+        guard let verdictData = text.data(using: .utf8),
               let verdict = try? JSONDecoder().decode(Verdict.self, from: verdictData)
         else {
             throw URLError(.cannotParseResponse)

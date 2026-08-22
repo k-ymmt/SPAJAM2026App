@@ -23,7 +23,7 @@ struct ContentView: View {
                     case .restrictionSetup:
                         RestrictionSetupView { session.startTrip() }
                     case .traveling:
-                        MissionCameraView()
+                        TripMainView()
                     case .finished:
                         ResultView {
                             session.discard()

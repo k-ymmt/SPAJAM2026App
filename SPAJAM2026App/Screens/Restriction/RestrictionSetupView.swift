@@ -19,13 +19,7 @@ struct RestrictionSetupView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("おやすみにするアプリ")
-                    .font(.title2.bold())
-                Text("旅行中にシールドするアプリを選べます。ミッションのカメラはいつでも使えます")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            ScreenHeader("おやすみにするアプリ", subtitle: "旅行中にシールドするアプリを選べます。ミッションのカメラはいつでも使えます")
 
             statusCard
 
@@ -36,7 +30,7 @@ struct RestrictionSetupView: View {
                 }
             } label: {
                 Label("おやすみにするアプリを選ぶ", systemImage: "moon.zzz.fill")
-                    .font(.subheadline.bold())
+                    .font(.handHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
             }
@@ -48,7 +42,7 @@ struct RestrictionSetupView: View {
             VStack(spacing: 10) {
                 Button(action: onStart) {
                     Text(session.shield.hasSelection ? "この設定で旅をはじめる" : "制限なしで旅をはじめる")
-                        .font(.headline)
+                        .font(.handHeadline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                 }
@@ -56,8 +50,8 @@ struct RestrictionSetupView: View {
                 .tint(.orange)
 
                 Text("電話は緊急連絡のため制限しないことをおすすめします")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.handCaption2)
+                    .foregroundStyle(Color.inkSub)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -71,16 +65,16 @@ struct RestrictionSetupView: View {
     private var statusCard: some View {
         HStack(spacing: 12) {
             Image(systemName: session.shield.hasSelection ? "checkmark.shield.fill" : "shield.slash")
-                .font(.title3)
+                .font(.handTitle)
                 .foregroundStyle(session.shield.hasSelection ? .teal : .secondary)
             VStack(alignment: .leading, spacing: 2) {
                 Text(session.shield.hasSelection ? "シールド設定済み" : "まだ何も選ばれていません")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.handHeadline)
                 Text(session.shield.isAuthorized
                      ? "旅行を開始すると選んだアプリがおやすみになります"
                      : "スクリーンタイムの許可が必要です")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.handCaption2)
+                    .foregroundStyle(Color.inkSub)
             }
             Spacer()
         }

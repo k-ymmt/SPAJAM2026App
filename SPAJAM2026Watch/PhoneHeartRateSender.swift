@@ -7,6 +7,7 @@
 
 import Foundation
 import WatchConnectivity
+import WatchKit
 import os
 
 nonisolated private let logger = Logger(subsystem: "app.kymmt.SPAJAM2026App.watchkitapp", category: "Connectivity")
@@ -15,6 +16,10 @@ nonisolated private let logger = Logger(subsystem: "app.kymmt.SPAJAM2026App.watc
 @Observable
 final class PhoneHeartRateSender {
     private(set) var isPhoneReachable = false
+    /// iPhone から届いた「いまのミッション」(W1 画面用)
+    private(set) var missionState: MissionState?
+    /// 直近の達成イベント(達成演出のトリガー。UI が見たら nil に戻す)
+    var achievedPulse = false
 
     /// iPhone から計測の開始/停止を要求されたときに呼ばれる。
     var onCommand: (@MainActor (HeartRateMessage.Command) -> Void)?
@@ -34,11 +39,35 @@ final class PhoneHeartRateSender {
             commandReceived: { [weak self] command in
                 guard let self else { return }
                 Task { @MainActor in self.onCommand?(command) }
+            },
+            onMissionState: { [weak self] state in
+                guard let self else { return }
+                Task { @MainActor in self.missionState = state }
+            },
+            onEvent: { [weak self] kind in
+                guard let self else { return }
+                Task { @MainActor in self.handleEvent(kind) }
             }
         )
         self.delegate = delegate
         session.delegate = delegate
         session.activate()
+
+        // Watch 側が後から起動しても最後のミッション状態を復元できるようにする
+        if let state = MissionState(payload: session.receivedApplicationContext) {
+            missionState = state
+        }
+    }
+
+    /// 触覚フィードバック: 達成は成功ハプティクス、接近は通知ハプティクス
+    private func handleEvent(_ kind: WatchEventKind) {
+        switch kind {
+        case .achieved:
+            WKInterfaceDevice.current().play(.success)
+            achievedPulse = true
+        case .near:
+            WKInterfaceDevice.current().play(.notification)
+        }
     }
 
     /// 最新の心拍を iPhone に送る。
@@ -85,13 +114,23 @@ final class PhoneHeartRateSender {
 private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
     private let reachabilityChanged: @Sendable (Bool) -> Void
     private let commandReceived: @Sendable (HeartRateMessage.Command) -> Void
+    private let onMissionState: @Sendable (MissionState) -> Void
+    private let onEvent: @Sendable (WatchEventKind) -> Void
 
     init(
         reachabilityChanged: @escaping @Sendable (Bool) -> Void,
-        commandReceived: @escaping @Sendable (HeartRateMessage.Command) -> Void
+        commandReceived: @escaping @Sendable (HeartRateMessage.Command) -> Void,
+        onMissionState: @escaping @Sendable (MissionState) -> Void,
+        onEvent: @escaping @Sendable (WatchEventKind) -> Void
     ) {
         self.reachabilityChanged = reachabilityChanged
         self.commandReceived = commandReceived
+        self.onMissionState = onMissionState
+        self.onEvent = onEvent
+    }
+
+    func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        if let state = MissionState(payload: applicationContext) { onMissionState(state) }
     }
 
     func session(
@@ -110,7 +149,10 @@ private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
-        guard case let .command(command)? = HeartRateMessage(dictionary: message) else { return }
-        commandReceived(command)
+        if case let .command(command)? = HeartRateMessage(dictionary: message) {
+            commandReceived(command)
+        }
+        if let state = MissionState(payload: message) { onMissionState(state) }
+        if let kind = WatchEventKind(payload: message) { onEvent(kind) }
     }
 }

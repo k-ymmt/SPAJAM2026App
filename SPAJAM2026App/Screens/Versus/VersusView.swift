@@ -65,13 +65,7 @@ struct VersusView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("ふたりの旅くらべ")
-                .font(.title2.bold())
-            Text(session.plan.title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
+        ScreenHeader("ふたりの旅くらべ", subtitle: session.plan.title)
     }
 
     private func winnerCard(iWin: Bool, myTotal: Int, opTotal: Int) -> some View {
@@ -82,10 +76,10 @@ struct VersusView: View {
                 .background(.orange, in: Circle())
             VStack(alignment: .leading, spacing: 2) {
                 Text(iWin ? "たのしみ勝ちは あなた!" : "たのしみ勝ちは あいて!")
-                    .font(.subheadline.bold())
+                    .font(.handHeadline)
                 Text("あなた \(myTotal)pt ・ あいて \(opTotal)pt(QUEST+HEART+OFFLINE)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.handCaption)
+                    .foregroundStyle(Color.inkSub)
             }
             Spacer()
         }
@@ -97,7 +91,7 @@ struct VersusView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("心拍のうごき")
-                    .font(.headline)
+                    .font(.handHeadline)
                 Spacer()
                 legend(color: .orange, label: "あなた")
                 legend(color: .teal, label: "あいて")
@@ -142,7 +136,7 @@ struct VersusView: View {
     private func legend(color: Color, label: String) -> some View {
         HStack(spacing: 4) {
             Circle().fill(color).frame(width: 8, height: 8)
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text(label).font(.handCaption2).foregroundStyle(Color.inkSub)
         }
     }
 
@@ -151,21 +145,21 @@ struct VersusView: View {
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("ミッションたいせん")
-                    .font(.headline)
+                    .font(.handHeadline)
                 Spacer()
                 Text("あなた \(myAchieved.count)/\(session.plan.missions.count)・あいて \(opponent.achievedMissionIds.count)/\(session.plan.missions.count)")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .font(.handCaption2)
+                    .foregroundStyle(Color.inkSub)
             }
             ForEach(session.plan.missions) { mission in
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(mission.title)
-                            .font(.footnote.weight(.semibold))
+                            .font(.handBody)
                             .lineLimit(1)
                         Text(mission.category.label)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .font(.handCaption2)
+                            .foregroundStyle(Color.inkSub)
                     }
                     Spacer()
                     statusCircle(achieved: myAchieved.contains(mission.id), color: .orange)
@@ -179,7 +173,7 @@ struct VersusView: View {
 
     private func statusCircle(achieved: Bool, color: Color) -> some View {
         Image(systemName: achieved ? "checkmark" : "xmark")
-            .font(.caption.bold())
+            .font(.handCaption)
             .foregroundStyle(achieved ? .white : Color(.systemGray))
             .frame(width: 26, height: 26)
             .background(achieved ? color : Color(.systemGray5), in: Circle())
@@ -189,7 +183,7 @@ struct VersusView: View {
         HStack(spacing: 10) {
             ShareLink(item: "『\(session.plan.title)』でたのしみ勝ち! \(session.totalPoints + session.focusScore)pt 獲得 #オフラインクエスト") {
                 Text("結果をシェアする")
-                    .font(.subheadline.bold())
+                    .font(.handHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(.orange, in: Capsule())
@@ -200,12 +194,12 @@ struct VersusView: View {
                 onRestart()
             } label: {
                 Text("もう一回たびする")
-                    .font(.subheadline.bold())
+                    .font(.handHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(.white, in: Capsule())
                     .overlay(Capsule().stroke(Color(.systemGray4)))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSub)
             }
         }
     }

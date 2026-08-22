@@ -12,12 +12,11 @@ import SwiftUI
 
 struct MissionCameraView: View {
     @Environment(TripSession.self) private var session
+    @Environment(\.dismiss) private var dismiss
     @State private var capturedImage: UIImage?
     @State private var showCamera = false
-    @State private var locationProvider = LocationProvider()
+    @State private var useLibrary = false
     @State private var facing: CameraFacing = .back
-    @State private var showMissionList = false
-    @State private var showRestrictionAdjust = false
     @State private var selectedMissionId: String = ""
 
     var body: some View {
@@ -43,25 +42,13 @@ struct MissionCameraView: View {
                     capturedImage = image
                 }
             default:
-                CameraPicker(facing: facing) { image in
+                CameraPicker(facing: facing, useLibrary: useLibrary) { image in
                     capturedImage = image
                 }
                 .ignoresSafeArea()
             }
         }
-        .sheet(isPresented: $showMissionList) {
-            TripMissionListView {
-                showRestrictionAdjust = true
-            }
-            .environment(session)
-        }
-        .sheet(isPresented: $showRestrictionAdjust) {
-            RestrictionAdjustView()
-                .environment(session)
-                .presentationDetents([.medium, .large])
-        }
         .onAppear {
-            locationProvider.start()
             selectedMissionId = session.currentMission?.id ?? session.plan.missions.first?.id ?? ""
             facing = session.currentMission?.camera ?? .back
         }
@@ -107,7 +94,7 @@ struct MissionCameraView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("MISSION \(mission.order)/\(session.plan.missions.count)")
-                    .font(.caption2.bold())
+                    .font(.handCaption2)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(achieved ? .teal : .orange, in: Capsule())
@@ -116,18 +103,19 @@ struct MissionCameraView: View {
                         .foregroundStyle(.teal)
                 }
                 Spacer()
+                // ミッション一覧(メイン画面)へ戻る
                 Button {
-                    showMissionList = true
+                    dismiss()
                 } label: {
-                    Image(systemName: "square.grid.2x2.fill")
-                        .font(.body)
+                    Image(systemName: "xmark")
+                        .font(.handHeadline)
                         .foregroundStyle(.white)
                         .padding(8)
                         .background(.white.opacity(0.2), in: Circle())
                 }
             }
             Text(mission.title)
-                .font(.title3.bold())
+                .font(.handTitle)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(20)
@@ -150,6 +138,7 @@ struct MissionCameraView: View {
                 }
             } else {
                 Button {
+                    useLibrary = false
                     showCamera = true
                 } label: {
                     if let image = capturedImage, mission.id == selectedMissionId {
@@ -160,7 +149,7 @@ struct MissionCameraView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 20))
                             .overlay(alignment: .bottomTrailing) {
                                 Label("タップで撮り直し", systemImage: "camera.fill")
-                                    .font(.caption2)
+                                    .font(.handCaption2)
                                     .padding(8)
                                     .background(.black.opacity(0.6), in: Capsule())
                                     .padding(8)
@@ -184,7 +173,7 @@ struct MissionCameraView: View {
                     Image(systemName: icon)
                         .font(.largeTitle)
                     Text(text)
-                        .font(.footnote)
+                        .font(.handBody)
                 }
                 .foregroundStyle(.white.opacity(0.6))
             }
@@ -197,7 +186,7 @@ struct MissionCameraView: View {
                 .padding()
         } else if let reason = session.lastFailReason, mission.id == selectedMissionId {
             Label(reason, systemImage: "xmark.circle.fill")
-                .font(.footnote)
+                .font(.handBody)
                 .padding(12)
                 .background(.red.opacity(0.25), in: RoundedRectangle(cornerRadius: 14))
                 .padding(.horizontal, 20)
@@ -216,13 +205,28 @@ struct MissionCameraView: View {
             .buttonStyle(.bordered)
             .tint(.white)
 
+            // フォトライブラリから取り込み
+            Button {
+                useLibrary = true
+                showCamera = true
+            } label: {
+                Image(systemName: "photo.on.rectangle")
+                    .padding(14)
+            }
+            .buttonStyle(.bordered)
+            .tint(.white)
+
             Button {
                 Task {
                     let ok = await session.judgeCurrentMission(
                         image: capturedImage,
-                        location: locationProvider.current
+                        location: session.locationProvider.current
                     )
-                    if ok { capturedImage = nil }
+                    if ok {
+                        capturedImage = nil
+                        // 達成したらメイン(ミッション一覧)へ戻る
+                        dismiss()
+                    }
                 }
             } label: {
                 Text("判定する")
@@ -243,10 +247,10 @@ struct MissionCameraView: View {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.teal)
             Text("達成! +\(record?.points ?? 0)pt")
-                .font(.subheadline.bold())
+                .font(.handHeadline)
             if let comment = record?.aiComment {
                 Text(comment)
-                    .font(.caption)
+                    .font(.handCaption)
                     .foregroundStyle(.white.opacity(0.7))
                     .lineLimit(1)
             }
@@ -257,12 +261,13 @@ struct MissionCameraView: View {
     }
 }
 
-/// 現在地の簡易プロバイダ(P0: その場取得のみ。ジオフェンス接近通知は P1)
+/// 現在地の簡易プロバイダ。位置更新は onUpdate 経由で TripSession(接近判定・LA 更新)にも流す
 @MainActor
 @Observable
 final class LocationProvider: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private(set) var current: CLLocation?
+    var onUpdate: ((CLLocation) -> Void)?
 
     func start() {
         manager.delegate = self
@@ -270,8 +275,15 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         manager.startUpdatingLocation()
     }
 
+    func stop() {
+        manager.stopUpdatingLocation()
+    }
+
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        let latest = locations.last
-        Task { @MainActor in self.current = latest }
+        guard let latest = locations.last else { return }
+        Task { @MainActor in
+            self.current = latest
+            self.onUpdate?(latest)
+        }
     }
 }

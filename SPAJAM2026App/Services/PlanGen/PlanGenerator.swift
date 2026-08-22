@@ -20,18 +20,27 @@ struct NearbySpot: Sendable {
 }
 
 enum TripMood: String, CaseIterable, Identifiable {
-    case relaxed = "まったり"
+    case relaxed = "ゆったり"
     case active = "アクティブ"
-    case gourmet = "グルメ多め"
+    case mania = "マニア"
 
     var id: String { rawValue }
+
+    /// 生成プロンプトに渡す温度感の説明
+    var promptHint: String {
+        switch self {
+        case .relaxed: "ゆったり: のんびり歩いて楽しめる、難易度低めのお題にする"
+        case .active: "アクティブ: よく歩き体を動かす、少し挑戦的なお題にする"
+        case .mania: "マニア: 定番を外したニッチでディープなスポットや観察系のお題にする"
+        }
+    }
 }
 
 struct PlanGenerator {
     enum GenError: Error { case noKey, noArea, noSpots, badLLMOutput }
 
     /// ピン座標から主要エリアを推定してプランを生成する
-    func generate(at coordinate: CLLocationCoordinate2D, mood: TripMood) async throws -> TravelPlan {
+    func generate(at coordinate: CLLocationCoordinate2D, partySize: Int, mood: TripMood) async throws -> TravelPlan {
         guard let mapsKey = Secrets.googleCloudAPIKey else { throw GenError.noKey }
 
         // ② 事実: エリア名(逆ジオコーディング)+ 主要スポット(注目度順)
@@ -40,9 +49,13 @@ struct PlanGenerator {
         let (areaHint, spots) = try await (areaTask, spotsTask)
         guard !spots.isEmpty else { throw GenError.noSpots }
 
-        // ③ 味付け: Gemini がスポットを選び、お題文言を書く
-        let plan = try await composePlan(areaHint: areaHint, spots: spots, mood: mood)
-        return plan
+        // ③ 味付け: Gemini がスポットを選び、お題文言を書く(タイムアウト等に備えて 1 回だけ自動リトライ)
+        do {
+            return try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
+        } catch {
+            NSLog("[PlanGen] compose retrying after: \(error)")
+            return try await composePlan(areaHint: areaHint, spots: spots, partySize: partySize, mood: mood)
+        }
     }
 
     // MARK: - Google Geocoding
@@ -99,17 +112,44 @@ struct PlanGenerator {
 
     // MARK: - Gemini でミッション文言を生成
 
-    private func composePlan(areaHint: String, spots: [NearbySpot], mood: TripMood) async throws -> TravelPlan {
+    private func composePlan(areaHint: String, spots: [NearbySpot], partySize: Int, mood: TripMood) async throws -> TravelPlan {
         guard let judge = GeminiPhotoAIJudge.fromSecrets() else { throw GenError.noKey }
         let spotList = spots.enumerated()
             .map { i, s in "\(i): \(s.name)\(s.rating.map { "(評価\($0))" } ?? "")" }
             .joined(separator: "\n")
 
+        // 人数ルールベース(docs/mission-design.md「人数ルールベース」準拠)
+        let partyRule: String = switch partySize {
+        case 1:
+            """
+            人数: 1人(ひとり旅)
+            - お題はセルフィー・じっくり観察・内省系のトーン(「じぶんの◯◯」)にする
+            - 判定基準: 人物は本人1人で OK。風景やモノだけの写真でも成立するお題にする
+            - face は「自撮りで笑顔」、pose は「セルフ万歳」のように 1 人で完結させる
+            """
+        case 2:
+            """
+            人数: 2人
+            - お題は「ふたりで◯◯」のペア系トーンにする
+            - 判定基準: aiPrompt に「2人(以上)の人が写っていること」を必ず含める
+            - face は「2人とも笑顔か」、pose は「2人とも万歳しているか」を aiPrompt に書く
+            """
+        default:
+            """
+            人数: \(partySize)人のグループ
+            - お題は「全員で◯◯」のグループ系トーンにする(全員でジャンプ、全員で変顔 など)
+            - 判定基準: aiPrompt に「\(partySize)人程度(またはそれ以上)の人が写っていること」を含める
+            - face / pose は「写っている全員が条件を満たしているか」を aiPrompt に書く
+            - 通行人の写り込みで落とさないよう「〜人以上」の表現にする
+            """
+        }
+
         let prompt = """
         あなたは旅行ゲームのプランナーです。以下の実在スポットだけを使って、日帰り旅のミッションを作ってください。
 
         エリア: \(areaHint)
-        気分: \(mood.rawValue)
+        \(partyRule)
+        温度感: \(mood.promptHint)
         スポット一覧(index: 名前):
         \(spotList)
 
@@ -120,6 +160,7 @@ struct PlanGenerator {
         - eat はこの地域の名物料理を食べるお題(店は指定しない。有名な名物がなければ「地元の何かを食べる」系)
         - face は笑顔・表情系のお題、pose は「万歳する」など体のポーズ系のお題(お題は必ず万歳にする)
         - title は日本語で 20 文字以内。aiPrompt は「この写真に◯◯が写っていますか?」の形で、写真 1 枚で Yes/No 判定できる内容にする
+        - aiPrompt には上記の人数ルールに沿った人物条件を織り込むこと(1人なら人物条件なしでも可)
         - 気分に合わせて難易度・トーンを調整する
         - areaName はエリアの短い呼び名(例: 新宿、浅草)
 

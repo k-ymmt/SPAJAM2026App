@@ -21,7 +21,7 @@ struct RestrictionAdjustView: View {
                 .frame(maxWidth: .infinity)
 
             Text("制限をととのえる")
-                .font(.title3.bold())
+                .font(.handTitle)
 
             // ペナルティの警告
             HStack(spacing: 10) {
@@ -29,10 +29,10 @@ struct RestrictionAdjustView: View {
                     .foregroundStyle(.orange)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("調整すると OFFLINE SCORE −5pt")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.handHeadline)
                     Text("これまでの調整: \(session.restrictionAdjustments)回(−\(session.adjustPenalty)pt)")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .font(.handCaption2)
+                        .foregroundStyle(Color.inkSub)
                 }
             }
             .padding(14)
@@ -46,7 +46,7 @@ struct RestrictionAdjustView: View {
                 }
             } label: {
                 Label("おやすみにするアプリを選び直す", systemImage: "moon.zzz.fill")
-                    .font(.subheadline.bold())
+                    .font(.handHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
             }
@@ -60,7 +60,7 @@ struct RestrictionAdjustView: View {
                 dismiss()
             } label: {
                 Text("この設定に変更する(−5pt)")
-                    .font(.headline)
+                    .font(.handHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
             }
@@ -71,8 +71,8 @@ struct RestrictionAdjustView: View {
                 dismiss()
             } label: {
                 Text("やっぱりやめる(減点なし)")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(.handBody)
+                    .foregroundStyle(Color.inkSub)
                     .frame(maxWidth: .infinity)
             }
         }
