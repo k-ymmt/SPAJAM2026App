@@ -629,7 +629,7 @@
                   "width": "fill_container",
                   "descendants": {
                     "6lOU8": {
-                      "content": "DO・固定"
+                      "content": "DO"
                     },
                     "XNt4q": {
                       "iconFontName": "camera"
@@ -655,7 +655,7 @@
                   "width": "fill_container",
                   "descendants": {
                     "6lOU8": {
-                      "content": "EAT・固定"
+                      "content": "EAT"
                     },
                     "XNt4q": {
                       "iconFontName": "utensils"
@@ -675,7 +675,7 @@
                       "fill": "#FFEDE8"
                     },
                     "6lOU8": {
-                      "content": "FACE・変動",
+                      "content": "FACE",
                       "fill": "#FF5A3C"
                     },
                     "XNt4q": {
@@ -705,7 +705,7 @@
                       "fill": "#FFEDE8"
                     },
                     "6lOU8": {
-                      "content": "POSE・変動",
+                      "content": "POSE",
                       "fill": "#FF5A3C"
                     },
                     "XNt4q": {
@@ -2190,7 +2190,7 @@
               "type": "text",
               "id": "6lOU8",
               "fill": "#2AA187",
-              "content": "GO・固定",
+              "content": "GO",
               "fontFamily": "Inter",
               "fontSize": 10,
               "fontWeight": "700"
@@ -3184,7 +3184,7 @@
                       "content": "仲見世で いちばん赤いものを撮る"
                     },
                     "QMHfk": {
-                      "content": "DO・固定"
+                      "content": "DO"
                     }
                   }
                 },
@@ -3198,7 +3198,7 @@
                       "content": "揚げまんじゅうを食べる"
                     },
                     "QMHfk": {
-                      "content": "EAT・固定"
+                      "content": "EAT"
                     },
                     "1gCnI": {
                       "fill": "#EDE7DB"
@@ -3219,7 +3219,7 @@
                       "content": "五重塔をバックに最高の笑顔"
                     },
                     "QMHfk": {
-                      "content": "FACE・変動"
+                      "content": "FACE"
                     }
                   }
                 },
@@ -3233,7 +3233,7 @@
                       "content": "雷門の前で万歳する"
                     },
                     "QMHfk": {
-                      "content": "POSE・変動"
+                      "content": "POSE"
                     },
                     "1gCnI": {
                       "fill": "#EDE7DB"
@@ -3353,7 +3353,7 @@
               "type": "text",
               "id": "QMHfk",
               "fill": "#9A9184",
-              "content": "GO・固定",
+              "content": "GO",
               "fontFamily": "Inter",
               "fontSize": 10,
               "fontWeight": "normal"
@@ -4339,7 +4339,7 @@
               "type": "text",
               "id": "XeAjL",
               "fill": "#26221D",
-              "content": "スコア = 3 要素の合計(15:00 MTG 決定)",
+              "content": "スコア = 3 要素の合計(正式名称)",
               "fontFamily": "Inter",
               "fontSize": 13,
               "fontWeight": "700"
@@ -4350,7 +4350,7 @@
               "fill": "#6E675C",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "① ミッション達成 pt ② 心拍のゆらぎ(移動平均からの偏差。上下が大きい = 楽しめている)③ みない時間(旅行中にスマホを見なかった分数)。競争より個人満足度優先、その上で比較",
+              "content": "QUEST SCORE = ミッションをどれだけ達成したか(達成pt) / HEART SCORE = どれだけ心が動いたか(心拍数の上下 = ワクワク・感動) / OFFLINE SCORE = どれだけスマホを見ずに過ごしたか(制限数・利用時間・起動時間)。競争より個人満足度優先、その上で比較",
               "lineHeight": 1.6,
               "fontFamily": "Inter",
               "fontSize": 11,
