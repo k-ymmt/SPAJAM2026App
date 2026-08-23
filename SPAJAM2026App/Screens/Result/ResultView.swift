@@ -3,7 +3,7 @@
 //  SPAJAM2026App
 //
 //  05 リザルト(旅後/結果画面 ver3)。
-//  緑帯のタイトル → ガーランド飾り+共通ミッションの写真+ミザル → 心拍が上がったミッションのピン+自分の心拍の折れ線グラフ(カーソルで時刻をなぞれる)
+//  緑帯のタイトル → ガーランド飾り+共通ミッションの写真+ミザル → 思い出カルーセル(ミッション写真+みんなの「心が動いた瞬間」)+自分の心拍の折れ線グラフ(カーソルと連動)
 //  → まとめの一文 → 3 つの指標(手描きフレーム)→ 旅のハイライト(Journaling Suggestions)→ シェア。
 //  複数人の旅(membership あり)は rooms/{code}/results を購読し、全員が終わるまで待機表示にする。
 //  デザイン: Figma SPAJAM2026「旅後/結果画面ver3」(node 208:9060)。手描き素材は Assets/Result に書き出し済み
@@ -16,6 +16,8 @@ struct ResultView: View {
     var onRestart: () -> Void
 
     @State private var observer = TripRoomObserver()
+    /// 他の参加者の「心が動いた瞬間」の写真(Firebase Storage から取得)
+    @State private var momentPhotos = MomentPhotoStore()
 
     // 旅のうた(思い出の再生): リザルトを開いたら裏で生成を開始する
     @State private var songComposer = TripSongComposer()
@@ -26,12 +28,35 @@ struct ResultView: View {
     /// 複数人の旅で、まだ終わっていない人がいる
     private var isWaitingForOthers: Bool { isShared && !observer.isAllFinished }
 
-    /// 他の参加者(自分を除く)が共有してきた最高心拍ミッション
-    private var otherPeaks: [HeartRateTimeline.OtherPeak] {
+    /// 他の参加者(自分を除く)が共有してきた「心が動いた瞬間」
+    private var otherMoments: [SharedHeartMoment] {
         let myUid = AuthService.shared.uid
-        return observer.results
-            .filter { $0.id != myUid }
-            .compactMap(\.peak)
+        return observer.moments.filter { $0.uid != myUid }
+    }
+
+    /// 思い出カルーセルの項目(時系列順)
+    private func memoryEntries(_ timeline: HeartRateTimeline) -> [MemoryEntry] {
+        MemoryEntry.build(
+            records: session.records,
+            missions: session.plan.missions,
+            myMoments: session.heartMoments,
+            otherMoments: otherMoments.map {
+                MemoryEntry.OtherMoment(id: $0.id, ownerName: $0.name, capturedAt: $0.capturedAt, bpm: $0.bpm)
+            },
+            timeline: timeline
+        )
+    }
+
+    /// カルーセルの項目に対応する写真
+    private func photo(for entry: MemoryEntry) -> UIImage? {
+        switch entry.kind {
+        case .mission(let missionId, _):
+            session.records.first { $0.missionId == missionId }.flatMap { session.photo(for: $0) }
+        case .heart(.none):
+            session.heartMoments.first { "moment:\($0.id)" == entry.id }.flatMap { session.photo(for: $0) }
+        case .heart:
+            otherMoments.first { "other:\($0.id)" == entry.id }.flatMap { momentPhotos.image(for: $0) }
+        }
     }
 
     var body: some View {
@@ -47,12 +72,8 @@ struct ResultView: View {
                     .padding(.top, -24)
                 HeartRateTimelineView(
                     timeline: timeline,
-                    pins: timeline.pins(records: session.records, others: otherPeaks),
-                    missions: session.plan.missions,
-                    photo: photo(for:),
-                    onCursorTimeChange: { _ in
-                        // TODO: カーソルで選んだ時刻に応じた表示(写真の切り替えなど)はこれから
-                    }
+                    entries: memoryEntries(timeline),
+                    photo: photo(for:)
                 )
                 VStack(spacing: 11) {
                     summaryText(timeline)
@@ -70,6 +91,9 @@ struct ResultView: View {
             guard let code = session.membership?.code else { return }
             observer.start(code: code)
             await session.submitResultToRoomIfNeeded()
+        }
+        .onChange(of: observer.moments, initial: true) { _, moments in
+            momentPhotos.load(moments.filter { $0.uid != AuthService.shared.uid })
         }
         // リザルト表示と同時に旅のうたを裏で生成開始
         .task { startSongGeneration() }
@@ -126,11 +150,6 @@ struct ResultView: View {
         case .ready:
             BrushButton(label: "思い出を再生") { isSongPlayerPresented = true }
         }
-    }
-
-    private func photo(for mission: Mission) -> UIImage? {
-        guard let record = session.records.first(where: { $0.missionId == mission.id }) else { return nil }
-        return session.photo(for: record)
     }
 
     // MARK: - ヘッダ(緑帯)
@@ -358,6 +377,10 @@ struct ResultView: View {
         )
     }
     let interval = DateInterval(start: start, end: Date())
+    let moments = [
+        HeartMoment(capturedAt: start.addingTimeInterval(25 * 60), bpm: 118),
+        HeartMoment(capturedAt: start.addingTimeInterval(130 * 60), bpm: 134),
+    ]
     let session = TripSession(snapshot: TripSessionSnapshot(
         plan: plan,
         phase: .finished,
@@ -371,7 +394,8 @@ struct ResultView: View {
         becameActiveAt: nil,
         restrictionAdjustments: 0,
         shieldSelectionData: nil,
-        savedAt: Date()
+        savedAt: Date(),
+        heartMoments: moments
     ))
     ResultView(onRestart: {})
         .environment(session)

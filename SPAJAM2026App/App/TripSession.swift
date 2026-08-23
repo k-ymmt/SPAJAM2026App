@@ -26,6 +26,8 @@ final class TripSession {
     /// いま挑戦中のミッション(順不同で選択可能)
     private(set) var currentMissionId: String?
     private(set) var records: [MissionRecord] = []
+    /// 「心が動いた瞬間」に撮った写真(時系列順)
+    private(set) var heartMoments: [HeartMoment] = []
     private(set) var heartRateSamples: [HeartRateSample] = []
     private(set) var isJudging = false
     private(set) var lastFailReason: String?
@@ -70,6 +72,7 @@ final class TripSession {
         }
         self.currentMissionId = snapshot.currentMissionId
         self.records = snapshot.records
+        self.heartMoments = snapshot.heartMoments ?? []
         self.heartRateSamples = snapshot.heartRateSamples
         self.tripStartedAt = snapshot.tripStartedAt
         self.tripEndedAt = snapshot.tripEndedAt
@@ -122,7 +125,8 @@ final class TripSession {
             restrictionAdjustments: restrictionAdjustments,
             shieldSelectionData: shield.selectionData,
             savedAt: Date(),
-            membership: membership
+            membership: membership,
+            heartMoments: heartMoments
         )
     }
 
@@ -261,12 +265,60 @@ final class TripSession {
 
     /// 複数人の旅なら自分の結果をルームに書き込む。ひとり旅・送信済みなら何もしない
     func submitResultToRoomIfNeeded() async {
-        guard let membership, !isResultSubmitted else { return }
-        do {
-            try await TripRoomService.shared.submitResult(code: membership.code, result: memberResult)
-            isResultSubmitted = true
-        } catch {
-            print("result submit failed: \(error)")
+        guard let membership else { return }
+        if !isResultSubmitted {
+            do {
+                try await TripRoomService.shared.submitResult(code: membership.code, result: memberResult)
+                isResultSubmitted = true
+            } catch {
+                print("result submit failed: \(error)")
+            }
+        }
+        await shareHeartMomentsIfNeeded()
+    }
+
+    // MARK: - 心が動いた瞬間の写真
+
+    /// 「心が動いた瞬間」の写真を記録する(撮影 UI から呼ぶ)。複数人の旅ならルームにも共有する
+    @discardableResult
+    func recordHeartMoment(image: UIImage, bpm: Int? = nil, at capturedAt: Date = Date()) -> HeartMoment {
+        let id = UUID().uuidString
+        let moment = HeartMoment(
+            id: id,
+            capturedAt: capturedAt,
+            bpm: bpm ?? heartRateReceiver.latest?.beatsPerMinute.map(Int.init),
+            photoFileName: saveImage(image, name: "moment-\(id).jpg")
+        )
+        heartMoments.append(moment)
+        persist()
+        Task { await shareHeartMomentsIfNeeded() }
+        return moment
+    }
+
+    func photo(for moment: HeartMoment) -> UIImage? {
+        guard let name = moment.photoFileName else { return nil }
+        return UIImage(contentsOfFile: URL.documentsDirectory.appending(path: name).path)
+    }
+
+    /// まだ共有していない「心が動いた瞬間」の写真を Firebase Storage + Firestore に上げる(ひとり旅は何もしない)
+    func shareHeartMomentsIfNeeded() async {
+        guard let membership else { return }
+        for moment in heartMoments where moment.sharedPath == nil {
+            guard let image = photo(for: moment) else { continue }
+            do {
+                let path = try await TripRoomService.shared.shareHeartMoment(
+                    code: membership.code,
+                    name: membership.name ?? "ホスト",
+                    moment: moment,
+                    image: image
+                )
+                if let index = heartMoments.firstIndex(where: { $0.id == moment.id }) {
+                    heartMoments[index].sharedPath = path
+                }
+                persist()
+            } catch {
+                print("moment share failed: \(error)")
+            }
         }
     }
 
@@ -528,8 +580,11 @@ final class TripSession {
     // MARK: - 写真保存
 
     private func saveImage(_ image: UIImage?, missionId: String) -> String? {
+        saveImage(image, name: "mission-\(missionId).jpg")
+    }
+
+    private func saveImage(_ image: UIImage?, name: String) -> String? {
         guard let data = image?.jpegData(compressionQuality: 0.7) else { return nil }
-        let name = "mission-\(missionId).jpg"
         let url = URL.documentsDirectory.appending(path: name)
         try? data.write(to: url)
         return name

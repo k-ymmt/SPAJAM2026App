@@ -136,3 +136,24 @@ nonisolated struct HeartRateSample: Codable, Sendable, Equatable {
     var date: Date
     var bpm: Double
 }
+
+/// 「心が動いた瞬間」(心拍が上がったときなど)に撮った写真 1 枚の記録。
+/// 撮影 UI は別途用意する前提で、`TripSession.recordHeartMoment` から積む。
+nonisolated struct HeartMoment: Codable, Sendable, Identifiable, Equatable {
+    var id: String
+    var capturedAt: Date
+    /// 撮影時の心拍
+    var bpm: Int?
+    /// 写真(Documents 配下のファイル名)
+    var photoFileName: String?
+    /// Firebase Storage へ共有済みならそのパス(rooms/{code}/moments/{uid}/{id}.jpg)。未共有なら nil
+    var sharedPath: String?
+
+    init(id: String = UUID().uuidString, capturedAt: Date, bpm: Int? = nil, photoFileName: String? = nil, sharedPath: String? = nil) {
+        self.id = id
+        self.capturedAt = capturedAt
+        self.bpm = bpm
+        self.photoFileName = photoFileName
+        self.sharedPath = sharedPath
+    }
+}

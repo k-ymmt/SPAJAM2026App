@@ -4,7 +4,7 @@
 //
 //  リザルト「ドキドキ ログ」の集計。旅の時間帯を等間隔の区間に分け、区間ごとの最大心拍を
 //  折れ線グラフの点にする。ミッション達成時刻も同じ時間軸に乗せ、バーとミッション写真を同期させる。
-//  心拍が最も高かった時刻に近いミッション(peakMissionIds)を求め、バー上のピンに使う。
+//  心拍が最も高かった時刻に近いミッション(peakMissionIds)を求め、ルームへ共有する結果に使う。
 //  HealthKit / Watch に依存しない純粋な値型(ユニットテスト対象)。
 //
 
@@ -34,29 +34,6 @@ nonisolated struct HeartRateTimeline: Sendable, Equatable {
         var barIndex: Int
 
         var id: String { missionId }
-    }
-
-    /// バー上のピン(自分の最高心拍・他の参加者の最高心拍・自分の 2 番目)
-    struct Pin: Sendable, Equatable, Identifiable {
-        enum Kind: Sendable, Equatable {
-            /// 自分の心拍が最も高かった時刻に近いミッション(大きいピン・大きい写真)
-            case main
-            /// 自分の心拍が 2 番目に高かった時刻に近いミッション
-            case second
-            /// 他の参加者の最高心拍に近いミッション(ハート型ピン + アイコン)
-            case other(name: String)
-        }
-
-        var id: String
-        var missionId: String
-        var achievedAt: Date
-        /// 旅の時間帯での位置(0...1)
-        var position: Double
-        /// 対応するバーの index
-        var barIndex: Int
-        var kind: Kind
-
-        var isMain: Bool { kind == .main }
     }
 
     /// 他の参加者が共有してきた最高心拍ミッション
@@ -195,32 +172,6 @@ nonisolated struct HeartRateTimeline: Sendable, Equatable {
             if ids.count >= limit { break }
         }
         return ids
-    }
-
-    /// バー上に並べるピンを組み立てる(時間順)。
-    /// - 自分の最高心拍に近いミッション → `.main`
-    /// - 他の参加者の最高心拍に近いミッション → `.other`
-    /// - 参加者が自分を含めて 2 人以下なら、自分の 2 番目に高かったミッション → `.second`
-    func pins(records: [MissionRecord], others: [OtherPeak]) -> [Pin] {
-        var pins: [Pin] = []
-        func record(for missionId: String) -> MissionRecord? {
-            records.first { $0.missionId == missionId }
-        }
-        if let main = peakMissionIds.first, let record = record(for: main) {
-            pins.append(Pin(id: "me:\(main)", missionId: main, achievedAt: record.achievedAt,
-                            position: position(of: record.achievedAt), barIndex: barIndex(of: record.achievedAt), kind: .main))
-        }
-        for other in others {
-            pins.append(Pin(id: "other:\(other.id)", missionId: other.missionId, achievedAt: other.achievedAt,
-                            position: position(of: other.achievedAt), barIndex: barIndex(of: other.achievedAt), kind: .other(name: other.name)))
-        }
-        let partyCount = 1 + others.count
-        if partyCount <= 2, peakMissionIds.count >= 2, let record = record(for: peakMissionIds[1]) {
-            let id = peakMissionIds[1]
-            pins.append(Pin(id: "me2:\(id)", missionId: id, achievedAt: record.achievedAt,
-                            position: position(of: record.achievedAt), barIndex: barIndex(of: record.achievedAt), kind: .second))
-        }
-        return pins.sorted { $0.position < $1.position }
     }
 
     /// TripSession.checkHeartSpike と同じ条件で、履歴を通しで数える
