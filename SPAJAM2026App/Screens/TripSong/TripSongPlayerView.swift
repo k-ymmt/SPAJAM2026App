@@ -72,33 +72,29 @@ struct TripSongPlayerView: View {
                 }
             }
             .allowsHitTesting(false)
-
-            // 閉じる + 音源なし表示
-            VStack {
-                HStack {
-                    if song.audioUnavailable {
-                        Text("音源なし(歌詞のみ)")
-                            .font(.handCaption2)
-                            .foregroundStyle(.white.opacity(0.6))
-                            .padding(.leading, 4)
-                    }
-                    Spacer()
-                    Button {
-                        player?.stop()
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .padding(14)
-                            .background(.white.opacity(0.25), in: Circle())
-                            .contentShape(Circle())
-                    }
-                }
-                .padding(20)
-                Spacer()
+        }
+        // 閉じるは ZStack の外側 overlay に置く(transition 中の画像レイヤーより必ず上に描画される)
+        .overlay(alignment: .topTrailing) {
+            Button {
+                player?.stop()
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(14)
+                    .background(.black.opacity(0.45), in: Circle())
+                    .contentShape(Circle())
             }
-            .zIndex(10)
+            .padding(20)
+        }
+        .overlay(alignment: .topLeading) {
+            if song.audioUnavailable {
+                Text("音源なし(歌詞のみ)")
+                    .font(.handCaption2)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(24)
+            }
         }
         .task { startShow() }
         .onDisappear {
