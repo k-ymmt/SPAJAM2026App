@@ -27,6 +27,7 @@ struct HighlightSuggestionCard: View {
                     .frame(width: 26, height: 24)
                 Text("旅のハイライト")
                     .font(.handTitle)
+                    .fauxBold()
                     .foregroundStyle(Color.inkMain)
                 Spacer()
                 if entry != nil {
@@ -53,6 +54,7 @@ struct HighlightSuggestionCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(entry == nil ? "おすすめから選ぶ" : "この候補に項目はありませんでした")
                         .font(.handHeadline)
+                        .fauxBold()
                         .foregroundStyle(Color.inkMain)
                     Text(isSystemSuggestionPickerAvailable
                          ? "タップするとジャーナル候補のピッカーが開きます"
@@ -61,8 +63,10 @@ struct HighlightSuggestionCard: View {
                         .foregroundStyle(Color.inkMain.opacity(0.6))
                 }
                 Spacer(minLength: 0)
-                Text("+")
-                    .font(.system(size: 36, weight: .bold))
+                // Figma は Zen Maru Gothic Bold 36 の「+」。SF のテキスト「+」はグリフが小さく太いので
+                // シンボルを使って細め・大きめに揃える
+                Image(systemName: "plus")
+                    .font(.system(size: 30, weight: .medium))
                     .foregroundStyle(Color.appAccent)
             }
             .padding(.horizontal, 16)

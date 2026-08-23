@@ -32,6 +32,14 @@ extension Font {
     static func handNumber(_ size: CGFloat) -> Font { .custom(hetakawa, size: size).bold() }
 }
 
+extension View {
+    /// 手書きフォント(こよみゆる / Hetakawa)は Regular しか持たず `.bold()` が効かないため、
+    /// 同じビューを少し右にずらして重ねて擬似的に太くする。Figma の Bold 指定に寄せるときに使う。
+    func fauxBold(_ offset: CGFloat = 0.6) -> some View {
+        overlay { self.offset(x: offset) }
+    }
+}
+
 extension Color {
     // Figma デザイン(docs/Figma)のパレット。キーカラーはティール、背景はグレイッシュグリーン。
 

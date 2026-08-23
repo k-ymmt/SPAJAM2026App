@@ -258,14 +258,15 @@ struct HeartRateTimelineView: View {
     private func caption(_ entry: MemoryEntry) -> some View {
         switch entry.kind {
         case .mission:
+            // Figma は Zen Maru Gothic Bold 16。Hetakawa は線が細く薄く見えるので丸ゴシック系のシステムフォントで揃える
             Text(entry.label)
-                .font(.handNumber(16))
+                .font(.system(size: 16, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.appAccent)
         case .heart(let owner):
             HStack(spacing: 6) {
                 avatar(name: owner)
                 Text(entry.label)
-                    .font(.handCaption2.bold())
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.appAccent)
             }
         }

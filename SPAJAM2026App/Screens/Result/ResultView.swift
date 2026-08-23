@@ -367,6 +367,7 @@ struct ResultView: View {
             ShareLink(item: "『\(session.plan.title)』を旅してきました! \(session.totalScore)pt(スマホは見ざる)#ミザル") {
                 Text("結果をシェアする")
                     .font(.handHeadline)
+                    .fauxBold()
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
@@ -379,6 +380,7 @@ struct ResultView: View {
             Button(action: onRestart) {
                 Text("もう一回たびする")
                     .font(.handHeadline)
+                    .fauxBold()
                     .foregroundStyle(Color.inkSub)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
