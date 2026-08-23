@@ -72,6 +72,16 @@ struct GeminiPhotoAIJudge: PhotoAIJudging {
         return try extractText(data)
     }
 
+    /// 画像つきのテキスト生成(写真の内容を反映した歌詞生成などに使う)
+    func generateText(prompt: String, imagesJPEG: [Data]) async throws -> String {
+        var parts: [[String: Any]] = [["text": prompt]]
+        for jpeg in imagesJPEG {
+            parts.append(["inline_data": ["mime_type": "image/jpeg", "data": jpeg.base64EncodedString()]])
+        }
+        let data = try await generateContent(parts: parts, timeout: 30)
+        return try extractText(data)
+    }
+
     func judge(imageJPEG: Data, prompt: String) async throws -> (ok: Bool, reason: String) {
         let instruction = """
         あなたは旅行ゲームのミッション判定員です。次の質問に写真だけを根拠に答えてください。

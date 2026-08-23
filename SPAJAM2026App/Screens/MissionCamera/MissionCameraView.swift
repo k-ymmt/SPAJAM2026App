@@ -61,7 +61,7 @@ struct MissionCameraView: View {
                     clearMission(with: image)
                 }
             case .pose where BodyPoseCaptureView.isSupported:
-                BodyPoseCaptureView { image in
+                BodyPoseCaptureView(pose: session.currentMission?.judgment.poseType ?? .banzai) { image in
                     clearMission(with: image)
                 }
             default:

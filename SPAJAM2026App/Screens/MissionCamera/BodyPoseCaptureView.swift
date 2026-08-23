@@ -13,6 +13,8 @@ import ARKit
 import SwiftUI
 
 struct BodyPoseCaptureView: View {
+    /// 検出するポーズ(ミッションの poseType)
+    var pose: PoseType = .banzai
     var onCapture: (UIImage) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var joints: [CGPoint] = []
@@ -27,6 +29,7 @@ struct BodyPoseCaptureView: View {
     var body: some View {
         ZStack {
             BodyARViewContainer(
+                pose: pose,
                 joints: $joints,
                 bones: $bones,
                 isPosing: $isPosing,
@@ -54,7 +57,7 @@ struct BodyPoseCaptureView: View {
             .allowsHitTesting(false)
 
             VStack {
-                Text("両手を上げて 万歳!")
+                Text(pose.instruction)
                     .font(.handTitle)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
@@ -79,6 +82,7 @@ struct BodyPoseCaptureView: View {
 }
 
 private struct BodyARViewContainer: UIViewRepresentable {
+    var pose: PoseType
     @Binding var joints: [CGPoint]
     @Binding var bones: [(CGPoint, CGPoint)]
     @Binding var isPosing: Bool
@@ -156,7 +160,7 @@ private struct BodyARViewContainer: UIViewRepresentable {
                 return (pa, pb)
             }
 
-            // 万歳判定: 画面座標で両手が頭より上(y が小さい)
+            // ポーズ判定(画面座標。y は上ほど小さい)
             guard let head = screenPoints[.head],
                   let lh = screenPoints[.leftHand],
                   let rh = screenPoints[.rightHand] else {
@@ -164,7 +168,26 @@ private struct BodyARViewContainer: UIViewRepresentable {
                 poseStartedAt = nil
                 return
             }
-            let posing = lh.y < head.y && rh.y < head.y
+            let posing: Bool
+            switch parent.pose {
+            case .banzai:
+                // 両手が頭より上
+                posing = lh.y < head.y && rh.y < head.y
+            case .handUp:
+                // どちらかの手が頭より上(片手でも両手でも OK)
+                posing = lh.y < head.y || rh.y < head.y
+            case .wideArms:
+                // 両手が左右に大きく開き、肩の高さ付近にある(大の字)
+                if let ls = screenPoints[.leftShoulder], let rs = screenPoints[.rightShoulder] {
+                    let span = abs(ls.x - rs.x)
+                    posing = span > 1
+                        && abs(lh.x - rh.x) > span * 2.0
+                        && abs(lh.y - ls.y) < span * 0.8
+                        && abs(rh.y - rs.y) < span * 0.8
+                } else {
+                    posing = false
+                }
+            }
             parent.isPosing = posing
 
             if posing {

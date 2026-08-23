@@ -73,16 +73,16 @@
     {
       "id": "m5",
       "order": 5,
-      "category": "pose",
+      "category": "find",
       "slot": "variable",
-      "title": "雷門の前で万歳する",
+      "title": "おみくじをさがす",
       "judgment": {
-        "aiPrompt": "この写真に万歳(両手を上げるポーズ)をしている人が写っていますか?",
+        "aiPrompt": "この写真におみくじ(みくじ棒・みくじ紙・おみくじ売り場など)が写っていますか?",
         "location": {
-          "latitude": 35.711018,
-          "longitude": 139.796301,
+          "latitude": 35.714765,
+          "longitude": 139.796641,
           "radiusMeters": 150,
-          "name": "雷門"
+          "name": "浅草寺"
         }
       },
       "points": 15,
