@@ -18,6 +18,7 @@ struct TripSongPlayerView: View {
     @State private var lyricIndex = 0
     @State private var zooming = false
     @State private var player: AVAudioPlayer?
+    @State private var showTasks: [Task<Void, Never>] = []
 
     /// 1 枚あたりの表示秒数(30 秒 ÷ 枚数、最短 4 秒)
     private var photoInterval: TimeInterval {
@@ -52,6 +53,7 @@ struct TripSongPlayerView: View {
             .saturation(song.mood == .low ? 0.35 : 1.0)
             .overlay(song.mood == .low ? Color(red: 0.2, green: 0.3, blue: 0.4).opacity(0.25) : Color.clear)
             .ignoresSafeArea()
+            .allowsHitTesting(false)
 
             // 下部グラデーション + 歌詞
             VStack {
@@ -69,6 +71,7 @@ struct TripSongPlayerView: View {
                         .padding(.bottom, 70)
                 }
             }
+            .allowsHitTesting(false)
 
             // 閉じる + 音源なし表示
             VStack {
@@ -81,21 +84,28 @@ struct TripSongPlayerView: View {
                     }
                     Spacer()
                     Button {
+                        player?.stop()
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundStyle(.white)
-                            .padding(10)
-                            .background(.white.opacity(0.2), in: Circle())
+                            .padding(14)
+                            .background(.white.opacity(0.25), in: Circle())
+                            .contentShape(Circle())
                     }
                 }
                 .padding(20)
                 Spacer()
             }
+            .zIndex(10)
         }
         .task { startShow() }
-        .onDisappear { player?.stop() }
+        .onDisappear {
+            player?.stop()
+            showTasks.forEach { $0.cancel() }
+            showTasks = []
+        }
     }
 
     private func startShow() {
@@ -109,17 +119,18 @@ struct TripSongPlayerView: View {
         zooming = true
 
         // スライド切り替え
-        Task {
+        showTasks.append(Task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(photoInterval))
+                guard !Task.isCancelled else { return }
                 withAnimation { photoIndex += 1 }
                 zooming = false
                 try? await Task.sleep(for: .milliseconds(50))
                 zooming = true
             }
-        }
+        })
         // 歌詞切り替え(Lyria の歌唱タイミングに同期。最後の行で止める)
-        Task {
+        showTasks.append(Task {
             let lines = song.lyricLines
             let startedAt = Date()
             for (index, line) in lines.enumerated() where index > 0 {
@@ -130,6 +141,6 @@ struct TripSongPlayerView: View {
                 guard !Task.isCancelled else { return }
                 withAnimation(.easeInOut(duration: 0.4)) { lyricIndex = index }
             }
-        }
+        })
     }
 }
