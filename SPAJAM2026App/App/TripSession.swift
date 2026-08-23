@@ -136,6 +136,9 @@ final class TripSession {
         TripSessionStore.clear()
     }
 
+    /// ヘッダ表示用の旅の開始日(未開始なら nil)
+    var startDate: Date? { tripStartedAt }
+
     var currentMission: Mission? {
         guard phase == .traveling else { return nil }
         return plan.missions.first { $0.id == currentMissionId }
@@ -244,8 +247,16 @@ final class TripSession {
             total: totalScore,
             achievedMissionIds: records.map(\.missionId),
             bpmBars: myBars,
-            finishedAt: tripEndedAt ?? Date()
+            finishedAt: tripEndedAt ?? Date(),
+            peakMissionId: peakRecord?.missionId,
+            peakMissionAchievedAt: peakRecord?.achievedAt
         )
+    }
+
+    /// 自分の心拍が最も高かった時刻に近いミッションの達成ログ(リザルトのピンと同じロジック)
+    private var peakRecord: MissionRecord? {
+        guard let id = resultTimeline.peakMissionId else { return nil }
+        return records.first { $0.missionId == id }
     }
 
     /// 複数人の旅なら自分の結果をルームに書き込む。ひとり旅・送信済みなら何もしない
@@ -368,13 +379,22 @@ final class TripSession {
     var totalScore: Int { questScore + heartScore + offlineScore }
 
     /// 旅行時間のうちスマホ(このアプリ)を見ていなかった分数
-    private var notLookingMinutes: Int {
+    private var notLookingMinutes: Int { Int(offlineDuration / 60) }
+
+    /// 旅行時間のうちスマホ(このアプリ)を見ていなかった時間(秒)
+    var offlineDuration: TimeInterval {
         guard let start = tripStartedAt else { return 0 }
         let end = tripEndedAt ?? Date()
         var active = foregroundSeconds
         if let since = becameActiveAt { active += end.timeIntervalSince(since) }
-        let notLooking = max(0, end.timeIntervalSince(start) - active)
-        return Int(notLooking / 60)
+        return max(0, end.timeIntervalSince(start) - active)
+    }
+
+    /// 旅の時間帯(開始〜終了。終了前なら現在まで)。未開始なら nil
+    var tripInterval: DateInterval? {
+        guard let start = tripStartedAt else { return nil }
+        let end = tripEndedAt ?? Date()
+        return DateInterval(start: start, end: max(start, end))
     }
 
     /// 制限数ボーナス: シールドしたアプリ/カテゴリ 1 つにつき +2pt(上限 10pt)

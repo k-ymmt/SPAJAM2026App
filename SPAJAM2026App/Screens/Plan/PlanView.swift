@@ -55,6 +55,8 @@ struct PlanView: View {
 /// ヘッダ・行・フッターの設計と配置を完全に揃える
 struct MissionListScreen: View {
     let plan: TravelPlan
+    /// 旅の開始日(未開始なら今日)
+    var startDate: Date?
     var trailing: AnyView?
     let ctaLabel: String
     var ctaLoading = false
@@ -65,7 +67,7 @@ struct MissionListScreen: View {
     var body: some View {
         // スクロールなしで 1 画面に収める
         VStack(alignment: .leading, spacing: 10) {
-            PlanHeaderView(plan: plan, trailing: trailing)
+            PlanHeaderView(plan: plan, date: startDate, trailing: trailing)
             ForEach(plan.missions) { mission in
                 row(mission)
             }
@@ -93,6 +95,8 @@ struct MissionListScreen: View {
 /// プラン/旅行中一覧の共通ヘッダ: タイトル + 日付・人数 + メンバー + ミザルの吹き出し
 struct PlanHeaderView: View {
     let plan: TravelPlan
+    /// 旅の開始日(未開始なら今日を表示)
+    var date: Date?
     /// ヘッダ右端に置く小さいボタン(旅行中の制限調整など)
     var trailing: AnyView?
 
@@ -126,7 +130,7 @@ struct PlanHeaderView: View {
             }
 
             HStack(spacing: 14) {
-                Text(Date.now.formatted(.dateTime.year().month().day().locale(Locale(identifier: "ja_JP"))))
+                Text((date ?? Date.now).formatted(.dateTime.year().month().day().locale(Locale(identifier: "ja_JP"))))
                 Text(partyLabel)
             }
             .font(.handCaption)

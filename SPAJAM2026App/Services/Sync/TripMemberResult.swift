@@ -21,4 +21,14 @@ nonisolated struct TripMemberResult: Codable, Sendable, Identifiable, Equatable 
     /// 時間帯ごとの心拍変動量(6 区間・正規化済み 0...1)
     var bpmBars: [Double]
     var finishedAt: Date
+    /// 自分の心拍が最も高かった時刻に近いミッション(リザルトのバー上ピン用)。古いクライアントからは nil
+    var peakMissionId: String?
+    /// `peakMissionId` を達成した時刻(ピンの横位置に使う)
+    var peakMissionAchievedAt: Date?
+
+    /// リザルトのバー上ピンに使える形(未送信・未達成なら nil)
+    var peak: HeartRateTimeline.OtherPeak? {
+        guard let peakMissionId, let peakMissionAchievedAt else { return nil }
+        return .init(id: id, name: name, missionId: peakMissionId, achievedAt: peakMissionAchievedAt)
+    }
 }

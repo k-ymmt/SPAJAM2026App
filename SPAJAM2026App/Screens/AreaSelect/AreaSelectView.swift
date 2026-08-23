@@ -215,7 +215,7 @@ struct AreaSelectView: View {
                         Image(systemName: "doc.on.doc")
                             .font(.system(size: 14))
                     }
-                    .tint(.orange)
+                    .tint(.appAccent)
                 } else if isCreatingRoom {
                     Spacer()
                     ProgressView()
@@ -231,7 +231,7 @@ struct AreaSelectView: View {
             HStack(spacing: 5) {
                 Image(systemName: "person.2.fill")
                     .font(.system(size: 11))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.appAccent)
                 if names.isEmpty {
                     Text("参加を待っています(あと \(guestCapacity) 人)")
                 } else {
