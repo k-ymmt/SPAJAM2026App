@@ -43,6 +43,8 @@ extension Color {
     static let appAccent = Color(red: 0.165, green: 0.490, blue: 0.424)
     /// キーカラーの淡色(#8FBCB0)
     static let appAccentSoft = Color(red: 0.561, green: 0.737, blue: 0.690)
+    /// キーカラーの極淡色・カード背景(#EAF5F3 / Figma green4)
+    static let appAccentPale = Color(red: 0.918, green: 0.961, blue: 0.953)
     /// 画面背景(#ECEEE7)
     static let appBackground = Color(red: 0.925, green: 0.933, blue: 0.906)
     /// カテゴリバッジ背景(#E9F4E6)

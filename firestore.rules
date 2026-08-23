@@ -32,6 +32,16 @@ service cloud.firestore {
       }
 
       // 旅を終えたメンバーの結果(リザルト共有)。自分の uid のドキュメントだけ書ける
+      // 「心が動いた瞬間」の写真のメタデータ(写真本体は Storage)。自分が撮った分だけ書ける
+      match /moments/{momentId} {
+        allow read: if signedIn();
+        allow create, update: if signedIn() && request.resource.data.uid == request.auth.uid
+          && request.resource.data.name is string
+          && request.resource.data.storagePath is string
+          && request.resource.data.capturedAt is timestamp;
+        allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+      }
+
       match /results/{uid} {
         allow read: if signedIn();
         allow create, update: if signedIn() && uid == request.auth.uid

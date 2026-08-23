@@ -2,7 +2,7 @@
 //  HighlightSuggestionCard.swift
 //  SPAJAM2026App
 //
-//  リザルト「旅のハイライト」: iOS の Journaling Suggestions から選んだ候補の写真だけを並べる。
+//  リザルト「旅のハイライト」: iOS の Journaling Suggestions から選んだ候補の項目をすべて並べる。
 //  JournalingSuggestions はシステムピッカー経由でしか取得できないため、カードをタップして選ぶ。
 //  シミュレータ(フレームワーク無し)ではサンプル候補ピッカーに切り替わる。
 //
@@ -13,9 +13,9 @@ struct HighlightSuggestionCard: View {
     @State private var entry: SuggestionEntry?
     @State private var isPickerPresented = false
 
-    /// 選んだ候補のうち写真系(写真・Live Photo)だけ
-    private var photos: [SuggestionItem] {
-        entry?.items.filter { $0.kind == .photo || $0.kind == .livePhoto } ?? []
+    /// 選んだ候補の項目(種類を問わずすべて)
+    private var items: [SuggestionItem] {
+        entry?.items ?? []
     }
 
     var body: some View {
@@ -35,10 +35,10 @@ struct HighlightSuggestionCard: View {
                         .foregroundStyle(Color.appAccent)
                 }
             }
-            if photos.isEmpty {
+            if items.isEmpty {
                 placeholder
             } else {
-                photoGrid
+                itemGrid
             }
         }
         .suggestionPicker(isPresented: $isPickerPresented) { picked in
@@ -46,33 +46,39 @@ struct HighlightSuggestionCard: View {
         }
     }
 
+    /// 未選択時: 薄緑の枠付きカード(「おすすめから選ぶ」+「+」)
     private var placeholder: some View {
         Button { isPickerPresented = true } label: {
-            VStack(spacing: 10) {
-                Image(systemName: "sparkles.rectangle.stack")
-                    .font(.system(size: 34))
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(entry == nil ? "おすすめから選ぶ" : "この候補に項目はありませんでした")
+                        .font(.handHeadline)
+                        .foregroundStyle(Color.inkMain)
+                    Text(isSystemSuggestionPickerAvailable
+                         ? "タップするとジャーナル候補のピッカーが開きます"
+                         : "シミュレータではサンプル候補を表示します")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.inkMain.opacity(0.6))
+                }
+                Spacer(minLength: 0)
+                Text("+")
+                    .font(.system(size: 36, weight: .bold))
                     .foregroundStyle(Color.appAccent)
-                Text(entry == nil ? "iOS のおすすめから写真をえらぶ" : "この候補に写真はありませんでした")
-                    .font(.handBody)
-                    .foregroundStyle(Color.inkMain)
-                Text(isSystemSuggestionPickerAvailable
-                     ? "タップするとジャーナル候補のピッカーが開きます"
-                     : "シミュレータではサンプル候補を表示します")
-                    .font(.handCaption2)
-                    .foregroundStyle(Color.inkSub)
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
             .frame(maxWidth: .infinity)
-            .frame(height: 220)
-            .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 30))
+            .background(Color.appAccentPale, in: RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.appAccent, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
 
-    private var photoGrid: some View {
+    private var itemGrid: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
-                ForEach(photos) { item in
-                    photoTile(item)
+                ForEach(items) { item in
+                    itemTile(item)
                 }
             }
         }
@@ -80,7 +86,7 @@ struct HighlightSuggestionCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 30))
     }
 
-    private func photoTile(_ item: SuggestionItem) -> some View {
+    private func itemTile(_ item: SuggestionItem) -> some View {
         Group {
             if let url = item.imageURL {
                 AsyncImage(url: url) { image in
