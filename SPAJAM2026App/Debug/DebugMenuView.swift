@@ -38,6 +38,15 @@ struct DebugMenuView: View {
                             )
                         }
                     }
+                    NavigationLink {
+                        TripSongTrialView(activeSession: activeSession)
+                    } label: {
+                        TrialRow(
+                            title: "旅のうた(生成テスト)",
+                            subtitle: "歌詞生成 + Lyria 3 Clip + スライドショー再生を検証します。",
+                            systemImage: "music.note"
+                        )
+                    }
                     Button {
                         let demo = TripSession(plan: .bundledDemoPlan())
                         demo.persist()
