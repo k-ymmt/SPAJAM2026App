@@ -19,6 +19,8 @@ struct TripSongPlayerView: View {
     @State private var zooming = false
     @State private var player: AVAudioPlayer?
     @State private var showTasks: [Task<Void, Never>] = []
+    /// 表示用に縮小した写真(フル解像度のまま全画面描画すると合成が壊れるため)
+    @State private var displayPhotos: [UIImage] = []
 
     /// 1 枚あたりの表示秒数(30 秒 ÷ 枚数、最短 4 秒)
     private var photoInterval: TimeInterval {
@@ -32,13 +34,13 @@ struct TripSongPlayerView: View {
 
             // スライドショー(写真がなければミザル)
             Group {
-                if photos.isEmpty {
+                if displayPhotos.isEmpty {
                     Image("MizaruCharacter")
                         .resizable()
                         .scaledToFit()
                         .padding(60)
                 } else {
-                    Image(uiImage: photos[photoIndex % photos.count])
+                    Image(uiImage: displayPhotos[photoIndex % displayPhotos.count])
                         .resizable()
                         .scaledToFill()
                         .id(photoIndex)
@@ -73,20 +75,11 @@ struct TripSongPlayerView: View {
             }
             .allowsHitTesting(false)
         }
-        // 閉じるは ZStack の外側 overlay に置く(transition 中の画像レイヤーより必ず上に描画される)
-        .overlay(alignment: .topTrailing) {
-            Button {
-                player?.stop()
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(14)
-                    .background(.black.opacity(0.45), in: Circle())
-                    .contentShape(Circle())
-            }
-            .padding(20)
+        // 再生終了で自動的に閉じる仕様。途中でやめたい時はどこをタップしても閉じられる
+        .contentShape(Rectangle())
+        .onTapGesture {
+            player?.stop()
+            dismiss()
         }
         .overlay(alignment: .topLeading) {
             if song.audioUnavailable {
@@ -105,6 +98,16 @@ struct TripSongPlayerView: View {
     }
 
     private func startShow() {
+        // 表示用に長辺 1500px へ縮小
+        displayPhotos = photos.map { photo in
+            let scale = min(1, 1500 / max(photo.size.width, photo.size.height))
+            guard scale < 1 else { return photo }
+            let newSize = CGSize(width: photo.size.width * scale, height: photo.size.height * scale)
+            return UIGraphicsImageRenderer(size: newSize).image { _ in
+                photo.draw(in: CGRect(origin: .zero, size: newSize))
+            }
+        }
+
         // 音源(マナーモードでも鳴らす)
         if let url = song.audioURL {
             try? AVAudioSession.sharedInstance().setCategory(.playback)
@@ -113,6 +116,14 @@ struct TripSongPlayerView: View {
             player?.play()
         }
         zooming = true
+
+        // 再生終了(曲の長さ、音源なしは 30 秒)で自動的に閉じる
+        showTasks.append(Task {
+            let duration = player?.duration ?? 30
+            try? await Task.sleep(for: .seconds(duration + 0.5))
+            guard !Task.isCancelled else { return }
+            dismiss()
+        })
 
         // スライド切り替え
         showTasks.append(Task {
