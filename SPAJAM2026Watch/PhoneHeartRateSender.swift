@@ -46,6 +46,10 @@ final class PhoneHeartRateSender {
                 guard let self else { return }
                 Task { @MainActor in self.missionState = state }
             },
+            onMissionCleared: { [weak self] in
+                guard let self else { return }
+                Task { @MainActor in self.missionState = nil }
+            },
             onEvent: { [weak self] event in
                 guard let self else { return }
                 Task { @MainActor in self.handleEvent(event) }
@@ -56,7 +60,9 @@ final class PhoneHeartRateSender {
         session.activate()
 
         // Watch 側が後から起動しても最後のミッション状態を復元できるようにする
-        if let state = MissionState(payload: session.receivedApplicationContext) {
+        // (旅の終了マーカーが残っている場合は復元しない)
+        if !MissionState.isCleared(payload: session.receivedApplicationContext),
+           let state = MissionState(payload: session.receivedApplicationContext) {
             missionState = state
         }
     }
@@ -124,22 +130,29 @@ private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
     private let reachabilityChanged: @Sendable (Bool) -> Void
     private let commandReceived: @Sendable (HeartRateMessage.Command) -> Void
     private let onMissionState: @Sendable (MissionState) -> Void
+    private let onMissionCleared: @Sendable () -> Void
     private let onEvent: @Sendable (WatchEvent) -> Void
 
     init(
         reachabilityChanged: @escaping @Sendable (Bool) -> Void,
         commandReceived: @escaping @Sendable (HeartRateMessage.Command) -> Void,
         onMissionState: @escaping @Sendable (MissionState) -> Void,
+        onMissionCleared: @escaping @Sendable () -> Void,
         onEvent: @escaping @Sendable (WatchEvent) -> Void
     ) {
         self.reachabilityChanged = reachabilityChanged
         self.commandReceived = commandReceived
         self.onMissionState = onMissionState
+        self.onMissionCleared = onMissionCleared
         self.onEvent = onEvent
     }
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
-        if let state = MissionState(payload: applicationContext) { onMissionState(state) }
+        if MissionState.isCleared(payload: applicationContext) {
+            onMissionCleared()
+        } else if let state = MissionState(payload: applicationContext) {
+            onMissionState(state)
+        }
     }
 
     func session(
@@ -161,7 +174,11 @@ private nonisolated final class SessionDelegate: NSObject, WCSessionDelegate {
         if case let .command(command)? = HeartRateMessage(dictionary: message) {
             commandReceived(command)
         }
-        if let state = MissionState(payload: message) { onMissionState(state) }
+        if MissionState.isCleared(payload: message) {
+            onMissionCleared()
+        } else if let state = MissionState(payload: message) {
+            onMissionState(state)
+        }
         if let event = WatchEvent(payload: message) { onEvent(event) }
     }
 }

@@ -55,6 +55,12 @@ struct ContentView: View {
                 Task { await workoutManager.toggle() }
             }
         }
+        // 起動時にミッション状態が復元済み(onChange が発火しない)でも計測を開始する
+        .task {
+            if sender.missionState != nil, !workoutManager.isActive {
+                await workoutManager.toggle()
+            }
+        }
     }
 
     // MARK: - W1 次のミッション
@@ -98,6 +104,27 @@ struct ContentView: View {
             Text(statusText)
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
+
+            // 自動開始に失敗した(許可未了など)場合の手動リカバリ
+            if workoutManager.status == .idle {
+                Button {
+                    Task { await workoutManager.toggle() }
+                } label: {
+                    Text("計測開始")
+                        .font(.system(size: 12, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                }
+                .tint(.green)
+                .controlSize(.mini)
+            }
+
+            if let errorMessage = workoutManager.errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
         }
         .padding(.horizontal, 8)
     }

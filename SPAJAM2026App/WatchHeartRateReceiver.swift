@@ -50,6 +50,18 @@ final class WatchHeartRateReceiver {
         try? session.updateApplicationContext(payload)
     }
 
+    /// 旅の終了時にミッション状態を消す(applicationContext の残留で Watch が旧状態に固まるのを防ぐ)。
+    func clearMissionState() {
+        guard WCSession.isSupported() else { return }
+        let session = WCSession.default
+        guard session.activationState == .activated else { return }
+        let payload = MissionState.clearedPayload
+        if session.isReachable {
+            session.sendMessage(payload, replyHandler: nil)
+        }
+        try? session.updateApplicationContext(payload)
+    }
+
     /// 触覚フィードバックのトリガー(達成・接近・心拍上昇・メンバー達成)を Watch へ送る。
     func sendEvent(_ event: WatchEvent) {
         guard WCSession.isSupported() else { return }

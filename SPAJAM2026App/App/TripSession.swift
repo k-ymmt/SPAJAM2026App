@@ -225,6 +225,7 @@ final class TripSession {
         noteScenePhase(active: false)
         tripEndedAt = Date()
         phase = .finished
+        heartRateReceiver.clearMissionState()
         shield.stop()
         activityController.end()
         activityRefreshTask?.cancel()

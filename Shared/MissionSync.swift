@@ -18,6 +18,14 @@ nonisolated struct MissionState: Codable, Sendable, Equatable {
 
 nonisolated extension MissionState {
     static let payloadKey = "missionState"
+    /// 旅の終了時にミッション状態を消すためのマーカー(applicationContext は残留するため明示的に上書きする)
+    static let clearedKey = "missionStateCleared"
+
+    static var clearedPayload: [String: Any] { [clearedKey: true] }
+
+    static func isCleared(payload: [String: Any]) -> Bool {
+        payload[clearedKey] as? Bool == true
+    }
 
     func payload() throws -> [String: Any] {
         [Self.payloadKey: try JSONEncoder().encode(self)]
