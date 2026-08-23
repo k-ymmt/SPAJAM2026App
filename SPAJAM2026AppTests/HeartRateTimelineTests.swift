@@ -2,7 +2,7 @@
 //  HeartRateTimelineTests.swift
 //  SPAJAM2026AppTests
 //
-//  リザルト「ドキドキ ログ」の集計(区間平均・ミッション位置・ピーク・心が動いた回数)を検証する。
+//  リザルト「ドキドキ ログ」の集計(区間最大・ミッション位置・ピーク・心が動いた回数)を検証する。
 //
 
 import Foundation
@@ -21,8 +21,8 @@ struct HeartRateTimelineTests {
         MissionRecord(missionId: id, achievedAt: start.addingTimeInterval(minutes * 60), points: 10)
     }
 
-    @Test func barsAverageSamplesPerSlotAndMarkPeak() {
-        // 6 区間 × 10 分。0-10 分に 70, 30-40 分に 120
+    @Test func barsTakeMaximumPerSlotAndMarkPeak() {
+        // 6 区間 × 10 分。0-10 分は 60/80 の最大 80, 30-40 分に 120
         let timeline = HeartRateTimeline(
             samples: [sample(1, 60), sample(5, 80), sample(35, 120)],
             records: [],
@@ -30,12 +30,12 @@ struct HeartRateTimelineTests {
             barCount: 6
         )
         #expect(timeline.bars.count == 6)
-        #expect(timeline.bars[0].bpm == 70)
+        #expect(timeline.bars[0].bpm == 80)
         #expect(timeline.bars[0].hasSamples)
         #expect(timeline.bars[3].bpm == 120)
         #expect(timeline.peakBar?.index == 3)
         #expect(timeline.bars[3].level == 1)
-        #expect(timeline.bars[0].level == 0.2)
+        #expect(timeline.bars[0].level == 0)
         #expect(timeline.maximumBpm == 120)
     }
 
@@ -121,6 +121,9 @@ struct HeartRateTimelineTests {
         #expect(timeline.peakMissionIds == ["b", "a"])
         #expect(timeline.peakMissionId == "b")
         #expect(timeline.position(of: start.addingTimeInterval(45 * 60)) == 0.75)
+        #expect(timeline.date(at: 0.75) == start.addingTimeInterval(45 * 60))
+        #expect(timeline.date(at: 1.5) == timeline.interval.end)
+        #expect(timeline.date(at: -1) == timeline.interval.start)
     }
 
     @Test func peakMissionsAreEmptyWithoutRecordsOrSamples() {

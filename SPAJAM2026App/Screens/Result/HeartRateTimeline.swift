@@ -2,8 +2,8 @@
 //  HeartRateTimeline.swift
 //  SPAJAM2026App
 //
-//  リザルト「ドキドキ ログ」の集計。旅の時間帯を等間隔の区間に分け、区間ごとの平均心拍を
-//  横並びのバーにする。ミッション達成時刻も同じ時間軸に乗せ、バーとミッション写真を同期させる。
+//  リザルト「ドキドキ ログ」の集計。旅の時間帯を等間隔の区間に分け、区間ごとの最大心拍を
+//  折れ線グラフの点にする。ミッション達成時刻も同じ時間軸に乗せ、バーとミッション写真を同期させる。
 //  心拍が最も高かった時刻に近いミッション(peakMissionIds)を求め、バー上のピンに使う。
 //  HealthKit / Watch に依存しない純粋な値型(ユニットテスト対象)。
 //
@@ -11,12 +11,12 @@
 import Foundation
 
 nonisolated struct HeartRateTimeline: Sendable, Equatable {
-    /// 時間帯 1 区間分のバー
+    /// 時間帯 1 区間分の値(折れ線グラフの 1 点)
     struct Bar: Sendable, Equatable, Identifiable {
         var index: Int
-        /// 区間の平均心拍。サンプルが無い区間は前後から補間した値
+        /// 区間の最大心拍。サンプルが無い区間は前後から補間した値
         var bpm: Double
-        /// 0...1 に正規化した高さ
+        /// 0...1 に正規化した高さ(最小 0・最大 1。全区間同じ値なら 0.5)
         var level: Double
         /// 実サンプルがある区間か
         var hasSamples: Bool
@@ -89,6 +89,11 @@ nonisolated struct HeartRateTimeline: Sendable, Equatable {
         min(1, max(0, date.timeIntervalSince(interval.start) / max(interval.duration, 1)))
     }
 
+    /// 旅の時間帯での位置(0...1)を時刻に戻す。範囲外は端に寄せる
+    func date(at position: Double) -> Date {
+        interval.start.addingTimeInterval(min(1, max(0, position)) * interval.duration)
+    }
+
     /// `date` が入るバーの index
     func barIndex(of date: Date) -> Int {
         min(barCount - 1, Int(position(of: date) * Double(barCount)))
@@ -133,39 +138,38 @@ nonisolated struct HeartRateTimeline: Sendable, Equatable {
             min(barCount - 1, Int(position(of: date) * Double(barCount)))
         }
 
-        // 区間ごとの平均
-        var sums = [Double](repeating: 0, count: barCount)
+        // 区間ごとの最大
+        var values = [Double?](repeating: nil, count: barCount)
         var counts = [Int](repeating: 0, count: barCount)
         for sample in sorted {
             let i = barIndex(of: sample.date)
-            sums[i] += sample.bpm
+            values[i] = max(values[i] ?? sample.bpm, sample.bpm)
             counts[i] += 1
         }
-        var means: [Double?] = (0..<barCount).map { counts[$0] > 0 ? sums[$0] / Double(counts[$0]) : nil }
         // 空区間は前後の実測値で線形補間(端は最寄りの値)
-        let known = means.enumerated().compactMap { i, v in v.map { (i, $0) } }
+        let known = values.enumerated().compactMap { i, v in v.map { (i, $0) } }
         if !known.isEmpty {
-            for i in 0..<barCount where means[i] == nil {
+            for i in 0..<barCount where values[i] == nil {
                 let before = known.last { $0.0 < i }
                 let after = known.first { $0.0 > i }
                 switch (before, after) {
                 case let (b?, a?):
                     let t = Double(i - b.0) / Double(a.0 - b.0)
-                    means[i] = b.1 + (a.1 - b.1) * t
-                case let (b?, nil): means[i] = b.1
-                case let (nil, a?): means[i] = a.1
+                    values[i] = b.1 + (a.1 - b.1) * t
+                case let (b?, nil): values[i] = b.1
+                case let (nil, a?): values[i] = a.1
                 default: break
                 }
             }
         }
 
-        let values = means.map { $0 ?? 0 }
-        let minBpm = values.min() ?? 0
-        let maxBpm = values.max() ?? 0
+        let filled = values.map { $0 ?? 0 }
+        let minBpm = filled.min() ?? 0
+        let maxBpm = filled.max() ?? 0
         let range = maxBpm - minBpm
         bars = (0..<barCount).map { i in
-            let level: Double = known.isEmpty ? 0 : (range < 1 ? 0.6 : 0.2 + 0.8 * (values[i] - minBpm) / range)
-            return Bar(index: i, bpm: values[i], level: level, hasSamples: counts[i] > 0)
+            let level: Double = known.isEmpty ? 0 : (range < 1 ? 0.5 : (filled[i] - minBpm) / range)
+            return Bar(index: i, bpm: filled[i], level: level, hasSamples: counts[i] > 0)
         }
 
         markers = records

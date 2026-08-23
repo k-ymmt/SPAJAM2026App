@@ -3,7 +3,7 @@
 //  SPAJAM2026App
 //
 //  05 リザルト(旅後/結果画面 ver3)。
-//  緑帯のタイトル → ガーランド飾り+共通ミッションの写真+ミザル → 心拍が上がったミッションのピン+自分の心拍バー
+//  緑帯のタイトル → ガーランド飾り+共通ミッションの写真+ミザル → 心拍が上がったミッションのピン+自分の心拍の折れ線グラフ(カーソルで時刻をなぞれる)
 //  → まとめの一文 → 3 つの指標(手描きフレーム)→ 旅のハイライト(Journaling Suggestions)→ シェア。
 //  複数人の旅(membership あり)は rooms/{code}/results を購読し、全員が終わるまで待機表示にする。
 //  デザイン: Figma SPAJAM2026「旅後/結果画面ver3」(node 208:9060)。手描き素材は Assets/Result に書き出し済み
@@ -45,7 +45,10 @@ struct ResultView: View {
                     timeline: timeline,
                     pins: timeline.pins(records: session.records, others: otherPeaks),
                     missions: session.plan.missions,
-                    photo: photo(for:)
+                    photo: photo(for:),
+                    onCursorTimeChange: { _ in
+                        // TODO: カーソルで選んだ時刻に応じた表示(写真の切り替えなど)はこれから
+                    }
                 )
                 VStack(spacing: 11) {
                     summaryText(timeline)

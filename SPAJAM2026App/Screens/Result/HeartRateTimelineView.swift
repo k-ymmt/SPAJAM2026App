@@ -2,13 +2,14 @@
 //  HeartRateTimelineView.swift
 //  SPAJAM2026App
 //
-//  リザルトの「心拍が上がったミッションのピン ↔ 心拍バー」ビュー(Figma 旅後/結果画面 ver3)。
+//  リザルトの「心拍が上がったミッションのピン ↔ 心拍の折れ線グラフ」ビュー(Figma 旅後/結果画面 ver3)。
 //  中段の緑のラインを旅の時間の数直線に見立て、ピンを達成時刻の位置に置く
 //    - 自分の最高心拍に近いミッション: 大きいピン + 大きい写真 + 「MISSION X」
 //    - 他の参加者の最高心拍に近いミッション: ハート型ピン + 上に参加者アイコン + 小さい写真
 //    - 参加者が 2 人以下のときだけ、自分の 2 番目に高かったミッション: 小さいピン + 小さい写真
-//  下段: 時間帯ごとの心拍バー(クリーム帯)。自分の最高心拍ミッションの区間をグレーのカーソルで示し、ピークを強調
-//  タップ操作は無し(心拍は自分の分だけ)。
+//  下段: 時間帯ごとの最大心拍を結ぶ折れ線グラフ(Figma 旅後/結果画面_最大心拍ゲージ時 node 230:12339)。
+//  緑の縦棒カーソルは左右にドラッグでき、指している旅の時刻を `onCursorTimeChange` で通知する。
+//  初期位置は自分の最高心拍ミッションの達成時刻。
 //
 
 import SwiftUI
@@ -20,6 +21,11 @@ struct HeartRateTimelineView: View {
     /// プランのミッション(写真・番号の解決用)
     let missions: [Mission]
     let photo: (Mission) -> UIImage?
+    /// グラフのカーソルを動かしたときに、カーソルが指す旅の時刻を受け取る
+    var onCursorTimeChange: (Date) -> Void = { _ in }
+
+    /// ドラッグで動かしたカーソル位置(0...1)。nil なら初期位置(自分の最高心拍ミッション)
+    @State private var draggedCursorPosition: Double?
 
     private enum Metrics {
         /// ピン/写真エリアの高さ
@@ -35,11 +41,26 @@ struct HeartRateTimelineView: View {
         static let smallPhotoGap: CGFloat = 60
     }
 
+    private enum Chart {
+        /// グラフ全体の高さ(Figma: 93pt)
+        static let height: CGFloat = 93
+        /// 折れ線の上下余白(Figma: 線の範囲は 22pt〜78pt)
+        static let lineTopInset: CGFloat = 22
+        static let lineBottomInset: CGFloat = 15
+        static let lineWidth: CGFloat = 4
+        /// 太い方のカーソルの高さ
+        static let thickCursorHeight: CGFloat = 62
+        /// Figma green3
+        static let line = Color(red: 0.553, green: 0.804, blue: 0.773)
+        static let gradientTop = Color(red: 0.945, green: 0.945, blue: 0.945).opacity(0)
+        static let gradientBottom = Color(red: 0.855, green: 0.667, blue: 0.149).opacity(0.15)
+    }
+
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
             pinArea
             heartLog
-            dashedSeparator
+            separator
         }
     }
 
@@ -177,50 +198,86 @@ struct HeartRateTimelineView: View {
         .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
     }
 
-    // MARK: - 心拍バー(ドキドキ ログ)
+    // MARK: - 心拍の折れ線グラフ(ドキドキ ログ)
+
+    /// カーソル位置(0...1)。nil なら自分の最高心拍ミッション(無ければピーク区間)に置く
+    private var cursorPosition: Double {
+        if let draggedCursorPosition { return draggedCursorPosition }
+        if let main = pins.first(where: \.isMain) { return main.position }
+        if let peak = timeline.peakBar, timeline.hasSamples { return pointPosition(peak.index) }
+        return 0.5
+    }
+
+    /// 折れ線の `index` 番目の点の横位置(0...1)。両端の点をグラフの端に置く
+    private func pointPosition(_ index: Int) -> Double {
+        let count = timeline.bars.count
+        return count > 1 ? Double(index) / Double(count - 1) : 0.5
+    }
 
     private var heartLog: some View {
-        let mainBar = pins.first(where: \.isMain)?.barIndex
-        let peak = timeline.peakBar?.index
-        return HStack(alignment: .bottom, spacing: 5) {
-            ForEach(timeline.bars) { bar in
-                let isMain = bar.index == mainBar
-                let isPeak = bar.index == peak && timeline.hasSamples
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(barColor(isMain: isMain, isPeak: isPeak))
-                        .frame(height: max(6, 64 * bar.level))
-                }
-                .frame(maxWidth: .infinity)
-                .overlay {
-                    if isMain {
-                        // 自分の最高心拍ミッションの区間カーソル
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color(.systemGray4))
-                            .frame(width: 7)
-                    }
-                }
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let cursorX = CGFloat(cursorPosition) * width
+            ZStack(alignment: .topLeading) {
+                linePath(width: width)
+                    .stroke(Chart.line, style: StrokeStyle(lineWidth: Chart.lineWidth, lineCap: .round, lineJoin: .round))
+                // カーソル: 細い線(全高)+ 太い線(中央)
+                Capsule()
+                    .fill(Color.appAccent)
+                    .frame(width: 2, height: Chart.height)
+                    .position(x: cursorX, y: Chart.height / 2)
+                Capsule()
+                    .fill(Color.appAccent)
+                    .frame(width: 4, height: Chart.thickCursorHeight)
+                    .position(x: cursorX, y: Chart.height / 2)
             }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let position = Double(min(width, max(0, value.location.x)) / max(width, 1))
+                        draggedCursorPosition = position
+                        onCursorTimeChange(timeline.date(at: position))
+                    }
+            )
         }
-        .frame(height: 76)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(Color(red: 0.98, green: 0.97, blue: 0.94))
+        .frame(height: Chart.height)
+        .background(
+            LinearGradient(
+                colors: [Chart.gradientTop, Chart.gradientBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .padding(.horizontal, Metrics.inset)
+        .accessibilityElement()
+        .accessibilityLabel("心拍の推移")
+        .accessibilityAddTraits(.allowsDirectInteraction)
     }
 
-    private func barColor(isMain: Bool, isPeak: Bool) -> Color {
-        let hot = Color(red: 0.98, green: 0.43, blue: 0.33)
-        if isMain { return hot }
-        if isPeak { return hot.opacity(0.75) }
-        return hot.opacity(0.28)
+    /// 区間ごとの最大心拍を結ぶ折れ線。level 1 が上端、0 が下端
+    private func linePath(width: CGFloat) -> Path {
+        let bars = timeline.bars
+        guard !bars.isEmpty else { return Path() }
+        let usableHeight = Chart.height - Chart.lineTopInset - Chart.lineBottomInset
+        let points = bars.map { bar in
+            CGPoint(
+                x: CGFloat(pointPosition(bar.index)) * width,
+                y: Chart.lineTopInset + (1 - CGFloat(bar.level)) * usableHeight
+            )
+        }
+        var path = Path()
+        path.move(to: points[0])
+        for point in points.dropFirst() {
+            path.addLine(to: point)
+        }
+        return path
     }
 
-    private var dashedSeparator: some View {
+    private var separator: some View {
         Rectangle()
-            .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-            .frame(height: 1)
-            .padding(.horizontal, 6)
-            .padding(.top, 6)
+            .fill(Chart.line)
+            .frame(height: 2)
+            .padding(.horizontal, Metrics.inset)
     }
 }
