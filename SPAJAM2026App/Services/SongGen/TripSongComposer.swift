@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import UIKit
 
 /// 旅のうたのムード(スコア連動)
 enum TripSongMood: String, CaseIterable, Identifiable {
@@ -72,8 +73,8 @@ final class TripSongComposer {
 
     private(set) var phase: Phase = .idle
 
-    /// 歌の生成を開始する(多重起動は無視)
-    func start(planTitle: String, area: String, missions: [Mission], achievedIds: Set<String>, partySize: Int, mood: TripSongMood? = nil) {
+    /// 歌の生成を開始する(多重起動は無視)。photos を渡すと写真の内容が歌詞に反映される
+    func start(planTitle: String, area: String, missions: [Mission], achievedIds: Set<String>, partySize: Int, mood: TripSongMood? = nil, photos: [UIImage] = []) {
         if case .generating = phase { return }
         let resolvedMood = mood ?? .from(achievedCount: achievedIds.count)
         phase = .generating("ミザルが作詞中…")
@@ -83,7 +84,8 @@ final class TripSongComposer {
             // ① 歌詞(失敗したらテンプレ)
             let lyrics = (try? await Self.generateLyrics(
                 planTitle: planTitle, area: area, missions: missions,
-                achievedIds: achievedIds, partySize: partySize, mood: resolvedMood
+                achievedIds: achievedIds, partySize: partySize, mood: resolvedMood,
+                photos: photos
             )) ?? Self.fallbackLyrics(area: area, mood: resolvedMood)
 
             phase = .generating("ミザルが作曲中…(数十秒かかります)")
@@ -115,18 +117,22 @@ final class TripSongComposer {
 
     private static func generateLyrics(
         planTitle: String, area: String, missions: [Mission],
-        achievedIds: Set<String>, partySize: Int, mood: TripSongMood
+        achievedIds: Set<String>, partySize: Int, mood: TripSongMood,
+        photos: [UIImage]
     ) async throws -> String {
         guard let judge = GeminiPhotoAIJudge.fromSecrets() else { throw URLError(.userAuthenticationRequired) }
         let missionList = missions
             .map { "- \($0.title)(\(achievedIds.contains($0.id) ? "達成" : "未達成"))" }
             .joined(separator: "\n")
+        // 写真は先頭 3 枚を縮小して渡す(トークン節約)
+        let imagesJPEG = photos.prefix(3).compactMap { $0.resized(maxSide: 512).jpegData(compressionQuality: 0.5) }
         let prompt = """
         あなたは作詞家です。次の旅を 30 秒のうたにする日本語の歌詞を書いてください。
 
         旅: \(planTitle)(\(area)、\(partySize)人)
         ミッション:
         \(missionList)
+        \(imagesJPEG.isEmpty ? "" : "添付の写真はこの旅で実際に撮った写真です。写っている情景・食べ物・人の様子を歌詞に具体的に織り込んでください。")
 
         ルール:
         - トーン: \(mood.lyricsTone)
@@ -137,7 +143,9 @@ final class TripSongComposer {
         JSON のみで回答:
         {"lyrics":"[Verse]\\n1行目\\n2行目\\n3行目\\n4行目\\n[Chorus]\\n1行目\\n2行目\\n3行目\\n4行目"}
         """
-        let text = try await judge.generateText(prompt: prompt)
+        let text = imagesJPEG.isEmpty
+            ? try await judge.generateText(prompt: prompt)
+            : try await judge.generateText(prompt: prompt, imagesJPEG: imagesJPEG)
         struct Res: Decodable { let lyrics: String }
         guard let data = text.data(using: .utf8),
               let res = try? JSONDecoder().decode(Res.self, from: data),
@@ -171,6 +179,18 @@ final class TripSongComposer {
 }
 
 // MARK: - Lyria 3 Clip
+
+private extension UIImage {
+    /// 長辺が maxSide になるよう縮小する
+    func resized(maxSide: CGFloat) -> UIImage {
+        let scale = min(1, maxSide / max(size.width, size.height))
+        guard scale < 1 else { return self }
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        return UIGraphicsImageRenderer(size: newSize).image { _ in
+            draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+}
 
 enum SongGenService {
     enum SongError: Error { case noKey, badResponse, quotaOrAuth(String) }
