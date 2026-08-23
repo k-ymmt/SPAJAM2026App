@@ -17,6 +17,7 @@ struct TripSongTrialView: View {
     @State private var composer = TripSongComposer()
     @State private var mood: TripSongMood = .high
     @State private var isPlayerPresented = false
+    @State private var bundledSong: TripSong?
     @State private var pickedItems: [PhotosPickerItem] = []
     @State private var pickedImages: [UIImage] = []
 
@@ -58,6 +59,15 @@ struct TripSongTrialView: View {
                     ForEach(TripSongMood.allCases) { m in
                         Text(m.label).tag(m)
                     }
+                }
+            }
+
+            Section("同梱デモ音源(事前生成・電波不要)") {
+                Button("成功の歌を再生(喜びすぎポップ)") {
+                    bundledSong = .bundledDemo(mood: .high)
+                }
+                Button("失敗の歌を再生(怒りすぎバラード)") {
+                    bundledSong = .bundledDemo(mood: .low)
                 }
             }
 
@@ -110,5 +120,12 @@ struct TripSongTrialView: View {
                 TripSongPlayerView(song: song, photos: photos)
             }
         }
+        .fullScreenCover(item: $bundledSong) { song in
+            TripSongPlayerView(song: song, photos: photos)
+        }
     }
+}
+
+extension TripSong: Identifiable {
+    var id: String { "\(mood.rawValue)-\(audioURL?.lastPathComponent ?? "none")" }
 }

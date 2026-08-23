@@ -62,6 +62,25 @@ struct TripSong {
     var audioUnavailable: Bool
 }
 
+extension TripSong {
+    /// 事前生成して同梱した Lyria 曲(デモ結果ページ用。電波なしでも確実に鳴る)
+    static func bundledDemo(mood: TripSongMood) -> TripSong? {
+        let suffix = mood == .high ? "high" : "low"
+        guard let audioURL = Bundle.main.url(forResource: "demo-song-\(suffix)", withExtension: "mp3"),
+              let linesURL = Bundle.main.url(forResource: "demo-song-\(suffix)", withExtension: "json"),
+              let data = try? Data(contentsOf: linesURL) else { return nil }
+        struct L: Decodable { let start: TimeInterval; let text: String }
+        let lines = (try? JSONDecoder().decode([L].self, from: data)) ?? []
+        return TripSong(
+            audioURL: audioURL,
+            lyricLines: lines.map { Line(start: $0.start, text: $0.text) },
+            mood: mood,
+            latency: 0,
+            audioUnavailable: false
+        )
+    }
+}
+
 @MainActor
 @Observable
 final class TripSongComposer {

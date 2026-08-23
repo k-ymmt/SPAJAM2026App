@@ -48,6 +48,28 @@ struct DebugMenuView: View {
                         )
                     }
                     Button {
+                        DemoResultSeeder.seed(.success)
+                        NotificationCenter.default.post(name: TripSessionStore.didChange, object: nil)
+                        dismiss()
+                    } label: {
+                        TrialRow(
+                            title: "デモ結果(成功)を読み込む",
+                            subtitle: "全ミッション達成の終了済みの旅を保存し、リザルトを開きます。",
+                            systemImage: "checkmark.seal.fill"
+                        )
+                    }
+                    Button {
+                        DemoResultSeeder.seed(.failure)
+                        NotificationCenter.default.post(name: TripSessionStore.didChange, object: nil)
+                        dismiss()
+                    } label: {
+                        TrialRow(
+                            title: "デモ結果(ほぼ失敗)を読み込む",
+                            subtitle: "雷門だけ達成した終了済みの旅を保存し、リザルトを開きます。",
+                            systemImage: "xmark.seal"
+                        )
+                    }
+                    Button {
                         let demo = TripSession(plan: .bundledDemoPlan())
                         demo.persist()
                         NotificationCenter.default.post(name: TripSessionStore.didChange, object: nil)
