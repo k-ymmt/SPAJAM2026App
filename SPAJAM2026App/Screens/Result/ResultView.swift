@@ -376,8 +376,15 @@ struct ResultView: View {
                     }
             }
             .disabled(isWaitingForOthers)
-            OutlineButton(label: "もう一回たびする", action: onRestart)
-                .disabled(isWaitingForOthers)
+            Button(action: onRestart) {
+                Text("もう一回たびする")
+                    .font(.handHeadline)
+                    .foregroundStyle(Color.inkSub)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+            }
+            .buttonStyle(.plain)
+            .disabled(isWaitingForOthers)
         }
         .opacity(isWaitingForOthers ? 0.4 : 1)
         .padding(.top, 4)

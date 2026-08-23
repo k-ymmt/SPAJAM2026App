@@ -46,24 +46,30 @@ struct HighlightSuggestionCard: View {
         }
     }
 
+    /// 未選択時: 薄緑の枠付きカード(「おすすめから選ぶ」+「+」)
     private var placeholder: some View {
         Button { isPickerPresented = true } label: {
-            VStack(spacing: 10) {
-                Image(systemName: "sparkles.rectangle.stack")
-                    .font(.system(size: 34))
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(entry == nil ? "おすすめから選ぶ" : "この候補に項目はありませんでした")
+                        .font(.handHeadline)
+                        .foregroundStyle(Color.inkMain)
+                    Text(isSystemSuggestionPickerAvailable
+                         ? "タップするとジャーナル候補のピッカーが開きます"
+                         : "シミュレータではサンプル候補を表示します")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.inkMain.opacity(0.6))
+                }
+                Spacer(minLength: 0)
+                Text("+")
+                    .font(.system(size: 36, weight: .bold))
                     .foregroundStyle(Color.appAccent)
-                Text(entry == nil ? "iOS のおすすめからえらぶ" : "この候補に項目はありませんでした")
-                    .font(.handBody)
-                    .foregroundStyle(Color.inkMain)
-                Text(isSystemSuggestionPickerAvailable
-                     ? "タップするとジャーナル候補のピッカーが開きます"
-                     : "シミュレータではサンプル候補を表示します")
-                    .font(.handCaption2)
-                    .foregroundStyle(Color.inkSub)
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
             .frame(maxWidth: .infinity)
-            .frame(height: 220)
-            .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 30))
+            .background(Color.appAccentPale, in: RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.appAccent, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
