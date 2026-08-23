@@ -17,6 +17,10 @@ struct ResultView: View {
 
     @State private var observer = TripRoomObserver()
 
+    // 旅のうた(思い出の再生): リザルトを開いたら裏で生成を開始する
+    @State private var songComposer = TripSongComposer()
+    @State private var isSongPlayerPresented = false
+
     private var isShared: Bool { session.membership != nil }
 
     /// 複数人の旅で、まだ終わっていない人がいる
@@ -63,6 +67,61 @@ struct ResultView: View {
             guard let code = session.membership?.code else { return }
             observer.start(code: code)
             await session.submitResultToRoomIfNeeded()
+        }
+        // リザルト表示と同時に旅のうたを裏で生成開始
+        .task { startSongGeneration() }
+        .fullScreenCover(isPresented: $isSongPlayerPresented) {
+            if let song = playableSong {
+                TripSongPlayerView(song: song, photos: songPhotos)
+            }
+        }
+    }
+
+    // MARK: - 旅のうた(思い出の再生)
+
+    /// 達成写真(記録順)
+    private var songPhotos: [UIImage] {
+        session.records.compactMap { session.photo(for: $0) }
+    }
+
+    /// 再生する歌。生成が音源なしに終わった場合は同梱のデモ曲にフォールバック
+    private var playableSong: TripSong? {
+        guard case .ready(let song) = songComposer.phase else { return nil }
+        if song.audioUnavailable, let bundled = TripSong.bundledDemo(mood: song.mood) {
+            return bundled
+        }
+        return song
+    }
+
+    private func startSongGeneration() {
+        guard case .idle = songComposer.phase else { return }
+        songComposer.start(
+            planTitle: session.plan.title,
+            area: session.plan.area,
+            missions: session.plan.missions,
+            achievedIds: Set(session.records.map(\.missionId)),
+            partySize: session.plan.partySize ?? 1,
+            photos: songPhotos
+        )
+    }
+
+    /// 画面下部の「思い出を再生」(生成中は準備表示)
+    @ViewBuilder
+    private var memorySongButton: some View {
+        switch songComposer.phase {
+        case .idle:
+            EmptyView()
+        case .generating(let message):
+            HStack(spacing: 10) {
+                ProgressView()
+                Text(message)
+                    .font(.handCaption)
+                    .foregroundStyle(Color.inkSub)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
+        case .ready:
+            BrushButton(label: "思い出を再生") { isSongPlayerPresented = true }
         }
     }
 
@@ -262,6 +321,7 @@ struct ResultView: View {
 
     private var buttons: some View {
         VStack(spacing: 10) {
+            memorySongButton
             ShareLink(item: "『\(session.plan.title)』を旅してきました! \(session.totalScore)pt(スマホは見ざる)#ミザル") {
                 Text("結果をシェアする")
                     .font(.handHeadline)
