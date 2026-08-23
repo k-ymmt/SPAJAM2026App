@@ -4,7 +4,7 @@
 //
 //  05 リザルト(旅後/結果画面 ver3)。
 //  緑帯のタイトル → ガーランド飾り+共通ミッションの写真+ミザル → 思い出カルーセル(ミッション写真+みんなの「心が動いた瞬間」)+自分の心拍の折れ線グラフ(カーソルと連動)
-//  → まとめの一文 → 3 つの指標(手描きフレーム)→ 旅のハイライト(Journaling Suggestions)→ シェア。
+//  → まとめの一文 → 3 つの指標(手描きフレーム)→ 思い出を再生 → 旅のハイライト(Journaling Suggestions)→ シェア。
 //  複数人の旅(membership あり)は rooms/{code}/results を購読し、全員が終わるまで待機表示にする。
 //  デザイン: Figma SPAJAM2026「旅後/結果画面ver3」(node 208:9060)。手描き素材は Assets/Result に書き出し済み
 //
@@ -98,6 +98,8 @@ struct ResultView: View {
                     summaryText(timeline)
                     statCards(timeline)
                 }
+                memorySongButton
+                memorySongButton
                 HighlightSuggestionCard()
                 buttons
             }
@@ -152,7 +154,7 @@ struct ResultView: View {
         )
     }
 
-    /// 画面下部の「思い出を再生」(生成中は準備表示)
+    /// 「思い出を再生」(旅のハイライトの上。生成中は準備表示)
     @ViewBuilder
     private var memorySongButton: some View {
         switch songComposer.phase {
@@ -363,7 +365,6 @@ struct ResultView: View {
 
     private var buttons: some View {
         VStack(spacing: 10) {
-            memorySongButton
             ShareLink(item: "『\(session.plan.title)』を旅してきました! \(session.totalScore)pt(スマホは見ざる)#ミザル") {
                 Text("結果をシェアする")
                     .font(.handHeadline)
