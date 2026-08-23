@@ -19,7 +19,11 @@ struct HeartRateTimelineView: View {
     let timeline: HeartRateTimeline
     /// 時系列順の項目(`MemoryEntry.build`)
     let entries: [MemoryEntry]
+    /// 項目の写真。スクロール中に毎フレーム呼ばれるので、縮小済みのキャッシュを返すこと(MemoryThumbnailCache)
     let photo: (MemoryEntry) -> UIImage?
+
+    /// 中央の写真の表示サイズ(サムネイル生成の基準)
+    static var photoSize: CGSize { Carousel.centerPhoto }
     /// カーソルが指す旅の時刻が変わったときに受け取る
     var onCursorTimeChange: (Date) -> Void = { _ in }
 

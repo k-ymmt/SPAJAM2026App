@@ -18,6 +18,8 @@ struct ResultView: View {
     @State private var observer = TripRoomObserver()
     /// 他の参加者の「心が動いた瞬間」の写真(Firebase Storage から取得)
     @State private var momentPhotos = MomentPhotoStore()
+    /// カルーセル用の縮小済みサムネイル(スクロール中にフル解像度を読み直さないため)
+    @State private var thumbnails = MemoryThumbnailCache()
 
     // 旅のうた(思い出の再生): リザルトを開いたら裏で生成を開始する
     @State private var songComposer = TripSongComposer()
@@ -47,16 +49,33 @@ struct ResultView: View {
         )
     }
 
-    /// カルーセルの項目に対応する写真
-    private func photo(for entry: MemoryEntry) -> UIImage? {
+    /// カルーセルの項目に対応する写真の元(サムネイル生成用)
+    private func photoSource(for entry: MemoryEntry) -> MemoryThumbnailCache.Source? {
         switch entry.kind {
         case .mission(let missionId, _):
-            session.records.first { $0.missionId == missionId }.flatMap { session.photo(for: $0) }
+            session.records.first { $0.missionId == missionId }?.photoFileName
+                .map { .file(URL.documentsDirectory.appending(path: $0)) }
         case .heart(.none):
-            session.heartMoments.first { "moment:\($0.id)" == entry.id }.flatMap { session.photo(for: $0) }
+            session.heartMoments.first { "moment:\($0.id)" == entry.id }?.photoFileName
+                .map { .file(URL.documentsDirectory.appending(path: $0)) }
         case .heart:
-            otherMoments.first { "other:\($0.id)" == entry.id }.flatMap { momentPhotos.image(for: $0) }
+            otherMoments.first { "other:\($0.id)" == entry.id }.flatMap { momentPhotos.image(for: $0) }.map { .image($0) }
         }
+    }
+
+    /// サムネイルを作り直すきっかけ(項目の増減・他の参加者の写真の到着)
+    private var thumbnailKey: String {
+        memoryEntries(session.resultTimeline).map(\.id).joined(separator: ",") + "#\(momentPhotos.images.count)"
+    }
+
+    private func prepareThumbnails() {
+        let entries = memoryEntries(session.resultTimeline)
+        let sources = entries.compactMap { entry in photoSource(for: entry).map { (id: entry.id, source: $0) } }
+        let scale = UITraitCollection.current.displayScale
+        thumbnails.prepare(sources, pixelSize: CGSize(
+            width: HeartRateTimelineView.photoSize.width * scale,
+            height: HeartRateTimelineView.photoSize.height * scale
+        ))
     }
 
     var body: some View {
@@ -73,7 +92,7 @@ struct ResultView: View {
                 HeartRateTimelineView(
                     timeline: timeline,
                     entries: memoryEntries(timeline),
-                    photo: photo(for:)
+                    photo: { thumbnails.image(for: $0.id) }
                 )
                 VStack(spacing: 11) {
                     summaryText(timeline)
@@ -95,6 +114,7 @@ struct ResultView: View {
         .onChange(of: observer.moments, initial: true) { _, moments in
             momentPhotos.load(moments.filter { $0.uid != AuthService.shared.uid })
         }
+        .onChange(of: thumbnailKey, initial: true) { _, _ in prepareThumbnails() }
         // リザルト表示と同時に旅のうたを裏で生成開始
         .task { startSongGeneration() }
         .fullScreenCover(isPresented: $isSongPlayerPresented) {
