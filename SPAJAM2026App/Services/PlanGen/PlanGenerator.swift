@@ -172,6 +172,17 @@ struct PlanGenerator {
             """
         }
 
+        // 変動枠は LLM に選ばせると強く偏るため、アプリ側で均等抽選して固定指示する
+        let fourthCategory = Bool.random() ? "face" : "pose"
+        let chosenPose = PoseType.allCases.randomElement() ?? .banzai
+        let fourthRule = fourthCategory == "face"
+            ? "face は笑顔・表情系のお題。"
+            : "pose は poseType を \(chosenPose.rawValue) にして、お題文言もそのポーズ(banzai=万歳/handUp=片手を高くあげる/wideArms=両手を広げて大の字)に合わせる。"
+        let fifthCategory = Bool.random() ? "buy" : "find"
+        let fifthRule = fifthCategory == "buy"
+            ? "buy はその土地らしいお土産・ご当地品を買うお題(買ったものを撮る)。"
+            : "find は現地でお題の被写体を探して撮るお題。"
+
         let prompt = """
         あなたは旅行ゲームのプランナーです。以下の実在スポットだけを使って、日帰り旅のミッションを作ってください。
 
@@ -182,12 +193,12 @@ struct PlanGenerator {
         \(spotList)
 
         ルール:
-        - ミッションは 5 つ。category は順に go, do, eat, [face または pose], [buy または find]
+        - ミッションは 5 つ。category は順に go, do, eat, \(fourthCategory), \(fifthCategory)
         - go は必ずスポットへ行くミッション。spotIndex に上の一覧の index を入れる
         - do は現地で写真を撮る系のお題。必ずどれかのスポットに紐づけ、spotIndex を入れる
         - eat はこの地域の名物料理を食べるお題(店は指定しない。有名な名物がなければ「地元の何かを食べる」系。spotIndex は入れない)
-        - 4 つ目は face か pose をスポットや温度感に合う方で選ぶ。face は笑顔・表情系のお題。pose は poseType を banzai(万歳)/handUp(片手を高くあげる)/wideArms(両手を広げて大の字)から 1 つ選び、お題文言もそのポーズに合わせる。どちらも「◯◯の前で」「◯◯をバックに」のように必ずスポットに紐づけ、spotIndex を入れる
-        - 5 つ目は buy か find を選ぶ。buy はその土地らしいお土産・ご当地品を買うお題(買ったものを撮る)、find は現地でお題の被写体を探して撮るお題。必ずスポットに紐づけ、spotIndex を入れる
+        - 4 つ目は必ず \(fourthCategory)。\(fourthRule)「◯◯の前で」「◯◯をバックに」のように必ずスポットに紐づけ、spotIndex を入れる
+        - 5 つ目は必ず \(fifthCategory)。\(fifthRule)必ずスポットに紐づけ、spotIndex を入れる
         - 各ミッションの spotIndex はなるべく別々のスポットにする
         - title は日本語で 20 文字以内。aiPrompt は「この写真に◯◯が写っていますか?」の形で、写真 1 枚で Yes/No 判定できる内容にする
         - aiPrompt には上記の人数ルールに沿った人物条件を織り込むこと(1人なら人物条件なしでも可)
@@ -238,7 +249,7 @@ struct PlanGenerator {
                     location: location,
                     locationRequired: category == .go ? true : nil,
                     aiPrompt: m.aiPrompt,
-                    poseType: category == .pose ? (m.poseType.flatMap(PoseType.init(rawValue:)) ?? .banzai) : nil
+                    poseType: category == .pose ? (m.poseType.flatMap(PoseType.init(rawValue:)) ?? chosenPose) : nil
                 ),
                 points: slot == .fixed ? 10 : 15,
                 hapticOnNear: location != nil ? true : nil,

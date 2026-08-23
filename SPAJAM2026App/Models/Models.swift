@@ -54,7 +54,7 @@ nonisolated struct GeoTarget: Codable, Sendable, Hashable {
 }
 
 /// POSE ミッションで検出するポーズ(AR 2D 骨格判定が対応できるものだけ)
-nonisolated enum PoseType: String, Codable, Sendable {
+nonisolated enum PoseType: String, Codable, Sendable, CaseIterable {
     /// 両手を頭より上
     case banzai
     /// 片手を頭より上

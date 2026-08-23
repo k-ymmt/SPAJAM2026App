@@ -118,6 +118,18 @@ struct MissionCameraView: View {
             missionHeader(mission, achieved: achieved)
             photoArea(mission, achieved: achieved, record: record)
             Spacer()
+            // マップ表示ミッションはボタン上の余白にミザルの線画を置く(デザイン準拠)
+            if mission.judgment.location != nil {
+                HStack {
+                    Spacer()
+                    Image("MizaruOutline")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 150)
+                        .padding(.trailing, 32)
+                }
+                Spacer(minLength: 8)
+            }
             resultArea(mission, achieved: achieved)
             if !achieved {
                 controls(mission)

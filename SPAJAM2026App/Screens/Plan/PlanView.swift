@@ -88,7 +88,16 @@ struct MissionListScreen: View {
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color.appBackground)
+        .background {
+            // デザインの背景素材(クリーム+落書きモチーフ)
+            ZStack {
+                Color.appBackground
+                Image("PlanBackground")
+                    .resizable()
+                    .scaledToFill()
+            }
+            .ignoresSafeArea()
+        }
     }
 }
 
