@@ -18,7 +18,8 @@ enum DemoResultSeeder {
 
     /// デモ結果を保存セッションとして書き込む(TripSessionStore.didChange は呼び出し側で通知)
     static func seed(_ pattern: Pattern) {
-        let plan = TravelPlan.bundledDemoPlan()
+        // 成功: 湘南 4 人旅(実写真つき) / 失敗: 浅草ひとり旅(ミザル代用写真)
+        let plan = pattern == .success ? loadBundledPlan(named: "demo-plan-shonan") : TravelPlan.bundledDemoPlan()
         let now = Date()
         let start = now.addingTimeInterval(-4.5 * 3600) // 4 時間半の旅
 
@@ -28,16 +29,25 @@ enum DemoResultSeeder {
         case .failure: achievedMissions = Array(plan.missions.prefix(1)) // 雷門だけ
         }
 
-        // 達成記録(時間を旅の中に散らし、写真は同梱素材から生成)
+        // 達成記録(時間を旅の中に散らす)。成功は同梱の実写真、失敗はミザル素材で代用
+        let shonanPhotos = ["m1": "demo-shonan-3", "m2": "demo-shonan-5", "m3": "demo-shonan-4",
+                            "m4": "demo-shonan-1", "m5": "demo-shonan-2"]
         let placeholderAssets = ["MizaruCharacter", "Mizarus2", "Mizarus3", "Mizarus4", "Mizarus5"]
-        let comments = ["いい一枚!", "最高の赤!", "おいしそう!", "最高の表情!", "見つけたね!"]
+        let comments = pattern == .success
+            ? ["海だー!", "ふわふわの子発見!", "最高の笑顔!", "うますぎる一枚!", "完璧な夕日!"]
+            : ["いい一枚!", "最高の赤!", "おいしそう!", "最高の表情!", "見つけたね!"]
         var records: [MissionRecord] = []
         for (index, mission) in achievedMissions.enumerated() {
             let achievedAt = start.addingTimeInterval(Double(index + 1) * 45 * 60)
-            let photoName = writePlaceholderPhoto(
-                assetName: placeholderAssets[index % placeholderAssets.count],
-                missionId: mission.id
-            )
+            let photoName: String?
+            if pattern == .success, let resource = shonanPhotos[mission.id] {
+                photoName = writeBundledPhoto(resource: resource, fileName: "mission-\(mission.id).jpg")
+            } else {
+                photoName = writePlaceholderPhoto(
+                    assetName: placeholderAssets[index % placeholderAssets.count],
+                    missionId: mission.id
+                )
+            }
             records.append(MissionRecord(
                 missionId: mission.id,
                 achievedAt: achievedAt,
@@ -48,7 +58,7 @@ enum DemoResultSeeder {
             ))
         }
 
-        // 「心が動いた瞬間」の写真: ミッションの合間に 2 枚(成功パターンのみ)
+        // 「心が動いた瞬間」の写真: ミッションの合間に 2 枚(成功パターンのみ・実写真を使用)
         var moments: [HeartMoment] = []
         if pattern == .success {
             for (index, offsetMinutes) in [70.0, 160.0].enumerated() {
@@ -57,8 +67,8 @@ enum DemoResultSeeder {
                     id: id,
                     capturedAt: start.addingTimeInterval(offsetMinutes * 60),
                     bpm: [126, 139][index],
-                    photoFileName: writePlaceholderPhoto(
-                        assetName: ["MizaruActive", "MizaruMania"][index],
+                    photoFileName: writeBundledPhoto(
+                        resource: ["demo-shonan-5", "demo-shonan-1"][index],
                         fileName: "moment-\(id).jpg"
                     )
                 ))
@@ -107,6 +117,25 @@ enum DemoResultSeeder {
             heartMoments: moments
         )
         TripSessionStore.save(snapshot)
+    }
+
+    /// 同梱デモプラン JSON を読み込む
+    private static func loadBundledPlan(named name: String) -> TravelPlan {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let plan = try? JSONDecoder().decode(TravelPlan.self, from: data)
+        else {
+            fatalError("\(name).json をバンドルから読み込めませんでした")
+        }
+        return plan
+    }
+
+    /// 同梱の実写真(JPEG)をそのまま写真ストアへ書き出す
+    private static func writeBundledPhoto(resource: String, fileName name: String) -> String? {
+        guard let url = Bundle.main.url(forResource: resource, withExtension: "jpg"),
+              let data = try? Data(contentsOf: url) else { return nil }
+        try? data.write(to: URL.documentsDirectory.appending(path: name))
+        return name
     }
 
     /// ミザル素材をクリーム背景の JPEG にして写真ストアへ書き出す

@@ -1,0 +1,87 @@
+{
+  "planId": "demo-shonan",
+  "title": "湘南 うみかぜ旅",
+  "area": "湘南",
+  "partySize": 4,
+  "missions": [
+    {
+      "id": "m1",
+      "order": 1,
+      "category": "go",
+      "slot": "fixed",
+      "title": "江ノ島がみえる浜辺へ行く",
+      "judgment": {
+        "location": {
+          "latitude": 35.310299,
+          "longitude": 139.486902,
+          "radiusMeters": 200,
+          "name": "片瀬東浜海岸"
+        },
+        "aiPrompt": "この写真に海辺・砂浜の風景が写っていますか?",
+        "locationRequired": true
+      },
+      "hapticOnNear": true,
+      "points": 10
+    },
+    {
+      "id": "m2",
+      "order": 2,
+      "category": "find",
+      "slot": "variable",
+      "title": "しあわせそうな犬をさがす",
+      "judgment": {
+        "aiPrompt": "この写真に犬が写っていますか?",
+        "location": {
+          "latitude": 35.309547,
+          "longitude": 139.483501,
+          "radiusMeters": 300,
+          "name": "片瀬海岸"
+        }
+      },
+      "points": 15,
+      "hapticOnNear": true
+    },
+    {
+      "id": "m3",
+      "order": 3,
+      "category": "face",
+      "slot": "variable",
+      "title": "海をバックにみんなで最高の笑顔",
+      "judgment": {
+        "aiPrompt": "この写真に笑顔の人が写っていますか?"
+      },
+      "camera": "front",
+      "isShared": true,
+      "points": 15
+    },
+    {
+      "id": "m4",
+      "order": 4,
+      "category": "eat",
+      "slot": "fixed",
+      "title": "浜辺の BBQ を味わう",
+      "judgment": {
+        "aiPrompt": "この写真に BBQ・グリル・焼いている食べ物が写っていますか?"
+      },
+      "points": 10
+    },
+    {
+      "id": "m5",
+      "order": 5,
+      "category": "do",
+      "slot": "fixed",
+      "title": "夕日が沈む瞬間を撮る",
+      "judgment": {
+        "aiPrompt": "この写真に夕日・夕焼けの空が写っていますか?",
+        "location": {
+          "latitude": 35.309547,
+          "longitude": 139.483501,
+          "radiusMeters": 300,
+          "name": "片瀬海岸"
+        }
+      },
+      "points": 10,
+      "hapticOnNear": true
+    }
+  ]
+}
