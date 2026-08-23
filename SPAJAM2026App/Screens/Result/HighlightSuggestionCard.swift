@@ -2,7 +2,7 @@
 //  HighlightSuggestionCard.swift
 //  SPAJAM2026App
 //
-//  リザルト「旅のハイライト」: iOS の Journaling Suggestions から選んだ候補の写真だけを並べる。
+//  リザルト「旅のハイライト」: iOS の Journaling Suggestions から選んだ候補の項目をすべて並べる。
 //  JournalingSuggestions はシステムピッカー経由でしか取得できないため、カードをタップして選ぶ。
 //  シミュレータ(フレームワーク無し)ではサンプル候補ピッカーに切り替わる。
 //
@@ -13,9 +13,9 @@ struct HighlightSuggestionCard: View {
     @State private var entry: SuggestionEntry?
     @State private var isPickerPresented = false
 
-    /// 選んだ候補のうち写真系(写真・Live Photo)だけ
-    private var photos: [SuggestionItem] {
-        entry?.items.filter { $0.kind == .photo || $0.kind == .livePhoto } ?? []
+    /// 選んだ候補の項目(種類を問わずすべて)
+    private var items: [SuggestionItem] {
+        entry?.items ?? []
     }
 
     var body: some View {
@@ -35,10 +35,10 @@ struct HighlightSuggestionCard: View {
                         .foregroundStyle(Color.appAccent)
                 }
             }
-            if photos.isEmpty {
+            if items.isEmpty {
                 placeholder
             } else {
-                photoGrid
+                itemGrid
             }
         }
         .suggestionPicker(isPresented: $isPickerPresented) { picked in
@@ -52,7 +52,7 @@ struct HighlightSuggestionCard: View {
                 Image(systemName: "sparkles.rectangle.stack")
                     .font(.system(size: 34))
                     .foregroundStyle(Color.appAccent)
-                Text(entry == nil ? "iOS のおすすめから写真をえらぶ" : "この候補に写真はありませんでした")
+                Text(entry == nil ? "iOS のおすすめからえらぶ" : "この候補に項目はありませんでした")
                     .font(.handBody)
                     .foregroundStyle(Color.inkMain)
                 Text(isSystemSuggestionPickerAvailable
@@ -68,11 +68,11 @@ struct HighlightSuggestionCard: View {
         .buttonStyle(.plain)
     }
 
-    private var photoGrid: some View {
+    private var itemGrid: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
-                ForEach(photos) { item in
-                    photoTile(item)
+                ForEach(items) { item in
+                    itemTile(item)
                 }
             }
         }
@@ -80,7 +80,7 @@ struct HighlightSuggestionCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 30))
     }
 
-    private func photoTile(_ item: SuggestionItem) -> some View {
+    private func itemTile(_ item: SuggestionItem) -> some View {
         Group {
             if let url = item.imageURL {
                 AsyncImage(url: url) { image in
