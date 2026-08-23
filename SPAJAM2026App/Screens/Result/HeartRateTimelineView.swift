@@ -6,8 +6,8 @@
 //  上段: 自分のミッション写真とみんなの「心が動いた瞬間」の写真を時系列(古い順)に横スクロール。
 //        ページング(viewAligned)で、真ん中の写真が大きくなる。末尾の次は先頭に戻る無限スクロール。
 //        写真の下はミッションなら「MISSION n」、心が動いた瞬間なら 撮った人のアイコン + 「心が動いた瞬間」。
+//  中段: 旅の時間を表す緑の横ライン(Figma node 230:12468)。項目の時刻の位置にピン(ミッション)/ハート(心が動いた瞬間)を置く。
 //  下段: 時間帯ごとの最大心拍を結ぶ折れ線グラフ(Figma 旅後/結果画面_最大心拍ゲージ時 node 230:12339)。
-//        項目の時刻の位置にピン(ミッション)/ハート(心が動いた瞬間)のアイコンを置く。
 //  連動: カルーセルを動かすと緑の縦棒カーソルが追従して項目の時刻で止まる。
 //        カーソルをドラッグすると項目の位置で引っかかり(スナップ)、カルーセルもその項目へ移動する。
 //        引っかかった(選択が変わった)ときは Haptic Feedback。
@@ -29,10 +29,34 @@ struct HeartRateTimelineView: View {
     @State private var scrollItemId: String?
     /// カーソル位置(0...1)
     @State private var cursorPosition: Double = 0
+
+    init(
+        timeline: HeartRateTimeline,
+        entries: [MemoryEntry],
+        photo: @escaping (MemoryEntry) -> UIImage?,
+        onCursorTimeChange: @escaping (Date) -> Void = { _ in }
+    ) {
+        self.timeline = timeline
+        self.entries = entries
+        self.photo = photo
+        self.onCursorTimeChange = onCursorTimeChange
+        // 初期選択は一番古い項目。スクロール位置はレイアウト確定後に合わせる(scrollGeometry を見て 1 回だけ)
+        if let first = entries.first {
+            _selectedEntryId = State(initialValue: first.id)
+            _cursorPosition = State(initialValue: first.position)
+        }
+    }
     /// グラフをドラッグ中はカルーセルからの連動を止める
     @State private var isDraggingChart = false
     @State private var isScrolling = false
-    @State private var carouselWidth: CGFloat = 0
+    /// 初回レイアウト後に真ん中のコピーへジャンプ済みか
+    @State private var hasPositioned = false
+
+    /// スクロール量から求める、中央に来ている連続的な項目 index と、レイアウト確定判定用のコンテンツ幅
+    private struct CarouselGeometry: Equatable {
+        var fractionalIndex: Double
+        var contentWidth: CGFloat
+    }
 
     private enum Carousel {
         static let height: CGFloat = 196
@@ -43,6 +67,14 @@ struct HeartRateTimelineView: View {
         static let labelHeight: CGFloat = 28
         /// 1 項目の幅(縮小した隣の写真が見える程度に詰める)
         static var itemWidth: CGFloat { centerPhoto.width * 0.86 }
+    }
+
+    private enum Axis {
+        /// ライン+アイコンの高さ(Figma: 25pt)
+        static let height: CGFloat = 25
+        static let lineWidth: CGFloat = 2
+        static let selectedIcon: CGFloat = 25
+        static let icon: CGFloat = 16
     }
 
     private enum Chart {
@@ -65,8 +97,8 @@ struct HeartRateTimelineView: View {
     }
 
     /// 無限スクロール用に項目を何周分並べるか(少ないときは多めに)
-    private var repeatCount: Int {
-        switch entries.count {
+    private static func repeatCount(for count: Int) -> Int {
+        switch count {
         case 0: 0
         case 1: 1
         case 2: 5
@@ -74,10 +106,14 @@ struct HeartRateTimelineView: View {
         }
     }
 
+    private var repeatCount: Int { Self.repeatCount(for: entries.count) }
+
     private var middleCopy: Int { repeatCount / 2 }
 
     /// 仮想 id = "コピー番号|項目 id"
-    private func itemId(copy: Int, entry: MemoryEntry) -> String { "\(copy)|\(entry.id)" }
+    private static func itemId(copy: Int, entryId: String) -> String { "\(copy)|\(entryId)" }
+
+    private func itemId(copy: Int, entry: MemoryEntry) -> String { Self.itemId(copy: copy, entryId: entry.id) }
 
     private func entryId(fromItemId itemId: String) -> String? {
         itemId.split(separator: "|", maxSplits: 1).last.map(String.init)
@@ -90,14 +126,15 @@ struct HeartRateTimelineView: View {
     var body: some View {
         VStack(spacing: 0) {
             carousel
+            markerAxis
+                .padding(.top, 8)
+                .padding(.bottom, 2)
             heartLog
             separator
         }
         .sensoryFeedback(.selection, trigger: selectedEntryId) { old, new in old != nil && new != nil && old != new }
         .onAppear {
-            guard selectedEntryId == nil, let first = entries.first else { return }
-            select(first, scrollCarousel: false)
-            scrollItemId = itemId(copy: middleCopy, entry: first)
+            if let entry = entry(for: selectedEntryId) { onCursorTimeChange(entry.date) }
         }
         .onChange(of: entries) { _, new in
             // 他の参加者の写真が届くなどで項目が変わったら、選択を保ったまま位置を取り直す
@@ -126,8 +163,17 @@ struct HeartRateTimelineView: View {
     // MARK: - 思い出カルーセル
 
     private var carousel: some View {
+        // 幅は同じレイアウト内で取る(後から変わると初期スクロール位置がずれる)
+        GeometryReader { geometry in
+            carouselScroll(width: geometry.size.width)
+        }
+        .frame(height: Carousel.height)
+        .accessibilityLabel("旅の思い出")
+    }
+
+    private func carouselScroll(width: CGFloat) -> some View {
         ScrollView(.horizontal) {
-            LazyHStack(spacing: Carousel.spacing) {
+            HStack(spacing: Carousel.spacing) {
                 ForEach(0..<repeatCount, id: \.self) { copy in
                     ForEach(entries) { entry in
                         carouselItem(entry)
@@ -140,15 +186,25 @@ struct HeartRateTimelineView: View {
         .scrollIndicators(.hidden)
         .scrollTargetBehavior(.viewAligned(limitBehavior: .always))
         .scrollPosition(id: $scrollItemId, anchor: .center)
-        .safeAreaPadding(.horizontal, max(0, (carouselWidth - Carousel.itemWidth) / 2))
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { carouselWidth = $0 }
-        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+        .safeAreaPadding(.horizontal, max(0, (width - Carousel.itemWidth) / 2))
+        .onScrollGeometryChange(for: CarouselGeometry.self) { geometry in
             // 中央に来ている連続的な項目 index(コピーをまたいだ通し番号)
             let step = Carousel.itemWidth + Carousel.spacing
-            return (geometry.contentOffset.x + geometry.contentInsets.leading) / step
-        } action: { _, fractionalIndex in
+            return CarouselGeometry(
+                fractionalIndex: (geometry.contentOffset.x + geometry.contentInsets.leading) / step,
+                contentWidth: geometry.contentSize.width
+            )
+        } action: { _, geometry in
+            if !hasPositioned, geometry.contentWidth > 0, let entry = entry(for: selectedEntryId) {
+                // レイアウトが確定したら真ん中のコピーの選択項目へ瞬時にジャンプ(左にも古い項目が並ぶようにする)
+                hasPositioned = true
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) { scrollItemId = itemId(copy: middleCopy, entry: entry) }
+                return
+            }
             guard !isDraggingChart, isScrolling, !entries.isEmpty else { return }
-            cursorPosition = entries.position(atFractionalIndex: fractionalIndex)
+            cursorPosition = entries.position(atFractionalIndex: geometry.fractionalIndex)
         }
         .onScrollPhaseChange { _, phase in
             isScrolling = phase != .idle
@@ -159,8 +215,6 @@ struct HeartRateTimelineView: View {
             // 指で動かしている間はカーソルはスクロール量に追従させ、止まったら settleCarousel で時刻に合わせる
             select(entry, scrollCarousel: false, moveCursor: !isScrolling)
         }
-        .frame(height: Carousel.height)
-        .accessibilityLabel("旅の思い出")
     }
 
     /// スクロールが止まったら、カーソルを項目の時刻にぴったり合わせ、端のコピーにいたら真ん中のコピーに巻き戻す
@@ -251,6 +305,50 @@ struct HeartRateTimelineView: View {
         .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
     }
 
+    // MARK: - 時間軸のライン + ピン/ハート
+
+    /// 旅の時間を表す横ライン。項目の時刻の位置にアイコンを置き、選択中は大きくする。タップで選べる
+    private var markerAxis: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            ZStack(alignment: .topLeading) {
+                Capsule()
+                    .fill(Color.appAccent)
+                    .frame(width: width, height: Axis.lineWidth)
+                    .position(x: width / 2, y: Axis.height / 2)
+                ForEach(entries) { entry in
+                    let isSelected = entry.id == selectedEntryId
+                    markerIcon(entry, isSelected: isSelected)
+                        .position(x: CGFloat(entry.position) * width, y: Axis.height / 2)
+                        .zIndex(isSelected ? 1 : 0)
+                        .onTapGesture { select(entry, scrollCarousel: true) }
+                }
+            }
+        }
+        .frame(height: Axis.height)
+        .padding(.horizontal, Chart.inset)
+    }
+
+    @ViewBuilder
+    private func markerIcon(_ entry: MemoryEntry, isSelected: Bool) -> some View {
+        let size = isSelected ? Axis.selectedIcon : Axis.icon
+        if entry.isMission {
+            Image(isSelected ? "PinLarge" : "PinSmall")
+                .resizable()
+                .frame(width: size, height: size)
+        } else {
+            Image("PinSmall2")
+                .resizable()
+                .frame(width: size, height: size)
+                .overlay {
+                    Image("PinHeart")
+                        .resizable()
+                        .frame(width: size * 0.56, height: size * 0.5)
+                        .offset(y: -size * 0.06)
+                }
+        }
+    }
+
     // MARK: - 心拍の折れ線グラフ(ドキドキ ログ)
 
     /// 折れ線の `index` 番目の点の横位置(0...1)。両端の点をグラフの端に置く
@@ -275,11 +373,6 @@ struct HeartRateTimelineView: View {
                     .fill(Color.appAccent)
                     .frame(width: 4, height: Chart.thickCursorHeight)
                     .position(x: cursorX, y: Chart.height / 2)
-                // 項目のアイコン(折れ線の上に乗せる)
-                ForEach(entries) { entry in
-                    markerIcon(entry, isSelected: entry.id == selectedEntryId)
-                        .position(x: CGFloat(entry.position) * width, y: lineY(at: entry.position, width: width))
-                }
             }
             .contentShape(Rectangle())
             .gesture(
@@ -325,38 +418,6 @@ struct HeartRateTimelineView: View {
             cursorPosition = raw
             onCursorTimeChange(timeline.date(at: raw))
         }
-    }
-
-    @ViewBuilder
-    private func markerIcon(_ entry: MemoryEntry, isSelected: Bool) -> some View {
-        let size: CGFloat = isSelected ? 25 : 16
-        if entry.isMission {
-            Image(isSelected ? "PinLarge" : "PinSmall")
-                .resizable()
-                .frame(width: size, height: size)
-        } else {
-            Image("PinSmall2")
-                .resizable()
-                .frame(width: size, height: size)
-                .overlay {
-                    Image("PinHeart")
-                        .resizable()
-                        .frame(width: size * 0.56, height: size * 0.5)
-                        .offset(y: -size * 0.06)
-                }
-        }
-    }
-
-    /// 位置 (0...1) における折れ線の y(点と点の間は線形補間)
-    private func lineY(at position: Double, width: CGFloat) -> CGFloat {
-        let bars = timeline.bars
-        guard bars.count > 1 else { return Chart.height / 2 }
-        let usableHeight = Chart.height - Chart.lineTopInset - Chart.lineBottomInset
-        let scaled = min(1, max(0, position)) * Double(bars.count - 1)
-        let lower = min(bars.count - 2, Int(scaled.rounded(.down)))
-        let t = scaled - Double(lower)
-        let level = bars[lower].level + (bars[lower + 1].level - bars[lower].level) * t
-        return Chart.lineTopInset + (1 - CGFloat(level)) * usableHeight
     }
 
     /// 区間ごとの最大心拍を結ぶ折れ線。level 1 が上端、0 が下端
