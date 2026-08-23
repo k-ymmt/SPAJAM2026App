@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		39540B46410A00E6583138B0 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = EEA928FFDCB12323EACEC4B3 /* FirebaseFirestore */; };
 		499DA38040B5D232A6F79C33 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 07AC4170128068FD4A33E1B2 /* FirebaseCore */; };
+		5A7C1D2E9B3F4A6081C2D3E4 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 5A7C1D2E9B3F4A6081C2D3E5 /* FirebaseStorage */; };
 		C9626BDE216CC4EDD65020D2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 192098BF60B595AA72DBE5DF /* FirebaseAuth */; };
 		D0DA0000000000000000000C /* SPAJAM2026Watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D0DA00000000000000000002 /* SPAJAM2026Watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		LA0000000000000000000E /* SPAJAM2026AppWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = LA00000000000000000001 /* SPAJAM2026AppWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -167,6 +168,7 @@
 				499DA38040B5D232A6F79C33 /* FirebaseCore in Frameworks */,
 				C9626BDE216CC4EDD65020D2 /* FirebaseAuth in Frameworks */,
 				39540B46410A00E6583138B0 /* FirebaseFirestore in Frameworks */,
+				5A7C1D2E9B3F4A6081C2D3E4 /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,6 +259,7 @@
 				07AC4170128068FD4A33E1B2 /* FirebaseCore */,
 				192098BF60B595AA72DBE5DF /* FirebaseAuth */,
 				EEA928FFDCB12323EACEC4B3 /* FirebaseFirestore */,
+				5A7C1D2E9B3F4A6081C2D3E5 /* FirebaseStorage */,
 			);
 			productName = SPAJAM2026App;
 			productReference = C469262A303883090067188C /* SPAJAM2026App.app */;
@@ -1012,6 +1015,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E53A7B80154A8E9CB8800B50 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		5A7C1D2E9B3F4A6081C2D3E5 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E53A7B80154A8E9CB8800B50 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 		EEA928FFDCB12323EACEC4B3 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -48,6 +48,23 @@ enum DemoResultSeeder {
             ))
         }
 
+        // 「心が動いた瞬間」の写真: ミッションの合間に 2 枚(成功パターンのみ)
+        var moments: [HeartMoment] = []
+        if pattern == .success {
+            for (index, offsetMinutes) in [70.0, 160.0].enumerated() {
+                let id = "demo-moment-\(index + 1)"
+                moments.append(HeartMoment(
+                    id: id,
+                    capturedAt: start.addingTimeInterval(offsetMinutes * 60),
+                    bpm: [126, 139][index],
+                    photoFileName: writePlaceholderPhoto(
+                        assetName: ["MizaruActive", "MizaruMania"][index],
+                        fileName: "moment-\(id).jpg"
+                    )
+                ))
+            }
+        }
+
         // 心拍サンプル: ベース 78bpm + 達成の瞬間に山を作る
         var samples: [HeartRateSample] = []
         let duration = now.timeIntervalSince(start)
@@ -60,6 +77,12 @@ enum DemoResultSeeder {
                 let distance = abs(record.achievedAt.timeIntervalSince(date))
                 if distance < 8 * 60 {
                     bpm += Double(record.bpmAtAchieve ?? 100) * 0.5 * (1 - distance / (8 * 60))
+                }
+            }
+            for moment in moments {
+                let distance = abs(moment.capturedAt.timeIntervalSince(date))
+                if distance < 6 * 60 {
+                    bpm += Double(moment.bpm ?? 120) * 0.4 * (1 - distance / (6 * 60))
                 }
             }
             samples.append(HeartRateSample(date: date, bpm: min(bpm, 168)))
@@ -80,13 +103,18 @@ enum DemoResultSeeder {
             becameActiveAt: nil,
             restrictionAdjustments: pattern == .success ? 0 : 2,
             shieldSelectionData: nil,
-            savedAt: now
+            savedAt: now,
+            heartMoments: moments
         )
         TripSessionStore.save(snapshot)
     }
 
     /// ミザル素材をクリーム背景の JPEG にして写真ストアへ書き出す
     private static func writePlaceholderPhoto(assetName: String, missionId: String) -> String? {
+        writePlaceholderPhoto(assetName: assetName, fileName: "mission-\(missionId).jpg")
+    }
+
+    private static func writePlaceholderPhoto(assetName: String, fileName name: String) -> String? {
         guard let source = UIImage(named: assetName) else { return nil }
         let size = CGSize(width: 900, height: 675)
         let image = UIGraphicsImageRenderer(size: size).image { context in
@@ -101,7 +129,6 @@ enum DemoResultSeeder {
             ))
         }
         guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
-        let name = "mission-\(missionId).jpg"
         try? data.write(to: URL.documentsDirectory.appending(path: name))
         return name
     }

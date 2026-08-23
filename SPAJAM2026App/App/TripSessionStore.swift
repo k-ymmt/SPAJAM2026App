@@ -31,6 +31,8 @@ nonisolated struct TripSessionSnapshot: Codable, Equatable, Sendable {
     var savedAt: Date
     /// 複数人の旅なら、自分のルームと役割(親/子)
     var membership: RoomMembership? = nil
+    /// 「心が動いた瞬間」の写真(古いスナップショットには無いので optional)
+    var heartMoments: [HeartMoment]? = nil
 }
 
 /// スナップショットのリモート保存先(Firestore など)。テストでは nil のまま

@@ -7,7 +7,9 @@
 //
 
 import FirebaseFirestore
+import FirebaseStorage
 import Foundation
+import UIKit
 
 @MainActor
 final class TripRoomService {
@@ -96,6 +98,41 @@ final class TripRoomService {
         }
     }
 
+    // MARK: - 心が動いた瞬間の写真(Firebase Storage + Firestore)
+
+    /// 写真を Storage に上げ、メタデータを rooms/{code}/moments/{id} に書く。Storage のパスを返す
+    func shareHeartMoment(code: String, name: String, moment: HeartMoment, image: UIImage) async throws -> String {
+        let uid = try await AuthService.shared.signInIfNeeded()
+        let path = SharedHeartMoment.storagePath(code: code, uid: uid, momentId: moment.id)
+        let data = Self.uploadData(for: image)
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        _ = try await Storage.storage().reference(withPath: path).putDataAsync(data, metadata: metadata)
+        let shared = SharedHeartMoment(id: moment.id, uid: uid, name: name, capturedAt: moment.capturedAt, bpm: moment.bpm, storagePath: path)
+        try roomRef(code).collection("moments").document(moment.id).setData(from: shared)
+        return path
+    }
+
+    /// 長辺 1280px・JPEG 0.7 に縮小(ルールの 1MB 上限に収める)
+    nonisolated static func uploadData(for image: UIImage) -> Data {
+        let longest = max(image.size.width, image.size.height)
+        let scale = min(1, 1280 / max(longest, 1))
+        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let resized = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+        return resized.jpegData(compressionQuality: 0.7) ?? Data()
+    }
+
+    func observeMoments(code: String, onChange: @escaping @MainActor ([SharedHeartMoment]) -> Void) -> ListenerRegistration? {
+        try? roomRef(code).collection("moments").order(by: "capturedAt").addSnapshotListener { snapshot, _ in
+            let moments = snapshot?.documents.compactMap { try? $0.data(as: SharedHeartMoment.self) } ?? []
+            MainActor.assumeIsolated { onChange(moments) }
+        }
+    }
+
     // MARK: - 購読
 
     func observeRoom(code: String, onChange: @escaping @MainActor (TripRoom?) -> Void) -> ListenerRegistration? {
@@ -121,11 +158,14 @@ final class TripRoomObserver {
     private(set) var members: [RoomMember] = []
     /// 旅を終えたメンバーの結果(finishedAt 順)
     private(set) var results: [TripMemberResult] = []
+    /// ルームに共有された「心が動いた瞬間」の写真(撮影時刻順・自分の分も含む)
+    private(set) var moments: [SharedHeartMoment] = []
     /// 購読中のコード
     private(set) var code: String?
     private var roomListener: ListenerRegistration?
     private var membersListener: ListenerRegistration?
     private var resultsListener: ListenerRegistration?
+    private var momentsListener: ListenerRegistration?
 
     /// 旅をしている人数(親 + 参加した子)
     var partyCount: Int { members.count + 1 }
@@ -148,24 +188,29 @@ final class TripRoomObserver {
         roomListener = TripRoomService.shared.observeRoom(code: code) { [weak self] in self?.room = $0 }
         membersListener = TripRoomService.shared.observeMembers(code: code) { [weak self] in self?.members = $0 }
         resultsListener = TripRoomService.shared.observeResults(code: code) { [weak self] in self?.results = $0 }
+        momentsListener = TripRoomService.shared.observeMoments(code: code) { [weak self] in self?.moments = $0 }
     }
 
     func stop() {
         roomListener?.remove()
         membersListener?.remove()
         resultsListener?.remove()
+        momentsListener?.remove()
         roomListener = nil
         membersListener = nil
         resultsListener = nil
+        momentsListener = nil
         code = nil
         room = nil
         members = []
         results = []
+        moments = []
     }
 
     isolated deinit {
         roomListener?.remove()
         membersListener?.remove()
         resultsListener?.remove()
+        momentsListener?.remove()
     }
 }
