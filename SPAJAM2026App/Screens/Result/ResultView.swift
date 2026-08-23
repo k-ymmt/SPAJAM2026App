@@ -99,7 +99,6 @@ struct ResultView: View {
                     statCards(timeline)
                 }
                 memorySongButton
-                memorySongButton
                 HighlightSuggestionCard()
                 buttons
             }
