@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleDisplayName</key>
+	<string>MIZARU</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Apple Watch で計測した心拍数を iPhone に表示するために使用します。</string>
 	<key>NSHealthUpdateUsageDescription</key>
