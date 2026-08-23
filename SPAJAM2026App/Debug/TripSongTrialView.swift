@@ -62,7 +62,8 @@ struct TripSongTrialView: View {
                     LabeledContent("生成時間", value: String(format: "%.1f秒", song.latency))
                     LabeledContent("音源", value: song.audioUnavailable ? "なし(Lyria失敗/未課金)" : "あり")
                     ForEach(song.lyricLines, id: \.self) { line in
-                        Text(line).font(.caption)
+                        Text("[\(String(format: "%.1f", line.start))s] \(line.text)")
+                            .font(.caption)
                     }
                     Button("再生する") { isPlayerPresented = true }
                     Button("作り直す", role: .destructive) { composer.reset() }

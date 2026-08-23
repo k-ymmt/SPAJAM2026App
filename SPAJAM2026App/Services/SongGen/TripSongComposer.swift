@@ -44,10 +44,16 @@ enum TripSongMood: String, CaseIterable, Identifiable {
 
 /// 完成した旅のうた
 struct TripSong {
+    /// 歌詞 1 行(start は曲頭からの秒。Lyria が歌唱タイミングを返す)
+    struct Line: Hashable {
+        var start: TimeInterval
+        var text: String
+    }
+
     /// 生成した MP3。Lyria 失敗時は nil(字幕のみ再生)
     var audioURL: URL?
-    /// 表示用の歌詞行([Verse] などのタグは除去済み)
-    var lyricLines: [String]
+    /// 表示用の歌詞行(歌唱タイミング付き)
+    var lyricLines: [Line]
     var mood: TripSongMood
     /// 生成にかかった秒数(検証用)
     var latency: TimeInterval
@@ -83,19 +89,22 @@ final class TripSongComposer {
             phase = .generating("ミザルが作曲中…(数十秒かかります)")
 
             // ② Lyria 3 Clip(失敗したら音源なしで進む)
-            var audioURL: URL?
+            var result: SongGenService.SongResult?
             do {
-                audioURL = try await SongGenService.generateSong(lyrics: lyrics, mood: resolvedMood)
+                result = try await SongGenService.generateSong(lyrics: lyrics, mood: resolvedMood)
             } catch {
                 NSLog("[Song] Lyria failed: \(error)")
             }
 
+            // 歌唱タイミングが取れればそれを、なければ 30 秒を等分した時間割にする
+            let lines = result?.timedLines ?? Self.evenlySpacedLines(from: lyrics)
+
             phase = .ready(TripSong(
-                audioURL: audioURL,
-                lyricLines: Self.displayLines(from: lyrics),
+                audioURL: result?.audioURL,
+                lyricLines: lines,
                 mood: resolvedMood,
                 latency: Date().timeIntervalSince(startedAt),
-                audioUnavailable: audioURL == nil
+                audioUnavailable: result == nil
             ))
         }
     }
@@ -148,12 +157,16 @@ final class TripSongComposer {
         }
     }
 
-    /// 表示用にセクションタグを除いた行を返す
-    private static func displayLines(from lyrics: String) -> [String] {
-        lyrics
+    /// タイミング情報がないとき: タグを除いた行を 30 秒に等間隔で割り付ける
+    private static func evenlySpacedLines(from lyrics: String) -> [TripSong.Line] {
+        let texts = lyrics
             .components(separatedBy: "\n")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty && !$0.hasPrefix("[") }
+        let interval = 30.0 / Double(max(1, texts.count))
+        return texts.enumerated().map { i, text in
+            TripSong.Line(start: Double(i) * interval, text: text)
+        }
     }
 }
 
@@ -162,8 +175,31 @@ final class TripSongComposer {
 enum SongGenService {
     enum SongError: Error { case noKey, badResponse, quotaOrAuth(String) }
 
-    /// 歌付き 30 秒クリップを生成して MP3 の一時ファイル URL を返す
-    static func generateSong(lyrics: String, mood: TripSongMood) async throws -> URL {
+    struct SongResult {
+        var audioURL: URL
+        /// Lyria が返す歌唱タイミング付き歌詞("[0.0:3.3] 行" 形式をパース)。無ければ nil
+        var timedLines: [TripSong.Line]?
+    }
+
+    /// 実測済みレスポンス形式:
+    /// { "status": "completed", "steps": [ { "content": [
+    ///     {"type":"text","text":"[0.0:3.3] 歌詞行\n..."} |
+    ///     {"type":"audio","mime_type":"audio/mpeg","data":"<base64>"} ] } ] }
+    private struct Response: Decodable {
+        struct Step: Decodable {
+            struct Content: Decodable {
+                let type: String
+                let text: String?
+                let data: String?
+            }
+            let content: [Content]?
+        }
+        let status: String?
+        let steps: [Step]?
+    }
+
+    /// 歌付き 30 秒クリップを生成して MP3 とタイミング付き歌詞を返す
+    static func generateSong(lyrics: String, mood: TripSongMood) async throws -> SongResult {
         guard let key = Secrets.googleAIStudioAPIKey else { throw SongError.noKey }
 
         var request = URLRequest(
@@ -187,10 +223,11 @@ enum SongGenService {
             throw SongError.quotaOrAuth("HTTP \(code)")
         }
 
-        // プレビュー API のためレスポンス形式に幅を持たせる:
-        // JSON ツリーから最大の base64 文字列を探して音声として解釈する
-        guard let json = try? JSONSerialization.jsonObject(with: data),
-              let audio = largestBase64Data(in: json), audio.count > 50_000 else {
+        let decoded = try JSONDecoder().decode(Response.self, from: data)
+        let contents = (decoded.steps ?? []).flatMap { $0.content ?? [] }
+
+        guard let audioBase64 = contents.first(where: { $0.type == "audio" })?.data,
+              let audio = Data(base64Encoded: audioBase64), audio.count > 10_000 else {
             NSLog("[Song] Lyria unexpected response: \(String(data: data.prefix(400), encoding: .utf8) ?? "")")
             throw SongError.badResponse
         }
@@ -198,23 +235,27 @@ enum SongGenService {
         let url = FileManager.default.temporaryDirectory
             .appending(path: "trip-song-\(UUID().uuidString).mp3")
         try audio.write(to: url)
-        return url
+
+        let timedLines = contents.first(where: { $0.type == "text" })?.text.flatMap(parseTimedLines)
+        return SongResult(audioURL: url, timedLines: timedLines)
     }
 
-    /// JSON 中で最も大きい base64 デコード可能文字列を返す
-    private static func largestBase64Data(in json: Any) -> Data? {
-        var best: Data?
-        func walk(_ node: Any) {
-            if let dict = node as? [String: Any] {
-                dict.values.forEach(walk)
-            } else if let array = node as? [Any] {
-                array.forEach(walk)
-            } else if let text = node as? String, text.count > 10_000,
-                      let data = Data(base64Encoded: text) {
-                if data.count > (best?.count ?? 0) { best = data }
+    /// "[0.0:3.3] 歌詞行" の並びをパースする
+    static func parseTimedLines(_ text: String) -> [TripSong.Line]? {
+        let lines: [TripSong.Line] = text
+            .components(separatedBy: "\n")
+            .compactMap { raw in
+                let line = raw.trimmingCharacters(in: .whitespaces)
+                guard line.hasPrefix("["),
+                      let close = line.firstIndex(of: "]"),
+                      let colon = line[..<close].firstIndex(of: ":"),
+                      let start = TimeInterval(line[line.index(after: line.startIndex)..<colon]) else {
+                    return nil
+                }
+                let body = line[line.index(after: close)...].trimmingCharacters(in: .whitespaces)
+                guard !body.isEmpty else { return nil }
+                return TripSong.Line(start: start, text: body)
             }
-        }
-        walk(json)
-        return best
+        return lines.isEmpty ? nil : lines
     }
 }

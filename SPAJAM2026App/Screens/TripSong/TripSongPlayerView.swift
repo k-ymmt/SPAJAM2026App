@@ -24,10 +24,6 @@ struct TripSongPlayerView: View {
         photos.isEmpty ? 6 : max(4, 30.0 / Double(photos.count))
     }
 
-    /// 1 行あたりの表示秒数(30 秒 ÷ 行数)
-    private var lyricInterval: TimeInterval {
-        max(2, 30.0 / Double(max(1, song.lyricLines.count)))
-    }
 
     var body: some View {
         ZStack {
@@ -61,7 +57,7 @@ struct TripSongPlayerView: View {
             VStack {
                 Spacer()
                 if song.lyricLines.indices.contains(lyricIndex) {
-                    Text(song.lyricLines[lyricIndex])
+                    Text(song.lyricLines[lyricIndex].text)
                         .font(.handTitle)
                         .foregroundStyle(.white)
                         .shadow(color: .white.opacity(0.6), radius: 0.5)
@@ -122,11 +118,17 @@ struct TripSongPlayerView: View {
                 zooming = true
             }
         }
-        // 歌詞切り替え(最後の行で止める)
+        // 歌詞切り替え(Lyria の歌唱タイミングに同期。最後の行で止める)
         Task {
-            while !Task.isCancelled, lyricIndex < song.lyricLines.count - 1 {
-                try? await Task.sleep(for: .seconds(lyricInterval))
-                withAnimation(.easeInOut(duration: 0.4)) { lyricIndex += 1 }
+            let lines = song.lyricLines
+            let startedAt = Date()
+            for (index, line) in lines.enumerated() where index > 0 {
+                let wait = line.start - Date().timeIntervalSince(startedAt)
+                if wait > 0 {
+                    try? await Task.sleep(for: .seconds(wait))
+                }
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeInOut(duration: 0.4)) { lyricIndex = index }
             }
         }
     }
